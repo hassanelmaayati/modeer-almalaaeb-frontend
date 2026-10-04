@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; line-height: 1.5; }
+button, input, select, textarea { font: inherit; }
+button, select { cursor: pointer; }
+button:disabled { cursor: default; }
+input, select, textarea { max-width: 100%; padding: .35rem; }
+button { padding: .3rem .6rem; }
+a { overflow-wrap: anywhere; }
+img { max-width: 100%; height: auto; }
+fieldset { margin: 0; padding: .75rem; }
+label { display: block; }
+textarea { min-height: 5rem; }
+[role="alert"] { font-weight: bold; }
