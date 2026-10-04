@@ -7,6 +7,8 @@ import ActivityCard from '../components/activities/ActivityCard';
 import RoomList from '../components/activities/RoomList';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import AsyncState from '../components/common/AsyncState';
+import { listen } from '../services/websocketService';
+import { roomEvent } from '../lib/helpers/live';
 
 export default function HomePage({ session = { user: null, loading: false } }) {
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -19,6 +21,7 @@ export default function HomePage({ session = { user: null, loading: false } }) {
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), [sportsRetry]);
   useEffect(() => startRequest((signal) => roomService.list({}, { signal }), setRooms), [roomsRetry]);
+  useEffect(() => listen(event => { if (event.type === 'connection.ready' || roomEvent(event)) setRoomsRetry(count => count + 1); }), []);
 
   return (
     <main>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useSearchParams } from 'react-router';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import AsyncState from '../components/common/AsyncState';
 import GroupCard from '../components/groups/GroupCard';
@@ -7,10 +7,13 @@ import GroupDialog from '../components/groups/GroupDialog';
 import CreateGroupDialog from '../components/groups/CreateGroupDialog';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import { filterGroups, loadGroups } from '../lib/helpers/groups';
+import { listen } from '../services/websocketService';
+import { roomEvent } from '../lib/helpers/live';
 
 export default function GroupsPage({ session }) {
   const { user, loading, error: sessionError } = session;
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [resource, setResource] = useState(emptyResource);
   const [revision, setRevision] = useState(0);
   const userId = user?.id;
@@ -18,11 +21,16 @@ export default function GroupsPage({ session }) {
   const reload = () => setRevision(value => value + 1);
   const [filters, setFilters] = useState({ view: 'joined', search: '', sportId: '' });
   const [creating, setCreating] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const groupId = Number(searchParams.get('group_id'));
+  const selectedGroupId = Number.isInteger(groupId) && groupId > 0 ? groupId : null;
+  const setSelectedGroupId = id => setSearchParams(id ? { group_id: id } : {});
   const [selectedRoom, setSelectedRoom] = useState(null);
   const { groups = [], sports = [], users = [] } = resource.data || {};
   const visible = user ? filterGroups(groups, user.id, filters) : [];
   const failedMemberships = groups.some((group) => group.membershipError);
+  useEffect(() => listen(event => {
+    if (event.type === 'connection.ready' || ['group.updated', 'membership.updated', 'friend.updated'].includes(event.type) || roomEvent(event)) setRevision(value => value + 1);
+  }), []);
 
   function openCreated(id) { setCreating(false); setSelectedGroupId(id); }
   function previewRoom(room) { setSelectedGroupId(null); setSelectedRoom(room); }

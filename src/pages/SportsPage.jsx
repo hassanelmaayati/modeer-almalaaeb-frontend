@@ -9,6 +9,8 @@ import RoomFilters from '../components/activities/RoomFilters';
 import RoomList from '../components/activities/RoomList';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import AsyncState from '../components/common/AsyncState';
+import { listen } from '../services/websocketService';
+import { roomEvent } from '../lib/helpers/live';
 
 export default function SportsPage({ session = { user: null, loading: false } }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,6 +30,7 @@ export default function SportsPage({ session = { user: null, loading: false } })
     if (problem) throw new Error(problem);
     return roomService.list(values, { signal });
   }, setRooms), [searchParams, roomsRetry]);
+  useEffect(() => listen(event => { if (event.type === 'connection.ready' || roomEvent(event)) setRoomsRetry(count => count + 1); }), []);
 
   return (
     <main>
