@@ -20,7 +20,9 @@ export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }
       <NavLink to="/" end>Home</NavLink>
       <NavLink to="/groups">Groups</NavLink>
       <NavLink to="/sports">Sports</NavLink>
+      <NavLink to="/cups">Cups</NavLink>
       {loading ? <span role="status">Restoring session…</span> : user ? <>
+        <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/notifications">Notifications{unreadCount > 0 && ` (${unreadCount})`}</NavLink>
         {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span role="status">Live updates reconnecting…</span>}
         <span>Signed in as {user.user_name}</span>
