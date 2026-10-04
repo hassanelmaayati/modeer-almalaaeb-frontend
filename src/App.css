@@ -1,0 +1,20 @@
+.site-header, main { max-width: 70rem; margin: auto; padding: 1rem; }
+.site-header nav, .actions, .filters { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.filter-fields, .button-row, .section-heading, .dialog-header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.page-section, .room-filters, .filters { margin-block: 1rem; }
+.dialog-header { justify-content: space-between; }
+.site-header { border-bottom: 1px solid #bbb; }
+.site-header nav { margin-top: .5rem; }
+.site-header nav a[aria-current="page"] { font-weight: bold; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.panel, .activity-card, .room-card, .group-card { padding: .75rem; border: 1px solid #bbb; margin-bottom: 1rem; }
+.form-field { margin-bottom: .75rem; }
+.form-field input, .form-field textarea, .form-field select { width: 100%; }
+.form-stack { max-width: 35rem; }
+.form-stack > * { margin-bottom: .75rem; }
+.dialog-panel { width: min(42rem, calc(100% - 2rem)); max-height: 90vh; overflow: auto; padding: 1rem; }
+.dialog-panel::backdrop { background: rgb(0 0 0 / 25%); }
+.member-list { padding-left: 1.25rem; }
+.member-list li { margin-bottom: .75rem; }
+.group-cover { max-height: 10rem; object-fit: contain; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
