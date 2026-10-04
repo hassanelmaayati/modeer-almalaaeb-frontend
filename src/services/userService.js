@@ -1,30 +1,13 @@
-// THIS IS A DEMO OF AN AUTHENTICATED FETCH REQUEST
+import { request } from '../lib/api/client.js';
+import { apiPath } from '../lib/api/path.js';
 
-const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}`;
+/** @returns {Promise<import('../lib/api/types.js').User[]>} */
+export const list = (options = {}) => request('/users', options);
+/** @returns {Promise<import('../lib/api/types.js').User>} */
+export const get = (userId, options = {}) => request(apiPath('users', userId), options);
+/** Fetch the authoritative public profile of the signed-in user. */
+export const getMe = (options = {}) => request('/users/me', { ...options, auth: 'required' });
+/** @param {import('../lib/api/types.js').UserUpdate} body */
+export const updateMe = (body, options = {}) => request('/users/me', { ...options, method: 'PUT', body, auth: 'required' });
 
-const currentUser = async () => {
-  try {
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    }
-    const res = await fetch(`${BASE_URL}/current_user`, config);
-
-    const data = await res.json();
-
-    if (data.detail) {
-      throw new Error(data.detail);
-    }
-
-    return data
-  } catch (err) {
-    console.log(err);
-    throw new Error(err, { cause: err });
-  }
-};
-
-
-export {
-  currentUser,
-};
+export default { list, get, getMe, updateMe };
