@@ -15,11 +15,11 @@ export function getRoomAdmissionState(room, members, user, now = Date.now()) {
   const start = parseDate(room.starts_at);
   const isHost = Boolean(user && String(room.host_id) === String(user.id));
   const atCutoff = !start || now >= start.getTime() - 15 * 60 * 1000;
-  const full = acceptedCount >= room.capacity;
+  const full = room.slots_left != null ? room.slots_left <= 0 : acceptedCount >= room.capacity;
   let message = '';
 
   if (isHost) message = "You're hosting this activity.";
-  else if (membership?.status === 'pending') message = 'Request pending. The host must approve your place.';
+  else if (membership?.status === 'pending') message = membership.requested === false ? 'You were invited. Accept or decline in the room lobby.' : 'Request pending. The host must approve your place.';
   else if (membership?.status === 'accepted') message = 'You are admitted to this activity.';
   else if (membership?.status === 'left') message = 'You left this activity. Another request is unavailable.';
   else if (membership?.status === 'declined') message = 'Your request was declined. Another request is unavailable.';
