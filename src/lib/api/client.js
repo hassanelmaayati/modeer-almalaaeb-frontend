@@ -1,6 +1,6 @@
 import { clearToken, getToken } from '../helpers/session.js';
 
-const API_BASE = (import.meta.env?.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/, '');
+export const API_BASE = (import.meta.env?.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/, '');
 
 /** HTTP or network failure, including FastAPI field validation errors. */
 export class ApiError extends Error {
