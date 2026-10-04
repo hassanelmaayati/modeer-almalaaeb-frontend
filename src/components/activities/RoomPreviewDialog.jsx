@@ -8,6 +8,8 @@ import { DIFFICULTIES, DISTRICTS, optionLabel } from '../../lib/helpers/filters'
 import { getRoomAdmissionState } from '../../lib/helpers/memberships';
 import AsyncState from '../common/AsyncState';
 import Dialog from '../common/Dialog';
+import { listen } from '../../services/websocketService';
+import { roomEvent } from '../../lib/helpers/live';
 
 export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClose, onUpdated, session = { user: null, loading: false } }) {
   const { user, loading: userLoading } = session;
@@ -35,6 +37,9 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
     const timer = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
+  useEffect(() => listen(event => {
+    if (event.type === 'connection.ready' || roomEvent(event, roomId)) setRetry(count => count + 1);
+  }), [roomId]);
 
   async function handleMembershipAction(action) {
     setSaving(true);
@@ -77,7 +82,7 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
           <dl className="activity-details">
             <div><dt>Area</dt><dd>{room.public_area} · {optionLabel(DISTRICTS, room.district)}</dd></div>
             <div><dt>Difficulty</dt><dd>{optionLabel(DIFFICULTIES, room.difficulty)}</dd></div>
-            <div><dt>Accepted players</dt><dd>{admission.acceptedCount} / {room.capacity}</dd></div>
+            <div><dt>{room.slots_left == null ? 'Accepted players' : 'Available places'}</dt><dd>{room.slots_left == null ? `${admission.acceptedCount} / ${room.capacity}` : `${room.slots_left} / ${room.capacity}`}</dd></div>
             <div><dt>Status</dt><dd>{room.status}</dd></div>
             {room.distance_km != null && <div><dt>Distance</dt><dd>{room.distance_km} km</dd></div>}
             {room.pace_notes && <div><dt>Pace</dt><dd>{room.pace_notes}</dd></div>}
@@ -91,6 +96,7 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
             <Link className="button" to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in to request a place</Link>
           </p>}
           <div className="button-row">
+            <Link className="button-secondary" to={`/rooms/${room.id}`}>Open room lobby</Link>
             {admission.canRequest && <button type="button" className="button" disabled={saving || userLoading} onClick={() => handleMembershipAction('request')}>{saving ? 'Sending request…' : 'Request to join'}</button>}
             {admission.canWithdraw && <button type="button" className="button-secondary" disabled={saving || userLoading} onClick={() => handleMembershipAction('withdraw')}>{saving ? 'Withdrawing…' : 'Withdraw request'}</button>}
             <button type="button" className="button-secondary" disabled={saving} onClick={reload}>Refresh activity</button>

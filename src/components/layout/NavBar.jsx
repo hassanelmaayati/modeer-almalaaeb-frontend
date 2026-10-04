@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 
-export default function NavBar({ session }) {
+export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }) {
   const { user, loading, signOut } = session;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +21,8 @@ export default function NavBar({ session }) {
       <NavLink to="/groups">Groups</NavLink>
       <NavLink to="/sports">Sports</NavLink>
       {loading ? <span role="status">Restoring session…</span> : user ? <>
+        <NavLink to="/notifications">Notifications{unreadCount > 0 && ` (${unreadCount})`}</NavLink>
+        {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span role="status">Live updates reconnecting…</span>}
         <span>Signed in as {user.user_name}</span>
         <button type="button" onClick={handleSignOut} disabled={pending}>{pending ? 'Signing out…' : 'Sign out'}</button>
       </> : <>
