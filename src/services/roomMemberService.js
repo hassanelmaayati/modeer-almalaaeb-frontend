@@ -1,8 +1,8 @@
 import { request as apiRequest } from '../lib/api/client.js';
 import { apiPath } from '../lib/api/path.js';
 
-/** Public membership list; count accepted rows for occupancy. */
-export const list = (roomId, options = {}) => apiRequest(apiPath('rooms', roomId, 'members'), options);
+/** Host sees all, accepted players the safe roster, others only their own row. */
+export const list = (roomId, options = {}) => apiRequest(apiPath('rooms', roomId, 'members'), { ...options, auth: 'optional' });
 /** Request self admission; always pending, including rooms with open admission policy. */
 export const request = (roomId, options = {}) => apiRequest(apiPath('rooms', roomId, 'members'), { ...options, method: 'POST', body: {}, auth: 'required' });
 /** Only host may invite another user. */
