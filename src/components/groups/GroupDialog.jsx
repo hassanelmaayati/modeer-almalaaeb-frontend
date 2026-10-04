@@ -9,6 +9,8 @@ import groupMemberService from '../../services/groupMemberService';
 import roomService from '../../services/roomService';
 import { inviteCandidates, playerName } from '../../lib/helpers/groups';
 import { findOwnMembership } from '../../lib/helpers/memberships';
+import { listen } from '../../services/websocketService';
+import { roomEvent } from '../../lib/helpers/live';
 
 export default function GroupDialog({ user, groupId, sports, users, onClose, onChanged, onPreviewRoom }) {
   const [editing, setEditing] = useState(false);
@@ -24,6 +26,10 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
     ]);
     return { group, members, rooms: rooms.filter((room) => room.group_id === groupId) };
   }, setResource), [groupId, revision]);
+  useEffect(() => listen(event => {
+    if (editing) return;
+    if (event.type === 'connection.ready' || roomEvent(event) || ['group.updated', 'membership.updated'].includes(event.type) && Number(event.group_id) === groupId) setRevision(value => value + 1);
+  }), [groupId, editing]);
   const { group, members = [], rooms = [] } = resource.data || {};
   const owner = group?.owner_id === user?.id;
   const ownMembership = findOwnMembership(members, user?.id);
@@ -65,7 +71,7 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
     <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
       {group && <>
         <p>{sports.find((sport) => sport.id === group.sports_id)?.name || 'Activity'}</p>
-        {editing ? <GroupForm group={group} sports={sports} onSubmit={save} onCancel={() => setEditing(false)} /> : <>
+        {editing ? <GroupForm group={group} sports={sports} onSubmit={save} onCancel={() => { setEditing(false); reload(); }} /> : <>
           {group.description && <p>{group.description}</p>}
           {group.photo_url && <img className="group-cover" src={group.photo_url} alt="" />}
           <p>Owner: {playerName(users, group.owner_id)}</p>
