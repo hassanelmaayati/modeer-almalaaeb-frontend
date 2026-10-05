@@ -11,6 +11,7 @@ import { roomPositions } from '../lib/helpers/rooms';
 import { playerName } from '../lib/helpers/groups';
 import { formatActivitySchedule, parseDate } from '../lib/helpers/date';
 import AsyncState from '../components/common/AsyncState';
+import LocationView from '../components/activities/LocationView';
 
 export default function RoomPage({ session }) {
   const { roomId } = useParams();
@@ -61,6 +62,7 @@ export default function RoomPage({ session }) {
         <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {room.district}</p></header>
         <section className="panel"><h2>Room lobby</h2><p>Status: {room.status}</p><p>{room.slots_left} available places of {room.capacity}; the host has a place.</p>
           {room.description && <p>{room.description}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
+          {room.venue_location && <><h3>Venue location</h3><LocationView location={room.venue_location} /></>}
           {admission.message && <p role="status">{admission.message}</p>}
           {!user && <Link to="/sign-in" state={{ from: location.pathname }}>Sign in to request a place</Link>}
           {admission.canRequest && <button type="button" disabled={pending} onClick={() => run(requestPlace, 'Request sent. Waiting for host approval.')}>Request to join</button>}

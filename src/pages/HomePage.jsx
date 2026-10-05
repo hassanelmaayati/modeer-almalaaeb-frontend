@@ -5,6 +5,7 @@ import sportService from '../services/sportService';
 import roomService from '../services/roomService';
 import ActivityCard from '../components/activities/ActivityCard';
 import RoomList from '../components/activities/RoomList';
+import CreateRoomAction from '../components/activities/CreateRoomAction';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import AsyncState from '../components/common/AsyncState';
 import { listen } from '../services/websocketService';
@@ -36,6 +37,7 @@ export default function HomePage({ session = { user: null, loading: false } }) {
           <p>Browse local activities, request a place and meet people who enjoy getting active.</p>
           <p className="muted">Hosts arrange venues separately. There is no checkout.</p>
           <Link className="button" to="/sports">Find an activity</Link>
+          <CreateRoomAction session={session} className="button-secondary" />
         </div>
         <div className="panel how-it-works">
           <h2>How it works</h2>
