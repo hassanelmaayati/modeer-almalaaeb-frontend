@@ -25,3 +25,18 @@ export const isOutdoorSport = sport => OUTDOOR_SPORTS.includes(sport?.name?.trim
 // Sports like football list fixed formats ({ key: '5v5', capacity: 10 }); others accept any capacity.
 export const sportFormats = sport => Array.isArray(sport?.formats) ? sport.formats : [];
 
+
+// A room must start between 1 hour and 14 days from now (same window as the backend)
+const MIN_LEAD_MS = 60 * 60 * 1000;
+const MAX_LEAD_MS = 14 * 24 * 60 * 60 * 1000;
+
+/** Returns a message for the first schedule problem, or '' when the times are fine. Takes ISO strings. */
+export function scheduleError(startsAt, endsAt, { checkStart = true, now = Date.now() } = {}) {
+  const start = Date.parse(startsAt);
+  const end = Date.parse(endsAt);
+  if (Number.isNaN(start) || Number.isNaN(end)) return 'Choose both a start and an end time';
+  if (checkStart && start < now + MIN_LEAD_MS) return 'The room must start at least 1 hour from now';
+  if (checkStart && start > now + MAX_LEAD_MS) return 'The room must start within 14 days from now';
+  if (end <= start) return 'The end time must be after the start time';
+  return '';
+}

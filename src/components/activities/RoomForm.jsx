@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Field from '../common/Field';
 import { DIFFICULTIES } from '../../lib/helpers/filters';
-import { ADMISSION_POLICIES, VISIBILITIES, isOutdoorSport, sportFormats } from '../../lib/helpers/rooms';
+import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
+import { ADMISSION_POLICIES, VISIBILITIES, isOutdoorSport, scheduleError, sportFormats } from '../../lib/helpers/rooms';
 
 export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const editing = !!room;
@@ -24,7 +25,17 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         if (!title) return setError('Title is Required');
         if (visibility === 'group' && !form.get('group_id')) return setError('Choose which group this room is for')
         
+        // Times are typed in Bahrain time and sent as UTC ISO strings (the backend rejects times without a timezone).
+        const startsAt = fromBahrainDateTimeInput(form.get('starts_at'));
+        const endsAt = fromBahrainDateTimeInput(form.get('ends_at'));
+        // On edit, an unchanged start is not re-checked: it may already be less than an hour away.
+        const startChanged = !editing || form.get('starts_at') !== toBahrainDateTimeInput(room.starts_at);
+        const problem = scheduleError(startsAt, endsAt, { checkStart: startChanged });
+        if (problem) return setError(problem);
+
         const body = {
+            starts_at: startsAt,
+            ends_at: endsAt,
             sport_id: Number(sportId),
             title,
             description: form.get('description').trim() || null,
@@ -69,6 +80,14 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
 
         <Field label="Title"><input name="title" maxLength={100} defaultValue={room?.title || ''} required /></Field>
         <Field label="Description"><textarea name="description" defaultValue={room?.description || ''} /></Field>
+
+        <Field label="Starts (Bahrain time)">
+            <input name="starts_at" type="datetime-local" defaultValue={toBahrainDateTimeInput(room?.starts_at)} required />
+        </Field>
+        <Field label="Ends (Bahrain time)">
+            <input name="ends_at" type="datetime-local" defaultValue={toBahrainDateTimeInput(room?.ends_at)} required />
+        </Field>
+        <p className="muted">Rooms can start between 1 hour and 14 days from now.</p>
 
         <Field label="Difficulty">
             <select name="difficulty" defaultValue={room?.difficulty || 'beginners'}>
