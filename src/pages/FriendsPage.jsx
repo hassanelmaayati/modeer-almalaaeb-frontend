@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import AsyncState from '../components/common/AsyncState';
 import AddFriend from '../components/friends/AddFriend';
@@ -29,6 +29,7 @@ export default function FriendsPage({ session }) {
   const [pendingId, setPendingId] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const searchRef = useRef(null);
   const userId = session.user?.id;
   const tab = friendTab(searchParams.get('tab'));
 
@@ -103,9 +104,16 @@ export default function FriendsPage({ session }) {
     {error && <p role="alert" className="error-message">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     <AsyncState loading={resource.loading} error={resource.error} onRetry={() => setRetry((count) => count + 1)}>
-      <AddFriend candidates={candidates} disabled={pendingId !== null} onAdd={addFriend} />
+      <AddFriend candidates={candidates} disabled={pendingId !== null} onAdd={addFriend} inputRef={searchRef} />
       <FriendTabs current={tab.value} groups={groups} />
-      <AsyncState isEmpty={items.length === 0} emptyTitle={tab.empty.title} emptyDescription={tab.empty.description}>
+      <AsyncState
+        isEmpty={items.length === 0}
+        emptyTitle={tab.empty.title}
+        emptyDescription={tab.empty.description}
+        emptyAction={tab.empty.action === 'find' && candidates.length > 0
+          ? <button type="button" className="button-secondary" onClick={() => searchRef.current?.focus()}>Find people to add</button>
+          : null}
+      >
         <ul className="friend-list">
           {items.map((friendship) => (
             <FriendRow

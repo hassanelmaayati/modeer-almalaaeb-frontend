@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { searchPeople } from '../../lib/helpers/friends';
 
-export default function AddFriend({ candidates, disabled, onAdd }) {
+export default function AddFriend({ candidates, disabled, onAdd, inputRef }) {
   const [query, setQuery] = useState('');
   const matches = searchPeople(candidates, query);
 
@@ -13,8 +13,9 @@ export default function AddFriend({ candidates, disabled, onAdd }) {
   return <section className="panel" aria-label="Add a friend">
     <h2>Add a friend</h2>
     <label className="form-field">Search people
-      <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Type a name" />
+      <input ref={inputRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Type a name" disabled={candidates.length === 0} />
     </label>
+    {candidates.length === 0 && <p className="muted">There is nobody left to add. People you already have a friend record with are not listed.</p>}
     {query.trim() && matches.length === 0 && <p className="muted">No people found. People you already have a friend record with are not listed.</p>}
     {matches.length > 0 && <ul className="friend-list">
       {matches.map((user) => (

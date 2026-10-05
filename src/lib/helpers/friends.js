@@ -68,7 +68,7 @@ export const FRIEND_TABS = [
     label: 'Friends',
     group: 'friends',
     rowLabel: 'Friend',
-    empty: { title: 'No friends yet', description: 'Add friends to message them directly.' },
+    empty: { title: 'No friends yet', description: 'Add friends to message them directly.', action: 'find' },
   },
   {
     value: 'requests',
@@ -82,7 +82,7 @@ export const FRIEND_TABS = [
     label: 'Sent',
     group: 'sent',
     rowLabel: 'Waiting for a reply',
-    empty: { title: 'No sent requests', description: 'Requests you send wait here until the other person answers.' },
+    empty: { title: 'No sent requests', description: 'Requests you send wait here until the other person answers.', action: 'find' },
   },
   {
     value: 'blocked',
