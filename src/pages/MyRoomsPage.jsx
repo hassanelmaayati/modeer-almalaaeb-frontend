@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import CreateRoomAction from '../components/activities/CreateRoomAction';
+import MyRoomCard from '../components/activities/MyRoomCard';
 import MyRoomFilters from '../components/activities/MyRoomFilters';
 import MyRoomViewTabs from '../components/activities/MyRoomViewTabs';
 import RoomList from '../components/activities/RoomList';
@@ -21,7 +22,6 @@ import { listen } from '../services/websocketService';
 const MAX_RELOAD_SIZE = 100;
 
 export default function MyRoomsPage({ session }) {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sports, setSports] = useState(() => emptyResource([]));
   const [list, setList] = useState(() => emptyResource(null));
@@ -94,7 +94,7 @@ export default function MyRoomsPage({ session }) {
       loading={!current && !list.error}
       error={list.error}
       onRetry={() => setRetry((count) => count + 1)}
-      onPreview={(room) => navigate(`/rooms/${room.id}`)}
+      Card={MyRoomCard}
       emptyTitle="No rooms found"
       emptyDescription="Try another view or clear the filters."
     />
