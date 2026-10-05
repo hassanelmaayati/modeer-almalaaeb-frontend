@@ -17,10 +17,13 @@ import CreateRoomPage from './pages/CreateRoomPage';
 import MyRoomsPage from './pages/MyRoomsPage';
 import JoinedRoomsPage from './pages/JoinedRoomsPage';
 import EditRoomPage from './pages/EditRoomPage';
+import FriendsPage from './pages/FriendsPage';
+import MessagesPage from './pages/MessagesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
 import { emptyResource, startRequest } from './lib/helpers/request';
+import useMessageUnread from './lib/helpers/useMessageUnread';
 import * as authService from './services/authService';
 import * as googleAuthService from './services/googleAuthService';
 import * as userService from './services/userService';
@@ -45,6 +48,7 @@ export default function App() {
   useEffect(() => startRequest(async signal => userId ? {
     ...await notificationService.list({ limit: 1 }, { signal }), userId,
   } : null, setNotifications), [userId, notificationRevision]);
+  const messageUnread = useMessageUnread(userId);
   const navigate = useNavigate();
   // Always land on home with replace after an account change, so Back can't reopen the previous account's page.
   const goHome = result => { navigate('/', { replace: true }); return result; };
@@ -59,7 +63,7 @@ export default function App() {
   };
   const accountKey = account.user?.id || 'guest';
   return <>
-    <NavBar session={session} liveStatus={liveStatus} unreadCount={userId && notifications.data?.userId === userId ? notifications.data.unread_count : 0} />
+    <NavBar session={session} liveStatus={liveStatus} messageUnread={messageUnread.total} unreadCount={userId && notifications.data?.userId === userId ? notifications.data.unread_count : 0} />
     <Routes>
       <Route path="/" element={<HomePage key={accountKey} session={session} />} />
 
@@ -69,6 +73,9 @@ export default function App() {
 
       <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/my-rooms" element={<RequireAuth session={session}><MyRoomsPage key={accountKey} session={session} /></RequireAuth>} />
+      <Route path="/messages" element={<RequireAuth session={session}><MessagesPage key={accountKey} session={session} unread={messageUnread} /></RequireAuth>} />
+      <Route path="/messages/:type/:id" element={<RequireAuth session={session}><MessagesPage key={accountKey} session={session} unread={messageUnread} /></RequireAuth>} />
+      <Route path="/friends" element={<RequireAuth session={session}><FriendsPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/joined-rooms" element={<RequireAuth session={session}><JoinedRoomsPage key={accountKey} /></RequireAuth>} />
       <Route path="/rooms/:roomId/edit" element={<RequireAuth session={session}><EditRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/rooms/:roomId" element={<RoomPage key={accountKey} session={session} />} />

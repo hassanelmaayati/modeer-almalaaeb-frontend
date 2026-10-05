@@ -9,9 +9,19 @@ export function personalRoomEvent(event) {
   return event.type === 'connection.ready' || event.type === 'room.updated';
 }
 
+export function friendEvent(event) {
+  return event.type === 'connection.ready' || event.type === 'friend.updated';
+}
+
 export function notificationDestination(notification) {
   const { type, id } = notification.target || {};
   if (!Number.isInteger(id) || id < 1) return null;
+  if (notification.kind?.startsWith('message.') && ['room', 'group', 'direct'].includes(type)) return `/messages/${type}/${id}`;
+  if (type === 'direct') {
+    if (notification.kind === 'friend.request') return '/friends?tab=requests';
+    if (notification.kind?.startsWith('friend.')) return '/friends';
+    return null;
+  }
   if (type === 'room') return `/rooms/${id}`;
   if (type === 'group') return `/groups?group_id=${id}`;
   return null;
