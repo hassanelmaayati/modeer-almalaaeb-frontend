@@ -3,6 +3,11 @@ import { apiPath } from '../lib/api/path.js';
 
 /** Public/open discovery, more than 15 minutes before start, ordered by start. @param {import('../lib/api/types.js').RoomQuery} query */
 export const list = (query = {}, options = {}) => request('/rooms', { ...options, query });
+/**
+ * @param {import('../lib/api/types.js').MyRoomsQuery} query
+ * @returns {Promise<import('../lib/api/types.js').MyRoomsPage>}
+ */
+export const listMine = (query = {}, options = {}) => request('/rooms/mine', { ...options, query, auth: 'required' });
 /** Optional bearer exposes exact venue to host. Nonpublic rooms are visible only to host. */
 export const get = (roomId, options = {}) => request(apiPath('rooms', roomId), { ...options, auth: 'optional' });
 /** @param {import('../lib/api/types.js').RoomInput} body */
@@ -12,4 +17,4 @@ export const update = (roomId, body, options = {}) => request(apiPath('rooms', r
 /** Cancel an open room with a required reason. */
 export const cancel = (roomId, reason, options = {}) => request(apiPath('rooms', roomId, 'cancel'), { ...options, method: 'POST', body: { reason }, auth: 'required' });
 
-export default { list, get, create, update, cancel };
+export default { list, listMine, get, create, update, cancel };

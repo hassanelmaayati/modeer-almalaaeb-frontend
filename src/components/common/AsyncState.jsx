@@ -1,4 +1,4 @@
-export default function AsyncState({ loading, error, isEmpty = false, emptyTitle = 'Nothing here yet', emptyDescription, onRetry, children }) {
+export default function AsyncState({ loading, error, isEmpty = false, emptyTitle = 'Nothing here yet', emptyDescription, emptyAction, onRetry, children }) {
   if (loading) return <p className="status-message" role="status">Loading…</p>;
   if (error) return (
     <div className="status-message error-message" role="alert">
@@ -10,6 +10,7 @@ export default function AsyncState({ loading, error, isEmpty = false, emptyTitle
     <div className="empty-state">
       <h3>{emptyTitle}</h3>
       {emptyDescription && <p>{emptyDescription}</p>}
+      {emptyAction}
     </div>
   );
   return children;

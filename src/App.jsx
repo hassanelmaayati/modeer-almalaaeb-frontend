@@ -14,6 +14,7 @@ import GroupsPage from './pages/GroupsPage';
 import SportsPage from './pages/SportsPage';
 import RoomPage from './pages/RoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
+import MyRoomsPage from './pages/MyRoomsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
@@ -65,6 +66,7 @@ export default function App() {
       <Route path="/sports" element={<SportsPage key={accountKey} session={session} />} />
 
       <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} session={session} /></RequireAuth>} />
+      <Route path="/my-rooms" element={<RequireAuth session={session}><MyRoomsPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/rooms/:roomId" element={<RoomPage key={accountKey} session={session} />} />
 
       <Route path="/notifications" element={<NotificationsPage key={accountKey} session={session} />} />

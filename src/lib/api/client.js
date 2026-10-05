@@ -47,8 +47,11 @@ export async function request(path, { method = 'GET', body, query, auth = 'none'
   }
   const parameters = new URLSearchParams();
   for (const [key, value] of Object.entries(query || {})) {
-    if (value === undefined || value === null || value === '') continue;
-    parameters.set(key, value instanceof Date ? value.toISOString() : String(value));
+    // An array repeats the parameter (?status=a&status=b), as FastAPI expects for list parameters.
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item === undefined || item === null || item === '') continue;
+      parameters.append(key, item instanceof Date ? item.toISOString() : String(item));
+    }
   }
   const suffix = parameters.size ? `?${parameters}` : '';
   const headers = { Accept: 'application/json' };

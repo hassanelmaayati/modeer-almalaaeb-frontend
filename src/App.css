@@ -8,6 +8,7 @@
 .site-header nav a[aria-current="page"] { font-weight: bold; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
 .panel, .activity-card, .room-card, .group-card { padding: .75rem; border: 1px solid #bbb; margin-bottom: 1rem; }
+.room-card.is-muted { opacity: .65; }
 .form-field { margin-bottom: .75rem; }
 .form-field input, .form-field textarea, .form-field select { width: 100%; }
 .form-stack { max-width: 35rem; }
