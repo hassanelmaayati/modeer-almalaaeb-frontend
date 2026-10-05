@@ -60,7 +60,7 @@ export default function App() {
 
       <Route path="/sports" element={<SportsPage key={accountKey} session={session} />} />
 
-      <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} /></RequireAuth>} />
+      <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/rooms/:roomId" element={<RoomPage key={accountKey} session={session} />} />
 
       <Route path="/notifications" element={<NotificationsPage key={accountKey} session={session} />} />
@@ -74,7 +74,7 @@ export default function App() {
 
       <Route path="/sign-in" element={<SignInPage session={session} />} />
       <Route path="/sign-up" element={<SignUpPage session={session} />} />
-      
+
       <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
     </Routes>
   </>;
