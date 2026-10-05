@@ -29,7 +29,10 @@ export default function MyRoomCard({ room, sportName }) {
         <span>{places}</span>
       </div>
       {room.description && <p className="card-description">{room.description}</p>}
-      <Link className="button-secondary" to={`/rooms/${room.id}`}>Manage</Link>
+      <div className="button-row">
+        <Link className="button-secondary" to={`/rooms/${room.id}`}>Manage</Link>
+        {room.status === 'open' && <Link className="button-secondary" to={`/rooms/${room.id}/edit`}>Edit</Link>}
+      </div>
     </article>
   );
 }

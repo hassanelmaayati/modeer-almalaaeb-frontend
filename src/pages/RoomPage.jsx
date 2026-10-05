@@ -103,6 +103,7 @@ export default function RoomPage({ session }) {
           {own.position && !positions.some(position => position.value === own.position) && <option value={own.position}>{own.position}</option>}
         </select></label><button disabled={pending}>Save place</button></form></section>}
         {admission.isHost && room.status === 'open' && <section className="panel"><h2>Host controls</h2>
+          <Link className="button-secondary" to={`/rooms/${roomId}/edit`}>Edit room</Link>
           <form className="form-stack" onSubmit={event => { event.preventDefault(); const id = Number(new FormData(event.currentTarget).get('user_id')); run(() => roomMemberService.invite(roomId, id), 'Invitation sent.'); }}>
             <label>Invite player<select name="user_id" required defaultValue=""><option value="" disabled>Choose a player</option>{candidates.map(player => <option value={player.id} key={player.id}>{player.user_name}</option>)}</select></label>
             <button disabled={pending || admission.atCutoff || admission.full || !candidates.length}>Invite player</button>
