@@ -165,3 +165,38 @@ export function threadErrorMessage(error) {
   if (error?.status === 404) return 'This chat no longer exists.';
   return error?.message || 'Could not load the messages. Please try again.';
 }
+
+export const MAX_MESSAGE_LENGTH = 2000;
+
+export function validateMessageBody(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return 'Write a message first.';
+  if (trimmed.length > MAX_MESSAGE_LENGTH) return `Messages can be up to ${MAX_MESSAGE_LENGTH} characters.`;
+  return '';
+}
+
+export function sendBlockReason(failure, type) {
+  if (failure?.status === 409 && /cancelled/i.test(failure.message || '')) {
+    return "This room was cancelled, so you can't send messages.";
+  }
+  if (failure?.status !== 403) return '';
+  if (type === 'direct') {
+    if (/blocked/i.test(failure.message || '')) return 'Messaging is blocked between you and this person.';
+    if (/friend/i.test(failure.message || '')) return 'You can only message accepted friends.';
+    return "You can't send messages to this person.";
+  }
+  return "You no longer have access to this chat, so you can't send messages.";
+}
+
+export function mergeById(existing, incoming) {
+  const merged = new Map(existing.map((message) => [message.id, message]));
+  for (const message of incoming) merged.set(message.id, message);
+  return [...merged.values()].sort((first, second) => first.id - second.id);
+}
+
+export function receiveMessage({ messages, pending }, message) {
+  return {
+    messages: mergeById(messages, [message]),
+    pending: pending.filter((item) => item.id !== message.client_request_id),
+  };
+}

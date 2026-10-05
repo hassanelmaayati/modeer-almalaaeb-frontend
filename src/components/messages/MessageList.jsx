@@ -2,12 +2,25 @@ import { useLayoutEffect, useRef } from 'react';
 import { formatDayLabel, groupMessagesByDay } from '../../lib/helpers/messages';
 import MessageBubble from './MessageBubble';
 
-export default function MessageList({ messages, viewerId, chatType, nameOf, hasMore, loadingEarlier, earlierError, onLoadEarlier }) {
+export default function MessageList({
+  messages,
+  pending = [],
+  viewerId,
+  chatType,
+  nameOf,
+  hasMore,
+  loadingEarlier,
+  earlierError,
+  onLoadEarlier,
+  onRetrySend,
+  onDiscard,
+}) {
   const containerRef = useRef(null);
   const distance = useRef(0);
   const seen = useRef({ first: undefined, last: undefined });
   const firstId = messages[0]?.id;
   const lastId = messages.at(-1)?.id;
+  const pendingCount = pending.length;
 
   useLayoutEffect(() => {
     const element = containerRef.current;
@@ -16,7 +29,7 @@ export default function MessageList({ messages, viewerId, chatType, nameOf, hasM
     element.scrollTop = prepended ? element.scrollHeight - distance.current : element.scrollHeight;
     seen.current = { first: firstId, last: lastId };
     distance.current = element.scrollHeight - element.scrollTop;
-  }, [firstId, lastId]);
+  }, [firstId, lastId, pendingCount]);
 
   function remember() {
     const element = containerRef.current;
@@ -49,5 +62,20 @@ export default function MessageList({ messages, viewerId, chatType, nameOf, hasM
         </ul>
       </section>;
     })}
+    {pending.length > 0 && <ul className="message-list pending-list" aria-label="Sending">
+      {pending.map((item) => (
+        <li key={item.id} className={item.status === 'failed' ? 'message is-own is-pending is-failed' : 'message is-own is-pending'}>
+          <span className="message-body">{item.body}</span>
+          <span className="message-time">{item.status === 'failed' ? 'Failed to send' : 'Sending…'}</span>
+          {item.status === 'failed' && <>
+            {item.error && <span role="alert" className="error-message">{item.error}</span>}
+            <span className="button-row">
+              {!item.blocked && <button type="button" className="button-secondary" onClick={() => onRetrySend(item.id)}>Retry</button>}
+              <button type="button" className="button-secondary" onClick={() => onDiscard(item.id)}>Discard</button>
+            </span>
+          </>}
+        </li>
+      ))}
+    </ul>}
   </div>;
 }

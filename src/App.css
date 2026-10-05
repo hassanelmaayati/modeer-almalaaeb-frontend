@@ -61,3 +61,12 @@
 .message-body { white-space: pre-wrap; overflow-wrap: anywhere; }
 .message-time { align-self: flex-end; font-size: .7rem; color: #666; }
 .message-system { align-self: center; max-width: 85%; text-align: center; background: #f4f4f4; font-style: italic; border-style: dashed; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.chat-composer { border-top: 1px solid #bbb; padding: .5rem .75rem; display: flex; flex-direction: column; gap: .35rem; }
+.chat-composer.is-disabled { background: #f4f4f4; }
+.chat-composer textarea { width: 100%; resize: vertical; max-height: 10rem; box-sizing: border-box; }
+.chat-compose-actions { display: flex; justify-content: space-between; align-items: center; }
+.chat-counter { font-size: .8rem; }
+.chat-counter.is-over { color: #b00020; font-weight: bold; }
+.message.is-pending { opacity: .75; }
+.message.is-failed { border-color: #b00020; }
