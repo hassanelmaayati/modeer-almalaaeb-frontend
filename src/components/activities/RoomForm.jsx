@@ -14,6 +14,9 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const [sportId, setSportId] = useState(room ? String(room.sport_id) : '');
     const [visibility, setVisibility] = useState(room?.visibility || 'public');
     const [district, setDistrict] = useState(room?.district || '');
+    // Capacity and area depend on the sport and governorate, so they are reset in the change handlers below.
+    const [capacity, setCapacity] = useState(room ? String(room.capacity) : '');
+    const [area, setArea] = useState(room?.area || '');
     const [pin, setPin] = useState(room?.venue_location || null);
 
     const sport = sports.find(item => String(item.id) === sportId);
@@ -41,6 +44,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             sport_id: sportId,
             title: form.get('title'),
             description: form.get('description'),
+            notes: form.get('notes'),
             difficulty: form.get('difficulty'),
             starts_at: startsAt,
             ends_at: endsAt,
@@ -81,7 +85,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         {error && <p role="alert">{error}</p>}
 
         <Field label="Sport" error={fieldErrors.sport_id}>
-            <select name="sport_id" value={sportId} onChange={event => setSportId(event.target.value)} required>
+            <select name="sport_id" value={sportId} onChange={event => { setSportId(event.target.value); setCapacity(''); }} required>
                 <option value="" disabled>Select a sport</option>
                 {sports.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
@@ -104,36 +108,35 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             </select>
         </Field>
 
-        {/* The key resets this field when the sport changes, so an old capacity never lingers. */}
-        <Field key={sportId} label={formats.length ? 'Format' : 'Capacity (players)'} error={fieldErrors.capacity}>
+        <Field label={formats.length ? 'Format' : 'Capacity (players)'} error={fieldErrors.capacity}>
             {formats.length
-                ? <select name="capacity" defaultValue={room?.capacity || ''} required>
+                ? <select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} required>
                     <option value="" disabled>Select a format</option>
                     {formats.map(format => <option key={format.key} value={format.capacity}>{format.key} ({format.capacity} players)</option>)}
                 </select>
-                : <input name="capacity" type="number" min="1" step="1" defaultValue={room?.capacity || ''} required />}
+                : <input name="capacity" type="number" min="1" step="1" value={capacity} onChange={event => setCapacity(event.target.value)} required />}
         </Field>
 
         <Field label="Governorate" error={fieldErrors.district}>
-            <select name="district" value={district} onChange={event => setDistrict(event.target.value)} required>
+            <select name="district" value={district} onChange={event => { setDistrict(event.target.value); setArea(''); }} required>
                 <option value="" disabled>Select a governorate</option>
                 {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
             </select>
         </Field>
 
-        <Field key={district} label="Area" error={fieldErrors.area}>
-            <select name="area" defaultValue={district === room?.district ? room.area : ''} disabled={!district} required>
+        <Field label="Area" error={fieldErrors.area}>
+            <select name="area" value={area} onChange={event => setArea(event.target.value)} disabled={!district} required>
                 <option value="" disabled>{district ? 'Select an area' : 'Choose a governorate first'}</option>
                 {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
             </select>
         </Field>
 
         <fieldset>
-            <legend>Exact venue (private)</legend>
+            <legend>Activity Location (private)</legend>
             <p className="muted">The area above is public. The pin and notes below are shown only to you and the players you admit.</p>
             <LocationPicker value={pin} onChange={setPin} canClear={!room?.venue_location} />
             {fieldErrors.venue_location && <p role="alert" className="field-error">{fieldErrors.venue_location}</p>}
-            <Field label="Venue notes (optional)" error={fieldErrors.venue_notes}>
+            <Field label="Location notes (optional)" error={fieldErrors.venue_notes}>
                 <textarea name="venue_notes" placeholder="Court number, parking, meeting point…" defaultValue={room?.venue_notes || ''} />
             </Field>
         </fieldset>
@@ -163,6 +166,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             <Field label="Pace notes" error={fieldErrors.pace_notes}><input name="pace_notes" defaultValue={room?.pace_notes || ''} /></Field>
             <Field label="Route notes" error={fieldErrors.route_notes}><textarea name="route_notes" defaultValue={room?.route_notes || ''} /></Field>
         </>}
+
+        <Field label="Notes" error={fieldErrors.notes}>
+            <textarea name="notes" placeholder="Anything players should know: what to bring, rules…" defaultValue={room?.notes || ''} />
+        </Field>
 
         <div className="actions">
             <button disabled={pending || !sportId}>{pending ? 'Saving…' : editing ? 'Save changes' : 'Create room'}</button>
