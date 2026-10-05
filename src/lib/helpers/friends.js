@@ -61,3 +61,40 @@ export const FRIEND_ACTIONS = {
   unfriend: { status: 'left' },
   cancel: { status: 'left' },
 };
+
+export const FRIEND_TABS = [
+  {
+    value: 'friends',
+    label: 'Friends',
+    group: 'friends',
+    rowLabel: 'Friend',
+    empty: { title: 'No friends yet', description: 'Add friends to message them directly.' },
+  },
+  {
+    value: 'requests',
+    label: 'Requests',
+    group: 'received',
+    rowLabel: 'Wants to be your friend',
+    empty: { title: 'No friend requests', description: 'When someone sends you a request, it will show up here.' },
+  },
+  {
+    value: 'sent',
+    label: 'Sent',
+    group: 'sent',
+    rowLabel: 'Waiting for a reply',
+    empty: { title: 'No sent requests', description: 'Requests you send wait here until the other person answers.' },
+  },
+  {
+    value: 'blocked',
+    label: 'Blocked',
+    group: 'blocked',
+    rowLabel: 'Blocked',
+    empty: { title: 'No blocked people', description: "People you block can't message you." },
+  },
+];
+
+export const DEFAULT_FRIEND_TAB = 'friends';
+
+export function friendTab(value) {
+  return FRIEND_TABS.find((tab) => tab.value === value) || FRIEND_TABS[0];
+}
