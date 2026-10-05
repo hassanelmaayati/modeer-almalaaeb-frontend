@@ -191,3 +191,34 @@ export function toMyRoomsQuery(filters, { limit = MY_ROOMS_PAGE_SIZE, offset = 0
   delete query.view;
   return { ...query, limit, offset };
 }
+
+export function myRoomsEmptyState(filters) {
+  const refined = Object.keys(normalizeMyRoomFilters(filters)).some((key) => key !== 'view');
+  if (refined) {
+    return {
+      title: 'No rooms match these filters',
+      description: 'Try different filters, or clear them to go back to your active rooms.',
+      action: 'clear',
+    };
+  }
+  const { view } = resolveMyRoomFilters(filters);
+  if (view === 'history') {
+    return {
+      title: 'No room history yet',
+      description: 'Rooms you host that have been completed or cancelled will show up here.',
+      action: null,
+    };
+  }
+  if (view === 'all') {
+    return {
+      title: "You haven't hosted any rooms yet",
+      description: 'Create your first room and let people know where to meet.',
+      action: 'host',
+    };
+  }
+  return {
+    title: "You aren't hosting any active rooms",
+    description: 'Host a room to get people together. Rooms that have ended are under History.',
+    action: 'host',
+  };
+}

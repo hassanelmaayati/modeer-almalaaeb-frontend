@@ -9,6 +9,7 @@ import {
   getMyRoomFilters,
   MY_ROOMS_PAGE_SIZE,
   myRoomFiltersToSearchParams,
+  myRoomsEmptyState,
   resolveMyRoomFilters,
   toMyRoomsQuery,
   validateMyRoomFilters,
@@ -34,6 +35,7 @@ export default function MyRoomsPage({ session }) {
   const filters = getMyRoomFilters(searchParams);
   const resolved = resolveMyRoomFilters(filters);
   const current = list.data?.key === searchKey ? list.data : null;
+  const empty = myRoomsEmptyState(filters);
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), []);
 
@@ -95,8 +97,13 @@ export default function MyRoomsPage({ session }) {
       error={list.error}
       onRetry={() => setRetry((count) => count + 1)}
       Card={MyRoomCard}
-      emptyTitle="No rooms found"
-      emptyDescription="Try another view or clear the filters."
+      emptyTitle={empty.title}
+      emptyDescription={empty.description}
+      emptyAction={empty.action === 'host'
+        ? <CreateRoomAction session={session} className="button" />
+        : empty.action === 'clear'
+          ? <button type="button" className="button-secondary" onClick={() => setSearchParams({})}>Clear filters</button>
+          : null}
     />
     {current && current.total > 0 && <p className="muted" role="status">Showing {current.items.length} of {current.total} rooms</p>}
     {current?.hasMore && <button type="button" className="button-secondary" disabled={more.pending} onClick={loadMore}>
