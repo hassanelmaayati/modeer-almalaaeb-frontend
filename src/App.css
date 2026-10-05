@@ -73,3 +73,5 @@
 .message.is-pending { opacity: .75; }
 .message.is-failed { border-color: #b00020; }
 .chat-banner { margin: 0; padding: .5rem .75rem; background: #fdecea; border-bottom: 1px solid #f5c2c0; color: #7a1f1a; }
+.unread-badge { margin-left: auto; flex-shrink: 0; min-width: 1.4rem; padding: 0 .4rem; border-radius: 1rem; background: #1a7f4b; color: #fff; font-size: .8rem; font-weight: bold; text-align: center; line-height: 1.4rem; }
+.conversation-row.has-unread .conversation-title, .conversation-row.has-unread .conversation-preview { font-weight: bold; color: inherit; }

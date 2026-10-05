@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
+import { formatUnreadCount } from '../../lib/helpers/messages';
 
-export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }) {
+export default function NavBar({ session, unreadCount = 0, messageUnread = 0, liveStatus = 'idle' }) {
   const { user, loading, signOut } = session;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +27,7 @@ export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }
         <NavLink to="/my-rooms">My rooms</NavLink>
         <NavLink to="/joined-rooms">Joined rooms</NavLink>
         <NavLink to="/friends">Friends</NavLink>
-        <NavLink to="/messages">Messages</NavLink>
+        <NavLink to="/messages">Messages{messageUnread > 0 && ` (${formatUnreadCount(messageUnread)})`}</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/notifications">Notifications{unreadCount > 0 && ` (${unreadCount})`}</NavLink>
         {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span role="status">Live updates reconnecting…</span>}

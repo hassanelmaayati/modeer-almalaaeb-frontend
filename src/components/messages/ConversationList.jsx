@@ -5,7 +5,7 @@ import { CONVERSATION_FILTERS, conversationKey, filterConversations } from '../.
 import { playerName } from '../../lib/helpers/groups';
 import ConversationRow from './ConversationRow';
 
-export default function ConversationList({ viewerId, activeKey, conversations, users, loading, error, reload }) {
+export default function ConversationList({ viewerId, activeKey, conversations, users, loading, error, reload, unreadCounts = {} }) {
   const [type, setType] = useState('all');
   const [query, setQuery] = useState('');
   const visible = filterConversations(conversations, { type, query });
@@ -37,6 +37,7 @@ export default function ConversationList({ viewerId, activeKey, conversations, u
             key={conversationKey(conversation)}
             conversation={conversation}
             active={conversationKey(conversation) === activeKey}
+            unread={unreadCounts[conversationKey(conversation)] ?? 0}
             viewerId={viewerId}
             nameOf={nameOf}
           />

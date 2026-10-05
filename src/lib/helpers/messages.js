@@ -209,3 +209,26 @@ export function roomCancellation(room, messages) {
   const fromMessage = announcement ? announcement.body.replace(/^room cancelled:?\s*/i, '').trim() : '';
   return { reason: room?.cancellation_reason || fromMessage, cancelledAt: room?.cancelled_at || announcement?.created_at || null };
 }
+
+export const NO_UNREAD = { total: 0, counts: {}, ids: {} };
+
+export function isMessageNotification(notification) {
+  const target = notification?.target;
+  return Boolean(notification?.kind?.startsWith('message.')) && CHAT_TYPES.includes(target?.type) && Number.isInteger(target?.id) && target.id > 0;
+}
+
+export function summarizeUnread(notifications) {
+  const summary = { total: 0, counts: {}, ids: {} };
+  for (const notification of notifications) {
+    if (notification.read_at || !isMessageNotification(notification)) continue;
+    const key = chatKey(notification.target.type, notification.target.id);
+    summary.total += 1;
+    summary.counts[key] = (summary.counts[key] ?? 0) + 1;
+    (summary.ids[key] ??= []).push(notification.id);
+  }
+  return summary;
+}
+
+export function formatUnreadCount(count) {
+  return count > 99 ? '99+' : String(count);
+}

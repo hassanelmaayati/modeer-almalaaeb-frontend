@@ -3,15 +3,16 @@ import {
   CONVERSATION_TYPE_BADGES,
   conversationPath,
   formatConversationTime,
+  formatUnreadCount,
   messagePreview,
 } from '../../lib/helpers/messages';
 
-export default function ConversationRow({ conversation, active, viewerId, nameOf }) {
+export default function ConversationRow({ conversation, active, viewerId, nameOf, unread = 0 }) {
   const preview = messagePreview(conversation, viewerId, nameOf);
   const time = conversation.last_message ? formatConversationTime(conversation.last_message.created_at) : '';
 
   return <li>
-    <Link className={active ? 'conversation-row is-active' : 'conversation-row'} to={conversationPath(conversation)} aria-current={active ? 'page' : undefined}>
+    <Link className={[active && 'is-active', unread > 0 && 'has-unread', 'conversation-row'].filter(Boolean).join(' ')} to={conversationPath(conversation)} aria-current={active ? 'page' : undefined}>
       <span className="avatar" aria-hidden="true">{conversation.title.charAt(0).toUpperCase()}</span>
       <span className="conversation-main">
         <span className="conversation-top">
@@ -23,6 +24,7 @@ export default function ConversationRow({ conversation, active, viewerId, nameOf
           <span className={preview?.system ? 'conversation-preview is-system' : 'conversation-preview'}>
             {preview ? preview.text : 'No messages yet'}
           </span>
+          {unread > 0 && <span className="unread-badge" aria-label={`${unread} unread`}>{formatUnreadCount(unread)}</span>}
         </span>
       </span>
     </Link>
