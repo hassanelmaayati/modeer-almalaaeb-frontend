@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
-import { CHAT_TYPE_LABELS } from '../../lib/helpers/messages';
+import { chatKey } from '../../lib/helpers/messages';
+import ChatThread from './ChatThread';
 
-export default function ChatPane({ target }) {
+export default function ChatPane({ target, title, viewerId, nameOf }) {
   if (!target) {
     return <div className="chat-empty">
       <h2>Messages</h2>
@@ -17,10 +18,5 @@ export default function ChatPane({ target }) {
     </div>;
   }
 
-  return <div className="chat-thread">
-    <header className="chat-header">
-      <Link className="chat-back" to="/messages">Back to chats</Link>
-      <h2>{CHAT_TYPE_LABELS[target.type]} {target.id}</h2>
-    </header>
-  </div>;
+  return <ChatThread key={chatKey(target.type, target.id)} target={target} title={title} viewerId={viewerId} nameOf={nameOf} />;
 }

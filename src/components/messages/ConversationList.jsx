@@ -3,11 +3,9 @@ import { Link } from 'react-router';
 import AsyncState from '../common/AsyncState';
 import { CONVERSATION_FILTERS, conversationKey, filterConversations } from '../../lib/helpers/messages';
 import { playerName } from '../../lib/helpers/groups';
-import useConversations from '../../lib/helpers/useConversations';
 import ConversationRow from './ConversationRow';
 
-export default function ConversationList({ viewerId, activeKey }) {
-  const { conversations, users, loading, error, reload } = useConversations(viewerId);
+export default function ConversationList({ viewerId, activeKey, conversations, users, loading, error, reload }) {
   const [type, setType] = useState('all');
   const [query, setQuery] = useState('');
   const visible = filterConversations(conversations, { type, query });

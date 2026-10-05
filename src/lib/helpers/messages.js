@@ -103,3 +103,65 @@ export function applyMessage(conversations, message, viewerId) {
   const updated = { ...conversations[index], last_message: message };
   return sortConversations([...conversations.slice(0, index), updated, ...conversations.slice(index + 1)]);
 }
+
+export const THREAD_PAGE_SIZE = 50;
+
+const toDate = (value) => {
+  if (!value) return null;
+  const date = new Date(/(Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+export function formatMessageTime(value, timeZone = 'Asia/Bahrain') {
+  const date = toDate(value);
+  if (!date) return '';
+  return new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+}
+
+export function messageDay(value, timeZone = 'Asia/Bahrain') {
+  const date = toDate(value);
+  return date ? dayKey(date, timeZone) : '';
+}
+
+export function formatDayLabel(day, now = new Date(), timeZone = 'Asia/Bahrain') {
+  if (!day) return '';
+  const today = dayKey(now, timeZone);
+  const dayMs = 24 * 60 * 60 * 1000;
+  const days = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / dayMs);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  const date = new Date(`${day}T12:00:00Z`);
+  if (days > 1 && days < 7) return new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'long' }).format(date);
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+}
+
+export function groupMessagesByDay(messages) {
+  const groups = [];
+  for (const message of messages) {
+    const day = messageDay(message.created_at);
+    const last = groups.at(-1);
+    if (last && last.day === day) last.messages.push(message);
+    else groups.push({ day, messages: [message] });
+  }
+  return groups;
+}
+
+export function chatDestination(target) {
+  if (target.type === 'room') return { path: `/rooms/${target.id}`, label: 'View room' };
+  if (target.type === 'group') return { path: `/groups?group_id=${target.id}`, label: 'View group' };
+  return { path: `/users/${target.id}`, label: 'View profile' };
+}
+
+export function chatTitle(target, conversations, nameOf) {
+  const key = chatKey(target.type, target.id);
+  const found = conversations.find((conversation) => conversationKey(conversation) === key);
+  if (found) return found.title;
+  if (target.type === 'direct') return nameOf(target.id);
+  return `${CHAT_TYPE_LABELS[target.type]} ${target.id}`;
+}
+
+export function threadErrorMessage(error) {
+  if (error?.status === 403) return "You don't have access to this chat.";
+  if (error?.status === 404) return 'This chat no longer exists.';
+  return error?.message || 'Could not load the messages. Please try again.';
+}
