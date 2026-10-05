@@ -1,11 +1,10 @@
 import { Link } from 'react-router';
-import { MY_ROOM_VIEWS, myRoomFiltersToSearchParams, resolveMyRoomFilters, withMyRoomView } from '../../lib/helpers/filters';
 
-export default function MyRoomViewTabs({ filters }) {
-  const current = resolveMyRoomFilters(filters).view;
+export default function RoomViewTabs({ filterSet, filters }) {
+  const current = filterSet.resolve(filters).view;
   return <nav aria-label="Room views" className="button-row">
-    {MY_ROOM_VIEWS.map(({ value, label }) => {
-      const search = myRoomFiltersToSearchParams(withMyRoomView(filters, value)).toString();
+    {filterSet.views.map(({ value, label }) => {
+      const search = filterSet.toSearchParams(filterSet.withView(filters, value)).toString();
       const active = value === current;
       return <Link
         key={value}
