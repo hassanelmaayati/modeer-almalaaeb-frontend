@@ -1,5 +1,30 @@
 # Modeer Almalaaeb
 
+## Vercel deployment
+
+Import this repository in Hassan's Vercel account and select the Hobby plan. Use
+the `main` production branch and Node.js 24.x; `vercel.json` sets the Vite build,
+`dist` output and SPA rewrites so refreshing `/groups`, `/sports` and other routes
+works.
+
+Keep **Enable access to System Environment Variables** enabled in Vercel so the
+build can detect Vercel and reject a missing or non-HTTPS production API URL.
+
+Set `VITE_API_BASE_URL` in Vercel's **Production** environment to
+`https://YOUR-BACKEND.onrender.com/api/v1` before deploying. This public URL also
+sets the secure WebSocket destination; no separate WebSocket service is needed.
+Vite's `/api` proxy is for local development only. Never add database credentials
+or the backend JWT secret to frontend environment variables.
+
+After Vercel assigns the production URL, set that exact origin (without a trailing
+slash) as `CORS_ORIGINS` in Render and redeploy the backend. Preview deployments
+need their own explicitly allowed origins to call it. Leave `VITE_GOOGLE_CLIENT_ID`
+unset unless Google sign-in is configured with the same client ID on the backend.
+Changing a `VITE_` variable requires a new frontend build/deployment.
+
+Pushes to the connected `main` branch deploy automatically. Verify `/sports`
+loads backend sports and refresh `/groups` directly after the deployment.
+
 ## Project idea
 
 A community website for people in Bahrain to organize activities, make friends, build groups and chat.
