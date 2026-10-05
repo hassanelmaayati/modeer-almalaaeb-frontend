@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import NavBar from './components/layout/NavBar';
 import SignInPage from './pages/SignInPage';
@@ -41,11 +41,15 @@ export default function App() {
   useEffect(() => startRequest(async signal => userId ? {
     ...await notificationService.list({ limit: 1 }, { signal }), userId,
   } : null, setNotifications), [userId, notificationRevision]);
+  const navigate = useNavigate();
+  // Always land on home with replace after an account change, so Back can't reopen the previous account's page.
+  const goHome = result => { navigate('/', { replace: true }); return result; };
   const session = {
-    ...account, signOut,
-    signIn: body => authenticate(authService.signIn, body, setAccount),
-    signUp: body => authenticate(authService.signUp, body, setAccount),
-    signInWithGoogle: credential => authenticate(googleAuthService.signIn, { credential }, setAccount),
+    ...account,
+    signOut: () => signOut().finally(goHome),
+    signIn: body => authenticate(authService.signIn, body, setAccount).then(goHome),
+    signUp: body => authenticate(authService.signUp, body, setAccount).then(goHome),
+    signInWithGoogle: credential => authenticate(googleAuthService.signIn, { credential }, setAccount).then(goHome),
     // Lets Settings update the name shown in NavBar after a profile save.
     refreshUser: () => userService.getMe().then(user => setAccount(current => ({ ...current, user }))),
   };

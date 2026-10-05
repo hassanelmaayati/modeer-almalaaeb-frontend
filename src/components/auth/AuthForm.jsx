@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import Field from '../common/Field';
-import { returnDestination } from '../../lib/helpers/navigation';
 
 export default function AuthForm({ session, signup = false }) {
   const location = useLocation(), navigate = useNavigate();
   const [error, setError] = useState(''), [pending, setPending] = useState(false);
-  const destination = returnDestination(location.state), title = signup ? 'Sign up' : 'Sign in';
+  // Always home after auth (no return to state.from), so Back can't reopen the previous account's page.
+  const destination = '/', title = signup ? 'Sign up' : 'Sign in';
 
   async function submit(event) {
     event.preventDefault();
