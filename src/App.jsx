@@ -13,6 +13,7 @@ import HomePage from './pages/HomePage';
 import GroupsPage from './pages/GroupsPage';
 import SportsPage from './pages/SportsPage';
 import RoomPage from './pages/RoomPage';
+import CreateRoomPage from './pages/CreateRoomPage';
 import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
@@ -54,17 +55,26 @@ export default function App() {
     <NavBar session={session} liveStatus={liveStatus} unreadCount={userId && notifications.data?.userId === userId ? notifications.data.unread_count : 0} />
     <Routes>
       <Route path="/" element={<HomePage key={accountKey} session={session} />} />
+
       <Route path="/groups" element={<GroupsPage key={accountKey} session={session} />} />
+
       <Route path="/sports" element={<SportsPage key={accountKey} session={session} />} />
+
+      <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} /></RequireAuth>} />
       <Route path="/rooms/:roomId" element={<RoomPage key={accountKey} session={session} />} />
+
       <Route path="/notifications" element={<NotificationsPage key={accountKey} session={session} />} />
+
       <Route path="/users/:userId" element={<RequireAuth session={session}><ProfilePage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth session={session}><SettingsPage key={accountKey} session={session} /></RequireAuth>} />
+
       <Route path="/cups" element={<CupsPage key={accountKey} session={session} />} />
       <Route path="/cups/new" element={<RequireAuth session={session}><CreateCupPage key={accountKey} /></RequireAuth>} />
       <Route path="/cups/:cupId" element={<CupPage key={accountKey} session={session} />} />
+
       <Route path="/sign-in" element={<SignInPage session={session} />} />
       <Route path="/sign-up" element={<SignUpPage session={session} />} />
+      
       <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
     </Routes>
   </>;

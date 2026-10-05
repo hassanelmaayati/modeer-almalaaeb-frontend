@@ -7,6 +7,7 @@ import { getRoomFilters, validateRoomFilters } from '../lib/helpers/filters';
 import ActivityCard from '../components/activities/ActivityCard';
 import RoomFilters from '../components/activities/RoomFilters';
 import RoomList from '../components/activities/RoomList';
+import CreateRoomAction from './components/activities/CreateRoomAction';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import AsyncState from '../components/common/AsyncState';
 import { listen } from '../services/websocketService';
@@ -47,7 +48,13 @@ export default function SportsPage({ session = { user: null, loading: false } })
         </AsyncState>
       </section>
       <section className="page-section" aria-labelledby="sports-discovery-title">
-        <div className="section-heading"><h2 id="sports-discovery-title">Browse activities</h2><button type="button" className="button-secondary" onClick={reloadRooms}>Refresh activities</button></div>
+        <div className="section-heading">
+          <h2 id="sports-discovery-title">Browse activities</h2>
+          <div>
+            <CreateRoomAction session={session} className="button" />
+            <button type='button' className='button-secondary' onClick={reloadRooms}>Refresh activities</button>
+          </div>
+        </div>
         <RoomFilters key={`${searchParams.toString()}-${sports.loading}`} filters={filters} sports={sports.data} onApply={(values) => setSearchParams(values)} onClear={() => setSearchParams({})} />
         <RoomList rooms={rooms.data} sports={sports.data} loading={rooms.loading} error={rooms.error} onRetry={reloadRooms} onPreview={setSelectedRoom} />
       </section>

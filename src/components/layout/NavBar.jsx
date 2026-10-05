@@ -20,6 +20,7 @@ export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }
       <NavLink to="/" end>Home</NavLink>
       <NavLink to="/groups">Groups</NavLink>
       <NavLink to="/sports">Sports</NavLink>
+      <NavLink to="/rooms/new">Host a room</NavLink>
       <NavLink to="/cups">Cups</NavLink>
       {loading ? <span role="status">Restoring session…</span> : user ? <>
         <NavLink to="/settings">Settings</NavLink>
