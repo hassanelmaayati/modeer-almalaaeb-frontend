@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { listen } from '../../services/websocketService';
-import { roomEvent } from './live';
+import { personalRoomEvent } from './live';
 import { emptyResource, startRequest } from './request';
 
 const MAX_RELOAD_SIZE = 100;
@@ -32,7 +32,7 @@ export default function usePagedRooms({ searchKey, filterSet, fetchPage }) {
   useEffect(() => { loadedCount.current = current?.items.length ?? 0; }, [current]);
 
   useEffect(() => listen((event) => {
-    if (event.type === 'connection.ready' || roomEvent(event)) setRetry((count) => count + 1);
+    if (personalRoomEvent(event)) setRetry((count) => count + 1);
   }), []);
 
   async function loadMore() {
