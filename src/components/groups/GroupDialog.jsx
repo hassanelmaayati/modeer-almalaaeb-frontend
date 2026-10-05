@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
+import { chatPath } from '../../lib/helpers/messages';
 import Dialog from '../common/Dialog';
 import AsyncState from '../common/AsyncState';
 import GroupForm from './GroupForm';
@@ -75,6 +77,7 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
           {group.description && <p>{group.description}</p>}
           {group.photo_url && <img className="group-cover" src={group.photo_url} alt="" />}
           <p>Owner: {playerName(users, group.owner_id)}</p>
+          {(owner || ownMembership?.status === 'accepted') && <p><Link className="button" to={chatPath('group', group.id)}>Open group chat</Link></p>}
           {owner && <button type="button" disabled={pending} onClick={() => setEditing(true)}>Edit group</button>}
         </>}
         {ownMembership?.status === 'pending' && !owner && <div className="actions">

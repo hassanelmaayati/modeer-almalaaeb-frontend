@@ -10,6 +10,7 @@ import { roomEvent } from '../lib/helpers/live';
 import { getRoomAdmissionState } from '../lib/helpers/memberships';
 import { roomDetailItems, roomPositions } from '../lib/helpers/rooms';
 import { playerName } from '../lib/helpers/groups';
+import { chatPath } from '../lib/helpers/messages';
 import { formatActivityDate, formatActivitySchedule, formatActivityTime, parseDate } from '../lib/helpers/date';
 import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
@@ -67,6 +68,7 @@ export default function RoomPage({ session }) {
           <p>{room.cancelled_at ? `The host cancelled this room on ${formatActivityDate(room.cancelled_at)} at ${formatActivityTime(room.cancelled_at)} (Bahrain time).` : 'The host cancelled this room.'}</p>
           {room.cancellation_reason && <p>Reason: {room.cancellation_reason}</p>}
         </section>}
+        {canSeeRoster && <p><Link className="button" to={chatPath('room', room.id)}>{room.status === 'cancelled' ? 'View room chat' : 'Open room chat'}</Link></p>}
         <section className="panel"><h2>Details</h2><dl className="activity-details">
           {roomDetailItems(room, { sportName: sports.find(sport => sport.id === room.sport_id)?.name, hostName: playerName(users, room.host_id) }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl></section>
