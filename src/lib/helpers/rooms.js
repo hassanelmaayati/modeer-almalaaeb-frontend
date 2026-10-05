@@ -154,3 +154,7 @@ export function withoutFrozenFields(body) {
   for (const key of FROZEN_ROOM_FIELDS) delete result[key];
   return result;
 }
+
+export function isStaleConflict(failure) {
+  return failure?.status === 409 && !/^capacity/i.test(failure.message || '');
+}

@@ -4,14 +4,15 @@ import LocationPicker from './LocationPicker';
 import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
 import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
-import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, isRoomFrozen, roomErrors, scheduleError, sportFormats, withoutFrozenFields } from '../../lib/helpers/rooms';
+import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, isRoomFrozen, isStaleConflict, roomErrors, scheduleError, sportFormats, withoutFrozenFields } from '../../lib/helpers/rooms';
 
-export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
+export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onReload }) {
     const editing = !!room;
     const [frozen] = useState(() => editing && isRoomFrozen(room));
     const [pending, setPending] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
+    const [stale, setStale] = useState(false);
     const [sportId, setSportId] = useState(room ? String(room.sport_id) : '');
     const [visibility, setVisibility] = useState(room?.visibility || 'public');
     const [district, setDistrict] = useState(room?.district || '');
@@ -30,6 +31,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
 
         if (pending) return;
         setFieldErrors({});
+        setStale(false);
 
         const form = new FormData(event.currentTarget);
 
@@ -77,6 +79,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             const { banner, fields } = roomErrors(failure);
             setError(banner);
             setFieldErrors(fields);
+            setStale(isStaleConflict(failure));
         } finally {
             setPending(false);
         }
@@ -84,6 +87,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
 
     return <form className="form-stack" onSubmit={submit}>
         {error && <p role="alert">{error}</p>}
+        {stale && onReload && <button type="button" className="button-secondary" onClick={onReload}>Reload latest version</button>}
         {frozen && <p role="status">Schedule, location and capacity can't be changed in the last 15 minutes before the start.</p>}
 
         <Field label="Sport" error={fieldErrors.sport_id}>
