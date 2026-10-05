@@ -6,3 +6,16 @@
 .cup-status-published { background: #e3ecf8; }
 .cup-status-completed { background: #eee; }
 .cup-organizer { display: flex; gap: .5rem; align-items: center; }
+.cup-rules { white-space: pre-line; }
+.entry-list { list-style: none; padding: 0; display: grid; gap: .5rem; }
+.entry-list .actions { display: inline-flex; margin-left: .5rem; }
+.bracket { display: flex; gap: 1rem; overflow-x: auto; align-items: flex-start; }
+.bracket-round { min-width: 14rem; display: grid; gap: .75rem; }
+.bracket-round h3 { margin: 0; }
+.fixture { border: 1px solid #bbb; padding: .5rem; }
+.fixture p { display: flex; justify-content: space-between; gap: .5rem; margin: .2rem 0; }
+.fixture-winner { font-weight: bold; }
+.fixture-result { display: grid; gap: .4rem; margin-top: .5rem; }
+.fixture-result input { width: 4rem; }
+.race-results { border-collapse: collapse; width: 100%; max-width: 35rem; }
+.race-results th, .race-results td { border-bottom: 1px solid #ddd; padding: .3rem; text-align: left; }
