@@ -1,46 +1,45 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
-import CreateRoomAction from '../components/activities/CreateRoomAction';
-import MyRoomCard from '../components/activities/MyRoomCard';
+import { Link, useSearchParams } from 'react-router';
+import JoinedRoomCard from '../components/activities/JoinedRoomCard';
 import RoomList from '../components/activities/RoomList';
 import RoomListFilters from '../components/activities/RoomListFilters';
 import RoomViewTabs from '../components/activities/RoomViewTabs';
-import { myRoomFilters, myRoomsEmptyState } from '../lib/helpers/filters';
+import { joinedRoomFilters, joinedRoomsEmptyState } from '../lib/helpers/filters';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import usePagedRooms from '../lib/helpers/usePagedRooms';
 import roomService from '../services/roomService';
 import sportService from '../services/sportService';
 
-const FILTER_FIELDS = ['status', 'sport_id', 'visibility', 'dates', 'order'];
+const FILTER_FIELDS = ['membership', 'status', 'sport_id', 'requested', 'dates', 'order'];
 
-const fetchMyRooms = (query, signal) => roomService.listMine(query, { signal });
+const fetchJoinedRooms = (query, signal) => roomService.listJoined(query, { signal });
 
-export default function MyRoomsPage({ session }) {
+export default function JoinedRoomsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sports, setSports] = useState(() => emptyResource([]));
   const searchKey = searchParams.toString();
-  const filters = myRoomFilters.get(searchParams);
-  const resolved = myRoomFilters.resolve(filters);
-  const empty = myRoomsEmptyState(filters);
-  const rooms = usePagedRooms({ searchKey, filterSet: myRoomFilters, fetchPage: fetchMyRooms });
+  const filters = joinedRoomFilters.get(searchParams);
+  const resolved = joinedRoomFilters.resolve(filters);
+  const empty = joinedRoomsEmptyState(filters);
+  const rooms = usePagedRooms({ searchKey, filterSet: joinedRoomFilters, fetchPage: fetchJoinedRooms });
   const { current } = rooms;
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), []);
 
   return <main>
     <header className="page-header">
-      <h1>My rooms</h1>
-      <p>Rooms you host. Use History to look back at rooms that have ended.</p>
-      <CreateRoomAction session={session} className="button" />
+      <h1>Joined rooms</h1>
+      <p>Rooms hosted by other people that you have joined, asked to join or been invited to.</p>
+      <Link className="button" to="/sports">Browse activities</Link>
     </header>
-    <RoomViewTabs filterSet={myRoomFilters} filters={filters} />
+    <RoomViewTabs filterSet={joinedRoomFilters} filters={filters} />
     <RoomListFilters
       key={searchKey}
-      filterSet={myRoomFilters}
+      filterSet={joinedRoomFilters}
       filters={resolved}
       sports={sports.data}
       fields={FILTER_FIELDS}
-      onApply={(values) => setSearchParams(myRoomFilters.toSearchParams(values))}
+      onApply={(values) => setSearchParams(joinedRoomFilters.toSearchParams(values))}
       onClear={() => setSearchParams({})}
     />
     <RoomList
@@ -49,11 +48,11 @@ export default function MyRoomsPage({ session }) {
       loading={rooms.loading}
       error={rooms.error}
       onRetry={rooms.reload}
-      Card={MyRoomCard}
+      Card={JoinedRoomCard}
       emptyTitle={empty.title}
       emptyDescription={empty.description}
-      emptyAction={empty.action === 'host'
-        ? <CreateRoomAction session={session} className="button" />
+      emptyAction={empty.action === 'browse'
+        ? <Link className="button" to="/sports">Browse activities</Link>
         : empty.action === 'clear'
           ? <button type="button" className="button-secondary" onClick={() => setSearchParams({})}>Clear filters</button>
           : null}

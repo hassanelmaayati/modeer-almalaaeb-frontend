@@ -5,6 +5,10 @@ export function roomEvent(event, roomId) {
   return types.includes(event.type) && (roomId == null || Number(id) === Number(roomId));
 }
 
+export function personalRoomEvent(event) {
+  return event.type === 'connection.ready' || event.type === 'room.updated';
+}
+
 export function notificationDestination(notification) {
   const { type, id } = notification.target || {};
   if (!Number.isInteger(id) || id < 1) return null;
