@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import AsyncState from '../components/common/AsyncState';
+import AddFriend from '../components/friends/AddFriend';
 import FriendActions from '../components/friends/FriendActions';
 import FriendConfirmDialog from '../components/friends/FriendConfirmDialog';
 import FriendRow from '../components/friends/FriendRow';
 import FriendTabs from '../components/friends/FriendTabs';
 import {
+  addFriendCandidates,
+  addFriendError,
   CONFIRMED_FRIEND_ACTIONS,
   friendTab,
   friendUpdateFor,
@@ -24,6 +27,7 @@ export default function FriendsPage({ session }) {
   const [confirming, setConfirming] = useState(null);
   const [pendingId, setPendingId] = useState(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const userId = session.user?.id;
   const tab = friendTab(searchParams.get('tab'));
 
@@ -38,10 +42,12 @@ export default function FriendsPage({ session }) {
   const groups = groupFriendships(resource.data?.friendships ?? [], userId);
   const items = groups[tab.group];
   const nameOf = (id) => playerName(resource.data?.users ?? [], id);
+  const candidates = addFriendCandidates(resource.data?.users ?? [], resource.data?.friendships ?? [], userId);
 
   async function apply(kind, friendship) {
     setPendingId(friendship.row.id);
     setError('');
+    setNotice('');
     try {
       const updated = await friendService.update(friendship.otherUserId, friendUpdateFor(kind, friendship));
       setResource((previous) => ({
@@ -56,6 +62,27 @@ export default function FriendsPage({ session }) {
     }
   }
 
+  async function addFriend(user) {
+    setPendingId(user.id);
+    setError('');
+    setNotice('');
+    try {
+      const created = await friendService.create({ other_user_id: user.id });
+      setResource((previous) => ({
+        ...previous,
+        data: { ...previous.data, friendships: [...previous.data.friendships, created] },
+      }));
+      setNotice(`Friend request sent to ${user.user_name}.`);
+      return true;
+    } catch (failure) {
+      setError(addFriendError(failure));
+      if (failure?.status === 409) setRetry((count) => count + 1);
+      return false;
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   function choose(kind, friendship) {
     if (CONFIRMED_FRIEND_ACTIONS.includes(kind)) setConfirming({ kind, friendship });
     else apply(kind, friendship);
@@ -67,7 +94,9 @@ export default function FriendsPage({ session }) {
       <p>Add friends to message them directly.</p>
     </header>
     {error && <p role="alert" className="error-message">{error}</p>}
+    {notice && <p role="status">{notice}</p>}
     <AsyncState loading={resource.loading} error={resource.error} onRetry={() => setRetry((count) => count + 1)}>
+      <AddFriend candidates={candidates} disabled={pendingId !== null} onAdd={addFriend} />
       <FriendTabs current={tab.value} groups={groups} />
       <AsyncState isEmpty={items.length === 0} emptyTitle={tab.empty.title} emptyDescription={tab.empty.description}>
         <ul className="friend-list">

@@ -133,3 +133,18 @@ export function friendUpdateFor(kind, friendship) {
 export function replaceFriendship(rows, updated) {
   return rows.map((row) => (row.id === updated.id ? updated : row));
 }
+
+export const PEOPLE_SEARCH_LIMIT = 8;
+
+export function searchPeople(candidates, query, limit = PEOPLE_SEARCH_LIMIT) {
+  const text = query.trim().toLowerCase();
+  if (!text) return [];
+  return candidates.filter((user) => user.user_name.toLowerCase().includes(text)).slice(0, limit);
+}
+
+export function addFriendError(failure) {
+  if (failure?.status === 409) {
+    return "You already have a friend record with this person. A new request can't be sent after one was declined, cancelled or the friendship ended.";
+  }
+  return failure?.message || 'Could not send the request. Please try again.';
+}
