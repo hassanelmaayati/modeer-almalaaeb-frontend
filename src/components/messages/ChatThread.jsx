@@ -7,7 +7,7 @@ import MessageComposer from './MessageComposer';
 import MessageList from './MessageList';
 
 export default function ChatThread({ target, title, viewerId, nameOf }) {
-  const thread = useChatThread(target.type, target.id);
+  const thread = useChatThread(target.type, target.id, viewerId);
   const final = Boolean(thread.error) && [403, 404].includes(thread.error.status);
   const ready = !thread.loading && !thread.error;
 

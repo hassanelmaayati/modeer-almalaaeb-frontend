@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { formatDayLabel, groupMessagesByDay } from '../../lib/helpers/messages';
 import MessageBubble from './MessageBubble';
 
@@ -21,24 +21,43 @@ export default function MessageList({
   const firstId = messages[0]?.id;
   const lastId = messages.at(-1)?.id;
   const pendingCount = pending.length;
+  const nearBottom = useRef(true);
+  const [readId, setReadId] = useState(null);
+  const lastSender = messages.at(-1)?.sender_id;
 
   useLayoutEffect(() => {
     const element = containerRef.current;
     if (!element) return;
     const prepended = seen.current.first !== undefined && firstId !== seen.current.first && lastId === seen.current.last;
-    element.scrollTop = prepended ? element.scrollHeight - distance.current : element.scrollHeight;
+    const appendedAway = seen.current.last !== undefined && lastId !== seen.current.last && !nearBottom.current && String(lastSender) !== String(viewerId);
+    if (prepended) element.scrollTop = element.scrollHeight - distance.current;
+    else if (!appendedAway) element.scrollTop = element.scrollHeight;
     seen.current = { first: firstId, last: lastId };
     distance.current = element.scrollHeight - element.scrollTop;
-  }, [firstId, lastId, pendingCount]);
+  }, [firstId, lastId, pendingCount, lastSender, viewerId]);
 
   function remember() {
     const element = containerRef.current;
     distance.current = element.scrollHeight - element.scrollTop;
+    const near = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+    nearBottom.current = near;
+    setReadId((current) => {
+      if (near) return null;
+      return current === null ? lastId ?? null : current;
+    });
   }
+
+  function jumpToLatest() {
+    const element = containerRef.current;
+    element.scrollTop = element.scrollHeight;
+  }
+
+  const unseen = readId === null ? 0 : messages.filter((message) => message.id > readId && String(message.sender_id) !== String(viewerId)).length;
 
   const showSender = chatType !== 'direct';
 
-  return <div className="chat-messages" ref={containerRef} onScroll={remember} role="log" aria-label="Messages">
+  return <div className="chat-messages-wrap">
+    <div className="chat-messages" ref={containerRef} onScroll={remember} role="log" aria-label="Messages">
     {hasMore && <div className="chat-earlier">
       <button type="button" className="button-secondary" disabled={loadingEarlier} onClick={onLoadEarlier}>
         {loadingEarlier ? 'Loading…' : 'Load earlier messages'}
@@ -77,5 +96,9 @@ export default function MessageList({
         </li>
       ))}
     </ul>}
+    </div>
+    {unseen > 0 && <button type="button" className="chat-new-messages" onClick={jumpToLatest}>
+      {unseen === 1 ? '1 new message' : `${unseen} new messages`}
+    </button>}
   </div>;
 }

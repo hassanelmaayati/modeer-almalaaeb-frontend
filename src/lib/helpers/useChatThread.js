@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import messageService from '../../services/messageService';
-import { mergeMessages } from '../../services/websocketService';
-import { sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
+import { listen, mergeMessages, recoverMessages } from '../../services/websocketService';
+import { chatKey, messageConversationKey, receiveMessage, sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
 import { emptyResource, startRequest } from './request';
 
-export default function useChatThread(type, id) {
+export default function useChatThread(type, id, viewerId) {
   const [resource, setResource] = useState(() => emptyResource(null));
   const [retry, setRetry] = useState(0);
   const [loadingEarlier, setLoadingEarlier] = useState(false);
@@ -18,6 +18,44 @@ export default function useChatThread(type, id) {
       .then((page) => ({ messages: mergeMessages([], page), hasMore: page.length === THREAD_PAGE_SIZE })),
     setResource,
   ), [type, id, retry]);
+
+  const latest = useRef({ messages: null, viewerId });
+
+  useEffect(() => { latest.current = { messages: resource.data?.messages ?? null, viewerId }; });
+
+  useEffect(() => {
+    const key = chatKey(type, id);
+    let active = true;
+
+    function recover() {
+      const existing = latest.current.messages;
+      if (!existing) return;
+      recoverMessages({ type, id }, existing)
+        .then((messages) => {
+          if (!active) return;
+          setResource((previous) => (previous.data ? { ...previous, data: { ...previous.data, messages } } : previous));
+          setPending((list) => list.filter((item) => !messages.some((message) => message.client_request_id === item.id)));
+        })
+        .catch(() => {});
+    }
+
+    const stop = listen((event) => {
+      if (event.type === 'connection.ready' || (event.type === 'room.updated' && type === 'room' && String(event.room_id ?? event.room?.id) === String(id))) {
+        recover();
+        return;
+      }
+      if (event.type !== 'message.created' || !event.message) return;
+      if (messageConversationKey(event.message, latest.current.viewerId) !== key) return;
+      setResource((previous) => {
+        if (!previous.data) return previous;
+        const next = receiveMessage({ messages: previous.data.messages, pending: [] }, event.message);
+        return { ...previous, data: { ...previous.data, messages: next.messages } };
+      });
+      setPending((list) => receiveMessage({ messages: [], pending: list }, event.message).pending);
+    });
+
+    return () => { active = false; stop(); };
+  }, [type, id]);
 
   async function loadEarlier() {
     const current = resource.data;
