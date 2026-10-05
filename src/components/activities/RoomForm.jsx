@@ -6,7 +6,7 @@ import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
 import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, isRoomFrozen, isStaleConflict, roomErrors, scheduleError, sportFormats, withoutFrozenFields } from '../../lib/helpers/rooms';
 
-export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onReload }) {
+export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onReload, occupied = 0 }) {
     const editing = !!room;
     const [frozen] = useState(() => editing && isRoomFrozen(room));
     const [pending, setPending] = useState(false);
@@ -32,6 +32,11 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
         if (pending) return;
         setFieldErrors({});
         setStale(false);
+
+        if (editing && !frozen && Number(capacity) < occupied) {
+            setFieldErrors({ capacity: `Capacity can't be lower than the ${occupied} places already taken.` });
+            return setError('Please fix the highlighted fields.');
+        }
 
         const form = new FormData(event.currentTarget);
 
@@ -118,9 +123,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
             {formats.length
                 ? <select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required>
                     <option value="" disabled>Select a format</option>
-                    {formats.map(format => <option key={format.key} value={format.capacity}>{format.key} ({format.capacity} players)</option>)}
+                    {formats.map(format => <option key={format.key} value={format.capacity} disabled={format.capacity < occupied}>{format.key} ({format.capacity} players)</option>)}
                 </select>
-                : <input name="capacity" type="number" min="1" step="1" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required />}
+                : <input name="capacity" type="number" min={Math.max(1, occupied)} step="1" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required />}
+            {editing && occupied > 0 && <span className="muted">{occupied} {occupied === 1 ? 'place is' : 'places are'} already taken, including yours. Capacity can't go below that.</span>}
         </Field>
 
         <Field label="Governorate" error={fieldErrors.district}>

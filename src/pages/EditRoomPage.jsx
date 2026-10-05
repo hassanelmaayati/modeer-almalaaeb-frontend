@@ -3,7 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router';
 import RoomForm from '../components/activities/RoomForm';
 import AsyncState from '../components/common/AsyncState';
 import { emptyResource, startRequest } from '../lib/helpers/request';
+import { occupiedPlaces } from '../lib/helpers/memberships';
 import groupService from '../services/groupService';
+import roomMemberService from '../services/roomMemberService';
 import roomService from '../services/roomService';
 import sportService from '../services/sportService';
 
@@ -26,12 +28,19 @@ export default function EditRoomPage({ session }) {
   const [notice, setNotice] = useState('');
 
   useEffect(() => startRequest(async (signal) => {
-    const [room, sports, groups] = await Promise.all([
+    const [room, sports, groups, members] = await Promise.all([
       roomService.get(roomId, { signal }),
       sportService.list({ signal }),
       groupService.list({ signal }),
+      roomMemberService.list(roomId, { signal }),
     ]);
-    return { loadId: ++loadCount, room, sports, groups: groups.filter((group) => group.owner_id === userId) };
+    return {
+      loadId: ++loadCount,
+      room,
+      sports,
+      groups: groups.filter((group) => group.owner_id === userId),
+      occupied: occupiedPlaces(room, members),
+    };
   }, setResource), [roomId, userId, retry]);
 
   const room = resource.data?.room;
@@ -63,6 +72,7 @@ export default function EditRoomPage({ session }) {
           room={room}
           sports={resource.data.sports}
           groups={resource.data.groups}
+          occupied={resource.data.occupied}
           onSubmit={save}
           onCancel={() => navigate(`/rooms/${roomId}`)}
           onReload={reload}

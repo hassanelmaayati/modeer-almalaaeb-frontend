@@ -31,7 +31,7 @@ export default function LocationPicker({ value, onChange, canClear = true, disab
     <p className="muted">
       {disabled
         ? (position ? `Pin at ${value.latitude}, ${value.longitude}.` : 'No pin set.')
-        : (position ? `Pin at ${value.latitude}, ${value.longitude}. Click the map to move it.` : 'Click the map to drop a pin on the exact venue (optional).')}
+        : (position ? `Pin at ${value.latitude}, ${value.longitude}. Click the map to move it.${canClear ? '' : ' A saved pin can be moved but not removed.'}` : 'Click the map to drop a pin on the exact venue (optional).')}
     </p>
     {position && canClear && !disabled && <button type="button" onClick={() => onChange(null)}>Clear pin</button>}
   </div>;
