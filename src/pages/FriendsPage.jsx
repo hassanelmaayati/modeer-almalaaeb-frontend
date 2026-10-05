@@ -17,6 +17,7 @@ import {
 } from '../lib/helpers/friends';
 import { playerName } from '../lib/helpers/groups';
 import { emptyResource, startRequest } from '../lib/helpers/request';
+import useFriendEvents from '../lib/helpers/useFriendEvents';
 import friendService from '../services/friendService';
 import userService from '../services/userService';
 
@@ -38,6 +39,12 @@ export default function FriendsPage({ session }) {
     ]);
     return { friendships, users };
   }, setResource), [userId, retry]);
+
+  useFriendEvents(() => {
+    Promise.all([friendService.list(), userService.list()])
+      .then(([friendships, users]) => setResource({ data: { friendships, users }, loading: false, error: null }))
+      .catch(() => {});
+  });
 
   const groups = groupFriendships(resource.data?.friendships ?? [], userId);
   const items = groups[tab.group];

@@ -10,6 +10,7 @@ import {
   replaceFriendship,
 } from '../../lib/helpers/friends';
 import { emptyResource, startRequest } from '../../lib/helpers/request';
+import useFriendEvents from '../../lib/helpers/useFriendEvents';
 import friendService from '../../services/friendService';
 
 export default function FriendProfileActions({ viewerId, user }) {
@@ -20,6 +21,12 @@ export default function FriendProfileActions({ viewerId, user }) {
   const [error, setError] = useState('');
 
   useEffect(() => startRequest((signal) => friendService.list({ signal }), setResource), [viewerId, user.id, retry]);
+
+  useFriendEvents(() => {
+    friendService.list()
+      .then((friendships) => setResource({ data: friendships, loading: false, error: null }))
+      .catch(() => {});
+  });
 
   const friendship = friendshipWith(resource.data ?? [], viewerId, user.id);
 
