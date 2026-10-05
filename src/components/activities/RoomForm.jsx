@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Field from '../common/Field';
+import LocationPicker from './LocationPicker';
 import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
 import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
@@ -12,6 +13,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const [sportId, setSportId] = useState(room ? String(room.sport_id) : '');
     const [visibility, setVisibility] = useState(room?.visibility || 'public');
     const [district, setDistrict] = useState(room?.district || '');
+    const [pin, setPin] = useState(room?.venue_location || null);
 
     const sport = sports.find(item => String(item.id) === sportId);
     const formats = sportFormats(sport);
@@ -49,6 +51,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             district,
             area: form.get('area'),
         }
+        // The pin and notes are private: the backend only shows them to the host and admitted players.
+        if (pin) body.venue_location = pin;
+        const notes = form.get('venue_notes').trim();
+        if (notes || editing) body.venue_notes = notes || null;
         if (visibility === 'group') body.group_id = Number(form.get('group_id'));
 
         if (outdoor) {
@@ -123,6 +129,15 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
                 {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
             </select>
         </Field>
+
+        <fieldset>
+            <legend>Exact venue (private)</legend>
+            <p className="muted">The area above is public. The pin and notes below are shown only to you and the players you admit.</p>
+            <LocationPicker value={pin} onChange={setPin} canClear={!room?.venue_location} />
+            <Field label="Venue notes (optional)">
+                <textarea name="venue_notes" placeholder="Court number, parking, meeting point…" defaultValue={room?.venue_notes || ''} />
+            </Field>
+        </fieldset>
 
         <Field label="Who can see this room">
             <select name="visibility" value={visibility} onChange={event => setVisibility(event.target.value)}>

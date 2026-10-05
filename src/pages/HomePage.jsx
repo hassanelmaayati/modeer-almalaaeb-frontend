@@ -5,7 +5,7 @@ import sportService from '../services/sportService';
 import roomService from '../services/roomService';
 import ActivityCard from '../components/activities/ActivityCard';
 import RoomList from '../components/activities/RoomList';
-import CreateRoomAction from './components/activities/CreateRoomAction';
+import CreateRoomAction from '../components/activities/CreateRoomAction';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import AsyncState from '../components/common/AsyncState';
 import { listen } from '../services/websocketService';

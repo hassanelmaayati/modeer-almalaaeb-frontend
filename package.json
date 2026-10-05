@@ -30,8 +30,10 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
+    "leaflet": "^1.9.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
     "react-router": "^8.3.1"
   },
   "devDependencies": {
