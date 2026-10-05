@@ -70,7 +70,7 @@ export function buildRoomBody(values, { editing = false, revision } = {}) {
   // The pin has no "clear" on the backend, so it is only sent when set.
   if (values.venue_location) body.venue_location = values.venue_location;
 
-  for (const name of ['description', 'venue_notes', 'pace_notes', 'route_notes']) {
+  for (const name of ['description', 'notes', 'venue_notes', 'pace_notes', 'route_notes']) {
     const text = clean(values[name]);
     if (hasValue(text)) body[name] = text;
     else if (editing && name in values) body[name] = null;
@@ -80,7 +80,7 @@ export function buildRoomBody(values, { editing = false, revision } = {}) {
 }
 
 const ROOM_FIELDS = [
-  'sport_id', 'title', 'description', 'difficulty', 'starts_at', 'ends_at', 'capacity', 'visibility',
+  'sport_id', 'title', 'description', 'notes', 'difficulty', 'starts_at', 'ends_at', 'capacity', 'visibility',
   'group_id', 'admission_policy', 'district', 'area', 'venue_location', 'venue_notes', 'distance_km',
   'pace_notes', 'route_notes',
 ];
@@ -108,8 +108,10 @@ export function roomErrors(error) {
       ? error.detail.map(issue => ({ path: issue.loc || [], text: issue.msg || 'Invalid value' }))
       : [{ path: [], text: String(error.detail || error.message) }];
     for (const { path, text } of issues) {
-      const message = text.replace(/^Value error, /, '');
-      const field = fieldFor(path, message);
+      const raw = text.replace(/^Value error, /, '');
+      const field = fieldFor(path, raw);
+      // The API says "district"; the app calls it a governorate.
+      const message = raw.replace(/\bdistrict\b/g, 'governorate');
       if (field && !fields[field]) fields[field] = message;
       else if (!field) general.push(message);
     }

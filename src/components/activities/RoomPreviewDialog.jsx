@@ -89,6 +89,7 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
             {room.venue_notes && <div><dt>Venue details</dt><dd>{room.venue_notes}</dd></div>}
           </dl>
           {room.description && <p>{room.description}</p>}
+          {room.notes && <p>Notes: {room.notes}</p>}
           {room.route_notes && <p>{room.route_notes}</p>}
           <p className="muted">Requests are pending until the host approves them. New requests close 15 minutes before the start.</p>
           {admission.message && <p className="status-message" role="status">{admission.message}</p>}
