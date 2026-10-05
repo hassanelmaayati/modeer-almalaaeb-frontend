@@ -14,6 +14,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const sport = sports.find(item => String(item.id) === sportId);
     const formats = sportFormats(sport);
     const outdoor = isOutdoorSport(sport);
+    const earliest = toBahrainDateTimeInput(new Date());
 
     async function submit(event) { 
         event.preventDefault();
@@ -82,10 +83,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         <Field label="Description"><textarea name="description" defaultValue={room?.description || ''} /></Field>
 
         <Field label="Starts (Bahrain time)">
-            <input name="starts_at" type="datetime-local" defaultValue={toBahrainDateTimeInput(room?.starts_at)} required />
+            <input name="starts_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.starts_at)} required />
         </Field>
         <Field label="Ends (Bahrain time)">
-            <input name="ends_at" type="datetime-local" defaultValue={toBahrainDateTimeInput(room?.ends_at)} required />
+            <input name="ends_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.ends_at)} required />
         </Field>
         <p className="muted">Rooms can start between 1 hour and 14 days from now.</p>
 

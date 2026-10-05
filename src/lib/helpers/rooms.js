@@ -35,6 +35,8 @@ export function scheduleError(startsAt, endsAt, { checkStart = true, now = Date.
   const start = Date.parse(startsAt);
   const end = Date.parse(endsAt);
   if (Number.isNaN(start) || Number.isNaN(end)) return 'Choose both a start and an end time';
+  if (checkStart && start < now) return 'The start time cannot be in the past';
+  if (end < now) return 'The end time cannot be in the past';
   if (checkStart && start < now + MIN_LEAD_MS) return 'The room must start at least 1 hour from now';
   if (checkStart && start > now + MAX_LEAD_MS) return 'The room must start within 14 days from now';
   if (end <= start) return 'The end time must be after the start time';
