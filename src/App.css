@@ -72,3 +72,4 @@
 .chat-counter.is-over { color: #b00020; font-weight: bold; }
 .message.is-pending { opacity: .75; }
 .message.is-failed { border-color: #b00020; }
+.chat-banner { margin: 0; padding: .5rem .75rem; background: #fdecea; border-bottom: 1px solid #f5c2c0; color: #7a1f1a; }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import messageService from '../../services/messageService';
+import roomService from '../../services/roomService';
 import { listen, mergeMessages, recoverMessages } from '../../services/websocketService';
-import { chatKey, messageConversationKey, receiveMessage, sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
+import { CANCELLED_ROOM_MESSAGE, chatKey, messageConversationKey, receiveMessage, roomCancellation, sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
 import { emptyResource, startRequest } from './request';
 
 export default function useChatThread(type, id, viewerId) {
@@ -11,6 +12,7 @@ export default function useChatThread(type, id, viewerId) {
   const [earlierError, setEarlierError] = useState('');
   const [pending, setPending] = useState([]);
   const [blockedReason, setBlockedReason] = useState('');
+  const [room, setRoom] = useState(null);
 
   useEffect(() => startRequest(
     (signal) => messageService
@@ -27,6 +29,13 @@ export default function useChatThread(type, id, viewerId) {
     const key = chatKey(type, id);
     let active = true;
 
+    function refreshRoom() {
+      if (type !== 'room') return;
+      roomService.get(id).then((value) => { if (active) setRoom(value); }).catch(() => {});
+    }
+
+    refreshRoom();
+
     function recover() {
       const existing = latest.current.messages;
       if (!existing) return;
@@ -42,6 +51,7 @@ export default function useChatThread(type, id, viewerId) {
     const stop = listen((event) => {
       if (event.type === 'connection.ready' || (event.type === 'room.updated' && type === 'room' && String(event.room_id ?? event.room?.id) === String(id))) {
         recover();
+        refreshRoom();
         return;
       }
       if (event.type !== 'message.created' || !event.message) return;
@@ -113,8 +123,12 @@ export default function useChatThread(type, id, viewerId) {
     setPending((list) => list.filter((item) => item.id !== clientRequestId));
   }
 
+  const allMessages = resource.data?.messages ?? [];
+  const cancellation = type === 'room' ? roomCancellation(room, allMessages) : null;
+
   return {
-    messages: resource.data?.messages ?? [],
+    cancellation,
+    messages: allMessages,
     hasMore: resource.data?.hasMore ?? false,
     loading: resource.loading,
     error: resource.error,
@@ -123,7 +137,7 @@ export default function useChatThread(type, id, viewerId) {
     loadEarlier,
     reload: () => setRetry((count) => count + 1),
     pending,
-    blockedReason,
+    blockedReason: cancellation ? CANCELLED_ROOM_MESSAGE : blockedReason,
     send,
     retrySend,
     discard,

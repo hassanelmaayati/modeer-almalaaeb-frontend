@@ -177,7 +177,7 @@ export function validateMessageBody(text) {
 
 export function sendBlockReason(failure, type) {
   if (failure?.status === 409 && /cancelled/i.test(failure.message || '')) {
-    return "This room was cancelled, so you can't send messages.";
+    return CANCELLED_ROOM_MESSAGE;
   }
   if (failure?.status !== 403) return '';
   if (type === 'direct') {
@@ -199,4 +199,13 @@ export function receiveMessage({ messages, pending }, message) {
     messages: mergeById(messages, [message]),
     pending: pending.filter((item) => item.id !== message.client_request_id),
   };
+}
+
+export const CANCELLED_ROOM_MESSAGE = "This room was cancelled, so you can't send messages.";
+
+export function roomCancellation(room, messages) {
+  const announcement = [...messages].reverse().find((message) => isSystemMessage(message) && /^room cancelled/i.test(message.body || ''));
+  if (room?.status !== 'cancelled' && !announcement) return null;
+  const fromMessage = announcement ? announcement.body.replace(/^room cancelled:?\s*/i, '').trim() : '';
+  return { reason: room?.cancellation_reason || fromMessage, cancelledAt: room?.cancelled_at || announcement?.created_at || null };
 }

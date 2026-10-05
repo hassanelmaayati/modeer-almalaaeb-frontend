@@ -13,6 +13,10 @@ export default function ChatThread({ target, title, viewerId, nameOf }) {
 
   return <div className="chat-thread">
     <ChatHeader target={target} title={title} />
+    {thread.cancellation && <p className="chat-banner" role="status">
+      <strong>This room was cancelled.</strong>
+      {thread.cancellation.reason && <span> Reason: {thread.cancellation.reason}</span>}
+    </p>}
     <AsyncState
       loading={thread.loading}
       error={thread.error ? { message: threadErrorMessage(thread.error) } : null}
