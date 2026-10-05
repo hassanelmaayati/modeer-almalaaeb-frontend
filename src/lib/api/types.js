@@ -18,6 +18,10 @@
 /** @typedef {{ sport_id: number, title: string, starts_at: string, ends_at: string, capacity: number, district: string, area: string, group_id?: number|null, description?: string|null, notes?: string|null, difficulty?: string, slot_layout?: object, visibility?: string, admission_policy?: string, venue_notes?: string|null, venue_location?: VenueLocation|null, distance_km?: number|null, pace_notes?: string|null, route_notes?: string|null }} RoomInput */
 /** @typedef {Partial<RoomInput> & { revision: number }} RoomUpdate */
 /** @typedef {{ items: Room[], total: number, limit: number, offset: number, has_more: boolean }} MyRoomsPage */
+/** @typedef {MyRoomsQuery & { membership?: MembershipStatus|MembershipStatus[], requested?: boolean }} JoinedRoomsQuery */
+/** @typedef {{ status: MembershipStatus, requested: boolean|null, position: string|null, attendance: string|null }} JoinedMembership */
+/** @typedef {Room & { membership: JoinedMembership }} JoinedRoom */
+/** @typedef {{ items: JoinedRoom[], total: number, limit: number, offset: number, has_more: boolean }} JoinedRoomsPage */
 /** @typedef {{ status?: MembershipStatus, position?: string|null, attendance?: 'unknown'|'present'|'no_show'|'excused', rating?: number }} RoomMemberUpdate */
 /** @typedef {{ status?: string, user_blocked_other?: string|null, other_blocked_user?: string|null }} FriendUpdate */
 /** @typedef {{ id: number, sender_id: number|null, recipient_id: number|null, room_id: number|null, group_id: number|null, type: string, body: string, client_request_id: string|null, created_at: string|null }} Message */
