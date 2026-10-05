@@ -42,3 +42,39 @@ export function scheduleError(startsAt, endsAt, { checkStart = true, now = Date.
   if (end <= start) return 'The end time must be after the start time';
   return '';
 }
+
+const clean = value => (typeof value === 'string' ? value.trim() : value);
+const hasValue = value => value !== undefined && value !== null && value !== '';
+
+export function buildRoomBody(values, { editing = false, revision } = {}) {
+  const title = clean(values.title);
+  const area = clean(values.area);
+  if (!title) return { error: 'A title is required.' };
+  if (!area) return { error: 'Choose an area.' };
+  if (values.visibility === 'group' && !values.group_id) return { error: 'Choose which group this room is for' };
+
+  const body = {
+    sport_id: Number(values.sport_id),
+    title,
+    difficulty: values.difficulty,
+    starts_at: values.starts_at,
+    ends_at: values.ends_at,
+    capacity: Number(values.capacity),
+    visibility: values.visibility,
+    admission_policy: values.admission_policy,
+    district: values.district,
+    area,
+  };
+  if (values.visibility === 'group') body.group_id = Number(values.group_id);
+  if (hasValue(values.distance_km)) body.distance_km = Number(values.distance_km);
+  // The pin has no "clear" on the backend, so it is only sent when set.
+  if (values.venue_location) body.venue_location = values.venue_location;
+
+  for (const name of ['description', 'venue_notes', 'pace_notes', 'route_notes']) {
+    const text = clean(values[name]);
+    if (hasValue(text)) body[name] = text;
+    else if (editing && name in values) body[name] = null;
+  }
+  if (editing) body.revision = revision;
+  return { body };
+}

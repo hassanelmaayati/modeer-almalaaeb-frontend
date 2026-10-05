@@ -4,7 +4,7 @@ import LocationPicker from './LocationPicker';
 import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
 import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
-import { ADMISSION_POLICIES, VISIBILITIES, isOutdoorSport, scheduleError, sportFormats } from '../../lib/helpers/rooms';
+import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, scheduleError, sportFormats } from '../../lib/helpers/rooms';
 
 export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const editing = !!room;
@@ -26,10 +26,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         if (pending) return;
 
         const form = new FormData(event.currentTarget);
-        const title = form.get('title').trim();
-        if (!title) return setError('Title is Required');
-        if (visibility === 'group' && !form.get('group_id')) return setError('Choose which group this room is for')
-        
+
         // Times are typed in Bahrain time and sent as UTC ISO strings (the backend rejects times without a timezone).
         const startsAt = fromBahrainDateTimeInput(form.get('starts_at'));
         const endsAt = fromBahrainDateTimeInput(form.get('ends_at'));
@@ -38,34 +35,31 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         const problem = scheduleError(startsAt, endsAt, { checkStart: startChanged });
         if (problem) return setError(problem);
 
-        const body = {
+        const values = {
+            sport_id: sportId,
+            title: form.get('title'),
+            description: form.get('description'),
+            difficulty: form.get('difficulty'),
             starts_at: startsAt,
             ends_at: endsAt,
-            sport_id: Number(sportId),
-            title,
-            description: form.get('description').trim() || null,
-            difficulty: form.get('difficulty'),
-            capacity: Number(form.get('capacity')),
+            capacity: form.get('capacity'),
             visibility,
+            group_id: form.get('group_id'),
             admission_policy: form.get('admission_policy'),
             district,
             area: form.get('area'),
-        }
-        // The pin and notes are private: the backend only shows them to the host and admitted players.
-        if (pin) body.venue_location = pin;
-        const notes = form.get('venue_notes').trim();
-        if (notes || editing) body.venue_notes = notes || null;
-        if (visibility === 'group') body.group_id = Number(form.get('group_id'));
+            // The pin and notes are private: the backend only shows them to the host and admitted players.
+            venue_location: pin,
+            venue_notes: form.get('venue_notes'),
+        };
+        if (outdoor) Object.assign(values, {
+            distance_km: form.get('distance_km'),
+            pace_notes: form.get('pace_notes'),
+            route_notes: form.get('route_notes'),
+        });
 
-        if (outdoor) {
-            const distance = form.get('distance_km');
-            if (distance) body.distance_km = Number(distance);
-            body.pace_notes = form.get('pace_notes').trim() || null;
-            body.route_notes = form.get('route_notes').trim() || null;
-        }
-
-        // An edit must send the revision it was loaded with, so a stale edit is rejected.
-        if (editing) body.revision = room.revision;
+        const { body, error: invalid } = buildRoomBody(values, { editing, revision: room?.revision });
+        if (invalid) return setError(invalid);
 
         setPending(true);
         setError('');
