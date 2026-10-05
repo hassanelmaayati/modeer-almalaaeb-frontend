@@ -8,7 +8,7 @@ import ProfileForm from '../components/users/ProfileForm';
 import GoogleLinkControls from '../components/users/GoogleLinkControls';
 
 export default function SettingsPage({ session }) {
-  // Load /users/me here: only it returns email, has_password and google_linked.
+  // Load /users/me here: the private user (email, google_linked) only comes from the account endpoints.
   const [me, setMe] = useState(() => emptyResource());
   const [revision, setRevision] = useState(0);
   const reload = () => setRevision(count => count + 1);
@@ -21,8 +21,8 @@ export default function SettingsPage({ session }) {
   }
 
   async function linkGoogle(credential) {
-    await googleAuthService.link({ credential });
-    reload();
+    // The link response is the updated private user (google_linked: true), so no reload is needed.
+    setMe({ data: await googleAuthService.link({ credential }), loading: false, error: null });
   }
 
   return <main>
