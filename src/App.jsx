@@ -7,6 +7,7 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import CupsPage from './pages/CupsPage';
 import CreateCupPage from './pages/CreateCupPage';
+import CupPage from './pages/CupPage';
 import RequireAuth from './components/auth/RequireAuth';
 import HomePage from './pages/HomePage';
 import GroupsPage from './pages/GroupsPage';
@@ -61,6 +62,7 @@ export default function App() {
       <Route path="/settings" element={<RequireAuth session={session}><SettingsPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/cups" element={<CupsPage key={accountKey} session={session} />} />
       <Route path="/cups/new" element={<RequireAuth session={session}><CreateCupPage key={accountKey} /></RequireAuth>} />
+      <Route path="/cups/:cupId" element={<CupPage key={accountKey} session={session} />} />
       <Route path="/sign-in" element={<SignInPage session={session} />} />
       <Route path="/sign-up" element={<SignUpPage session={session} />} />
       <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
