@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Field from '../common/Field';
-import { DIFFICULTIES } from '../../lib/helpers/filters';
+import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
+import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
 import { ADMISSION_POLICIES, VISIBILITIES, isOutdoorSport, scheduleError, sportFormats } from '../../lib/helpers/rooms';
 
@@ -10,6 +11,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const [error, setError] = useState('');
     const [sportId, setSportId] = useState(room ? String(room.sport_id) : '');
     const [visibility, setVisibility] = useState(room?.visibility || 'public');
+    const [district, setDistrict] = useState(room?.district || '');
 
     const sport = sports.find(item => String(item.id) === sportId);
     const formats = sportFormats(sport);
@@ -44,6 +46,8 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             capacity: Number(form.get('capacity')),
             visibility,
             admission_policy: form.get('admission_policy'),
+            district,
+            area: form.get('area'),
         }
         if (visibility === 'group') body.group_id = Number(form.get('group_id'));
 
@@ -104,6 +108,20 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
                     {formats.map(format => <option key={format.key} value={format.capacity}>{format.key} ({format.capacity} players)</option>)}
                 </select>
                 : <input name="capacity" type="number" min="1" step="1" defaultValue={room?.capacity || ''} required />}
+        </Field>
+
+        <Field label="District">
+            <select name="district" value={district} onChange={event => setDistrict(event.target.value)} required>
+                <option value="" disabled>Select a district</option>
+                {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+            </select>
+        </Field>
+
+        <Field key={district} label="Area">
+            <select name="area" defaultValue={district === room?.district ? room.area : ''} disabled={!district} required>
+                <option value="" disabled>{district ? 'Select an area' : 'Choose a district first'}</option>
+                {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
+            </select>
         </Field>
 
         <Field label="Who can see this room">
