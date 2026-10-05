@@ -10,9 +10,10 @@ import { roomEvent } from '../lib/helpers/live';
 import { getRoomAdmissionState } from '../lib/helpers/memberships';
 import { roomDetailItems, roomPositions } from '../lib/helpers/rooms';
 import { playerName } from '../lib/helpers/groups';
-import { formatActivitySchedule, parseDate } from '../lib/helpers/date';
+import { formatActivityDate, formatActivitySchedule, formatActivityTime, parseDate } from '../lib/helpers/date';
 import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
+import CancelRoomForm from '../components/activities/CancelRoomForm';
 import LocationView from '../components/activities/LocationView';
 
 export default function RoomPage({ session }) {
@@ -62,6 +63,10 @@ export default function RoomPage({ session }) {
     <AsyncState loading={resource.loading || session.loading} error={resource.error} onRetry={reload}>
       {room && <>
         <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {optionLabel(DISTRICTS, room.district)}</p></header>
+        {room.status === 'cancelled' && <section className="panel" aria-label="Cancellation"><h2>Room cancelled</h2>
+          <p>{room.cancelled_at ? `The host cancelled this room on ${formatActivityDate(room.cancelled_at)} at ${formatActivityTime(room.cancelled_at)} (Bahrain time).` : 'The host cancelled this room.'}</p>
+          {room.cancellation_reason && <p>Reason: {room.cancellation_reason}</p>}
+        </section>}
         <section className="panel"><h2>Details</h2><dl className="activity-details">
           {roomDetailItems(room, { sportName: sports.find(sport => sport.id === room.sport_id)?.name, hostName: playerName(users, room.host_id) }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl></section>
@@ -113,9 +118,7 @@ export default function RoomPage({ session }) {
             <label>Invite player<select name="user_id" required defaultValue=""><option value="" disabled>Choose a player</option>{candidates.map(player => <option value={player.id} key={player.id}>{player.user_name}</option>)}</select></label>
             <button disabled={pending || admission.atCutoff || admission.full || !candidates.length}>Invite player</button>
           </form>
-          <form className="form-stack" onSubmit={event => { event.preventDefault(); const reason = String(new FormData(event.currentTarget).get('reason')).trim(); if (reason) run(() => roomService.cancel(roomId, reason), 'Room cancelled.'); }}>
-            <label>Cancellation reason<input name="reason" required /></label><button disabled={pending}>Cancel room</button>
-          </form>
+          <CancelRoomForm title={room.title} pending={pending} onConfirm={reason => run(() => roomService.cancel(roomId, reason), 'Room cancelled.')} />
         </section>}
       </>}
     </AsyncState>
