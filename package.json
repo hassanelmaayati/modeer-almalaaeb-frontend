@@ -1,8 +1,20 @@
 {
   "name": "react-jwt-template",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
+  "description": "A community website for people in Bahrain to organize activities, make friends, build groups and chat.",
+  "homepage": "https://github.com/hassanelmaayati/modeer-almalaaeb-frontend#readme",
+  "bugs": {
+    "url": "https://github.com/hassanelmaayati/modeer-almalaaeb-frontend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanelmaayati/modeer-almalaaeb-frontend.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
