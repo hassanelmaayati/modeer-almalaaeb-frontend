@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
+import RoomForm from '../components/activities/RoomForm';
 import AsyncState from '../components/common/AsyncState';
 import { emptyResource, startRequest } from '../lib/helpers/request';
+import groupService from '../services/groupService';
 import roomService from '../services/roomService';
+import sportService from '../services/sportService';
 
 function Blocked({ roomId, title, text }) {
   return <section className="panel">
@@ -14,14 +17,27 @@ function Blocked({ roomId, title, text }) {
 
 export default function EditRoomPage({ session }) {
   const { roomId } = useParams();
+  const navigate = useNavigate();
   const userId = session.user?.id;
   const [resource, setResource] = useState(() => emptyResource(null));
   const [retry, setRetry] = useState(0);
 
-  useEffect(() => startRequest((signal) => roomService.get(roomId, { signal }), setResource), [roomId, userId, retry]);
+  useEffect(() => startRequest(async (signal) => {
+    const [room, sports, groups] = await Promise.all([
+      roomService.get(roomId, { signal }),
+      sportService.list({ signal }),
+      groupService.list({ signal }),
+    ]);
+    return { room, sports, groups: groups.filter((group) => group.owner_id === userId) };
+  }, setResource), [roomId, userId, retry]);
 
-  const room = resource.data;
+  const room = resource.data?.room;
   const isHost = Boolean(room && userId != null && String(room.host_id) === String(userId));
+
+  async function save(body) {
+    await roomService.update(roomId, body);
+    navigate(`/rooms/${roomId}`, { state: { saved: true } });
+  }
 
   return <main>
     <h1>Edit room</h1>
@@ -33,7 +49,13 @@ export default function EditRoomPage({ session }) {
         <Blocked roomId={roomId} title="This room can no longer be edited" text="Only open rooms can be edited. Rooms that have started, finished or been cancelled stay as they are." />
       )}
       {room && isHost && room.status === 'open' && (
-        <p>Editing "{room.title}".</p>
+        <RoomForm
+          room={room}
+          sports={resource.data.sports}
+          groups={resource.data.groups}
+          onSubmit={save}
+          onCancel={() => navigate(`/rooms/${roomId}`)}
+        />
       )}
     </AsyncState>
   </main>;

@@ -22,7 +22,7 @@ export default function RoomPage({ session }) {
   const [retry, setRetry] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(location.state?.saved ? 'Changes saved.' : '');
   const [now, setNow] = useState(() => Date.now());
   const reload = () => setRetry(value => value + 1);
   useEffect(() => startRequest(async signal => {
