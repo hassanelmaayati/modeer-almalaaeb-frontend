@@ -98,3 +98,38 @@ export const DEFAULT_FRIEND_TAB = 'friends';
 export function friendTab(value) {
   return FRIEND_TABS.find((tab) => tab.value === value) || FRIEND_TABS[0];
 }
+
+export const CONFIRMED_FRIEND_ACTIONS = ['decline', 'cancel', 'unfriend', 'block'];
+
+export const FRIEND_CONFIRMATIONS = {
+  unfriend: (name) => ({
+    title: `Unfriend ${name}?`,
+    text: "You will no longer be able to message each other, though old messages stay readable. Neither of you can send a new friend request afterwards.",
+    confirm: 'Yes, unfriend',
+  }),
+  block: (name) => ({
+    title: `Block ${name}?`,
+    text: "Neither of you will be able to send messages. You stay friends, and you can unblock them at any time.",
+    confirm: 'Yes, block',
+  }),
+  decline: (name) => ({
+    title: `Decline the request from ${name}?`,
+    text: "Neither of you can send a new friend request afterwards.",
+    confirm: 'Yes, decline',
+  }),
+  cancel: (name) => ({
+    title: `Cancel your request to ${name}?`,
+    text: "You can't send them a new friend request afterwards.",
+    confirm: 'Yes, cancel request',
+  }),
+};
+
+export function friendUpdateFor(kind, friendship) {
+  if (kind === 'block') return blockUpdate(friendship, true);
+  if (kind === 'unblock') return blockUpdate(friendship, false);
+  return FRIEND_ACTIONS[kind];
+}
+
+export function replaceFriendship(rows, updated) {
+  return rows.map((row) => (row.id === updated.id ? updated : row));
+}
