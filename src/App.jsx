@@ -18,6 +18,7 @@ import MyRoomsPage from './pages/MyRoomsPage';
 import JoinedRoomsPage from './pages/JoinedRoomsPage';
 import EditRoomPage from './pages/EditRoomPage';
 import FriendsPage from './pages/FriendsPage';
+import MessagesPage from './pages/MessagesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
@@ -70,6 +71,8 @@ export default function App() {
 
       <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/my-rooms" element={<RequireAuth session={session}><MyRoomsPage key={accountKey} session={session} /></RequireAuth>} />
+      <Route path="/messages" element={<RequireAuth session={session}><MessagesPage key={accountKey} session={session} /></RequireAuth>} />
+      <Route path="/messages/:type/:id" element={<RequireAuth session={session}><MessagesPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/friends" element={<RequireAuth session={session}><FriendsPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/joined-rooms" element={<RequireAuth session={session}><JoinedRoomsPage key={accountKey} /></RequireAuth>} />
       <Route path="/rooms/:roomId/edit" element={<RequireAuth session={session}><EditRoomPage key={accountKey} session={session} /></RequireAuth>} />

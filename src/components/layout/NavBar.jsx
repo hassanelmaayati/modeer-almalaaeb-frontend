@@ -26,6 +26,7 @@ export default function NavBar({ session, unreadCount = 0, liveStatus = 'idle' }
         <NavLink to="/my-rooms">My rooms</NavLink>
         <NavLink to="/joined-rooms">Joined rooms</NavLink>
         <NavLink to="/friends">Friends</NavLink>
+        <NavLink to="/messages">Messages</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/notifications">Notifications{unreadCount > 0 && ` (${unreadCount})`}</NavLink>
         {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span role="status">Live updates reconnecting…</span>}
