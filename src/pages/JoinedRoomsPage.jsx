@@ -4,7 +4,7 @@ import JoinedRoomCard from '../components/activities/JoinedRoomCard';
 import RoomList from '../components/activities/RoomList';
 import RoomListFilters from '../components/activities/RoomListFilters';
 import RoomViewTabs from '../components/activities/RoomViewTabs';
-import { joinedRoomFilters } from '../lib/helpers/filters';
+import { joinedRoomFilters, joinedRoomsEmptyState } from '../lib/helpers/filters';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import usePagedRooms from '../lib/helpers/usePagedRooms';
 import roomService from '../services/roomService';
@@ -20,6 +20,7 @@ export default function JoinedRoomsPage() {
   const searchKey = searchParams.toString();
   const filters = joinedRoomFilters.get(searchParams);
   const resolved = joinedRoomFilters.resolve(filters);
+  const empty = joinedRoomsEmptyState(filters);
   const rooms = usePagedRooms({ searchKey, filterSet: joinedRoomFilters, fetchPage: fetchJoinedRooms });
   const { current } = rooms;
 
@@ -48,8 +49,13 @@ export default function JoinedRoomsPage() {
       error={rooms.error}
       onRetry={rooms.reload}
       Card={JoinedRoomCard}
-      emptyTitle="No rooms found"
-      emptyDescription="Try another view or change the filters."
+      emptyTitle={empty.title}
+      emptyDescription={empty.description}
+      emptyAction={empty.action === 'browse'
+        ? <Link className="button" to="/sports">Browse activities</Link>
+        : empty.action === 'clear'
+          ? <button type="button" className="button-secondary" onClick={() => setSearchParams({})}>Clear filters</button>
+          : null}
     />
     {current && current.total > 0 && <p className="muted" role="status">Showing {current.items.length} of {current.total} rooms</p>}
     {current?.hasMore && <button type="button" className="button-secondary" disabled={rooms.more.pending} onClick={rooms.loadMore}>

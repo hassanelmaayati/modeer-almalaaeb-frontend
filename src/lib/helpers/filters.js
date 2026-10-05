@@ -232,6 +232,46 @@ export const REQUEST_OPTIONS = [
   { value: 'false', label: 'Invited by the host' },
 ];
 
+const JOINED_EMPTY_STATES = {
+  upcoming: {
+    title: "You haven't joined any upcoming rooms",
+    description: 'Find a room to play in and ask to join. Rooms that have ended are under Past.',
+    action: 'browse',
+  },
+  past: {
+    title: 'No past rooms yet',
+    description: 'Rooms you have played in will show up here once they have ended.',
+    action: null,
+  },
+  requests: {
+    title: 'No pending requests',
+    description: 'When you ask to join a room, your request waits here until the host answers.',
+    action: 'browse',
+  },
+  invitations: {
+    title: 'No invitations',
+    description: 'When a host invites you to a room, the invitation will show up here.',
+    action: null,
+  },
+  other: {
+    title: 'Nothing here',
+    description: 'Rooms where a request was declined, or where you were removed or left, show up here.',
+    action: null,
+  },
+};
+
+export function joinedRoomsEmptyState(filters) {
+  const refined = Object.keys(joinedRoomFilters.normalize(filters)).some((key) => key !== 'view');
+  if (refined) {
+    return {
+      title: 'No rooms match these filters',
+      description: 'Try different filters, or clear them to go back to your upcoming rooms.',
+      action: 'clear',
+    };
+  }
+  return JOINED_EMPTY_STATES[joinedRoomFilters.resolve(filters).view];
+}
+
 export function myRoomsEmptyState(filters) {
   const refined = Object.keys(myRoomFilters.normalize(filters)).some((key) => key !== 'view');
   if (refined) {
