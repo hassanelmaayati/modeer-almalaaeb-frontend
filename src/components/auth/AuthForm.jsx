@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import Field from '../common/Field';
+import { DISTRICTS } from '../../lib/helpers/filters';
 
 export default function AuthForm({ session, signup = false }) {
   const location = useLocation(), navigate = useNavigate();
@@ -14,7 +15,11 @@ export default function AuthForm({ session, signup = false }) {
     const form = new FormData(event.currentTarget);
     if (signup && form.get('password') !== form.get('confirmation')) return setError('Passwords must match.');
     const body = { email: form.get('email').trim(), password: form.get('password') };
-    if (signup) body.user_name = form.get('user_name').trim();
+    if (signup) {
+      body.user_name = form.get('user_name').trim();
+      // The home governorate becomes the default room filter.
+      body.district = form.get('district');
+    }
     setPending(true);
     setError('');
     try {
@@ -34,6 +39,12 @@ export default function AuthForm({ session, signup = false }) {
       <Field label="Email"><input name="email" type="email" autoComplete="email" required /></Field>
       <Field label="Password"><input name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : undefined} required /></Field>
       {signup && <Field label="Confirm password"><input name="confirmation" type="password" autoComplete="new-password" minLength={8} required /></Field>}
+      {signup && <Field label="Governorate">
+        <select name="district" defaultValue="" required>
+          <option value="" disabled>Select your governorate</option>
+          {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+        </select>
+      </Field>}
       <div className="actions"><button disabled={pending}>{pending ? signup ? 'Creating account…' : 'Signing in…' : title}</button><Link to={destination}>Cancel</Link></div>
     </form>
     <p>{signup ? 'Already registered? ' : 'Need an account? '}<Link to={signup ? '/sign-in' : '/sign-up'} state={location.state}>{signup ? 'Sign in' : 'Sign up'}</Link></p>

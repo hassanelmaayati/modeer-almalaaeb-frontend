@@ -114,16 +114,16 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
                 : <input name="capacity" type="number" min="1" step="1" defaultValue={room?.capacity || ''} required />}
         </Field>
 
-        <Field label="District" error={fieldErrors.district}>
+        <Field label="Governorate" error={fieldErrors.district}>
             <select name="district" value={district} onChange={event => setDistrict(event.target.value)} required>
-                <option value="" disabled>Select a district</option>
+                <option value="" disabled>Select a governorate</option>
                 {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
             </select>
         </Field>
 
         <Field key={district} label="Area" error={fieldErrors.area}>
             <select name="area" defaultValue={district === room?.district ? room.area : ''} disabled={!district} required>
-                <option value="" disabled>{district ? 'Select an area' : 'Choose a district first'}</option>
+                <option value="" disabled>{district ? 'Select an area' : 'Choose a governorate first'}</option>
                 {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
             </select>
         </Field>

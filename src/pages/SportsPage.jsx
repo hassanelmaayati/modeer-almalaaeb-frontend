@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import sportService from '../services/sportService';
 import roomService from '../services/roomService';
-import { getRoomFilters, validateRoomFilters } from '../lib/helpers/filters';
+import { getRoomFilters, toApiFilters, validateRoomFilters, withHomeGovernorate } from '../lib/helpers/filters';
 import ActivityCard from '../components/activities/ActivityCard';
 import RoomFilters from '../components/activities/RoomFilters';
 import RoomList from '../components/activities/RoomList';
@@ -16,7 +16,8 @@ import { roomEvent } from '../lib/helpers/live';
 export default function SportsPage({ session = { user: null, loading: false } }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const filters = getRoomFilters(searchParams);
+  // A signed-in user's home governorate is the default filter until they pick another (or all).
+  const filters = withHomeGovernorate(getRoomFilters(searchParams), session.user);
   const [sports, setSports] = useState(() => emptyResource([]));
   const [rooms, setRooms] = useState(() => emptyResource([]));
   const [sportsRetry, setSportsRetry] = useState(0);
@@ -26,11 +27,11 @@ export default function SportsPage({ session = { user: null, loading: false } })
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), [sportsRetry]);
   useEffect(() => startRequest((signal) => {
-    const values = getRoomFilters(searchParams);
+    const values = withHomeGovernorate(getRoomFilters(searchParams), session.user);
     const problem = validateRoomFilters(values);
     if (problem) throw new Error(problem);
-    return roomService.list(values, { signal });
-  }, setRooms), [searchParams, roomsRetry]);
+    return roomService.list(toApiFilters(values), { signal });
+  }, setRooms), [searchParams, roomsRetry, session.user]);
   useEffect(() => listen(event => { if (event.type === 'connection.ready' || roomEvent(event)) setRoomsRetry(count => count + 1); }), []);
 
   return (
@@ -55,7 +56,7 @@ export default function SportsPage({ session = { user: null, loading: false } })
             <button type='button' className='button-secondary' onClick={reloadRooms}>Refresh activities</button>
           </div>
         </div>
-        <RoomFilters key={`${searchParams.toString()}-${sports.loading}`} filters={filters} sports={sports.data} onApply={(values) => setSearchParams(values)} onClear={() => setSearchParams({})} />
+        <RoomFilters key={`${searchParams.toString()}-${filters.district}-${sports.loading}`} filters={filters} sports={sports.data} onApply={(values) => setSearchParams(values)} onClear={() => setSearchParams({})} />
         <RoomList rooms={rooms.data} sports={sports.data} loading={rooms.loading} error={rooms.error} onRetry={reloadRooms} onPreview={setSelectedRoom} />
       </section>
       {selectedRoom && <RoomPreviewDialog key={`${selectedRoom.id}-${session.user?.id || 'guest'}`} session={session} room={selectedRoom} sportName={sports.data.find((sport) => sport.id === selectedRoom.sport_id)?.name} onClose={() => setSelectedRoom(null)} onUpdated={reloadRooms} />}

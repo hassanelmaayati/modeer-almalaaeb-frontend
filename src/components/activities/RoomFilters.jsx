@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toBahrainDateTimeInput } from '../../lib/helpers/date';
-import { DIFFICULTIES, DISTRICTS, filtersFromForm, validateRoomFilters } from '../../lib/helpers/filters';
+import { ALL_GOVERNORATES, DIFFICULTIES, DISTRICTS, filtersFromForm, validateRoomFilters } from '../../lib/helpers/filters';
 
 export default function RoomFilters({ filters, sports = [], onApply, onClear }) {
   const [error, setError] = useState('');
@@ -28,9 +28,9 @@ export default function RoomFilters({ filters, sports = [], onApply, onClear }) 
             {DIFFICULTIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
-        <label className="form-field">District
+        <label className="form-field">Governorate
           <select name="district" defaultValue={filters.district || ''}>
-            <option value="">All districts</option>
+            <option value={ALL_GOVERNORATES}>All governorates</option>
             {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>

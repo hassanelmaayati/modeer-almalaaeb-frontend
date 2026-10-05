@@ -21,7 +21,9 @@ export default function HomePage({ session = { user: null, loading: false } }) {
   const reloadRooms = () => setRoomsRetry((count) => count + 1);
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), [sportsRetry]);
-  useEffect(() => startRequest((signal) => roomService.list({}, { signal }), setRooms), [roomsRetry]);
+  // Signed-in users with a home governorate see rooms there first; everyone else sees all rooms.
+  const governorate = session.user?.district;
+  useEffect(() => startRequest((signal) => roomService.list(governorate ? { district: governorate } : {}, { signal }), setRooms), [roomsRetry, governorate]);
   useEffect(() => listen(event => { if (event.type === 'connection.ready' || roomEvent(event)) setRoomsRetry(count => count + 1); }), []);
 
   return (
@@ -54,6 +56,7 @@ export default function HomePage({ session = { user: null, loading: false } }) {
       </section>
       <section className="page-section" aria-labelledby="home-upcoming-title">
         <div className="section-heading"><h2 id="home-upcoming-title">Upcoming activities</h2><Link to="/sports">Browse activities</Link></div>
+        {governorate && <p className="muted">Showing activities in your governorate. <Link to="/sports?district=all">See all governorates</Link></p>}
         <RoomList rooms={rooms.data.slice(0, 2)} sports={sports.data} loading={rooms.loading} error={rooms.error} onRetry={reloadRooms} onPreview={setSelectedRoom} emptyDescription="No public activities are scheduled yet. Check back soon." />
       </section>
       {selectedRoom && <RoomPreviewDialog key={`${selectedRoom.id}-${session.user?.id || 'guest'}`} session={session} room={selectedRoom} sportName={sports.data.find((sport) => sport.id === selectedRoom.sport_id)?.name} onClose={() => setSelectedRoom(null)} onUpdated={reloadRooms} />}

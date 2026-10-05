@@ -108,8 +108,10 @@ export function roomErrors(error) {
       ? error.detail.map(issue => ({ path: issue.loc || [], text: issue.msg || 'Invalid value' }))
       : [{ path: [], text: String(error.detail || error.message) }];
     for (const { path, text } of issues) {
-      const message = text.replace(/^Value error, /, '');
-      const field = fieldFor(path, message);
+      const raw = text.replace(/^Value error, /, '');
+      const field = fieldFor(path, raw);
+      // The API says "district"; the app calls it a governorate.
+      const message = raw.replace(/\bdistrict\b/g, 'governorate');
       if (field && !fields[field]) fields[field] = message;
       else if (!field) general.push(message);
     }
