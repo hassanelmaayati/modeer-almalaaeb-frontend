@@ -1,3 +1,5 @@
+import { parseDate } from './date';
+
 export function roomPositions(room) {
   const layout = room.slot_layout || {};
   const positions = layout.slots || layout.positions || layout.teams?.flatMap(team => team.slots || []) || [];
@@ -126,4 +128,29 @@ export function joinedMembershipLabel(membership) {
   if (membership.status === 'pending') return membership.requested === false ? 'Invitation' : 'Request pending';
   const labels = { accepted: 'Accepted', declined: 'Declined', removed: 'Removed', left: 'Left' };
   return labels[membership.status] || membership.status;
+}
+
+const FREEZE_WINDOW_MS = 15 * 60 * 1000;
+
+export const FROZEN_ROOM_FIELDS = [
+  'sport_id',
+  'starts_at',
+  'ends_at',
+  'capacity',
+  'slot_layout',
+  'district',
+  'area',
+  'venue_location',
+  'venue_notes',
+];
+
+export function isRoomFrozen(room, now = Date.now()) {
+  const start = parseDate(room.starts_at)?.getTime();
+  return start === undefined || now >= start - FREEZE_WINDOW_MS;
+}
+
+export function withoutFrozenFields(body) {
+  const result = { ...body };
+  for (const key of FROZEN_ROOM_FIELDS) delete result[key];
+  return result;
 }

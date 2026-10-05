@@ -4,10 +4,11 @@ import LocationPicker from './LocationPicker';
 import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
 import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
-import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, roomErrors, scheduleError, sportFormats } from '../../lib/helpers/rooms';
+import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, isRoomFrozen, roomErrors, scheduleError, sportFormats, withoutFrozenFields } from '../../lib/helpers/rooms';
 
 export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
     const editing = !!room;
+    const [frozen] = useState(() => editing && isRoomFrozen(room));
     const [pending, setPending] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
@@ -33,11 +34,11 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         const form = new FormData(event.currentTarget);
 
         // Times are typed in Bahrain time and sent as UTC ISO strings (the backend rejects times without a timezone).
-        const startsAt = fromBahrainDateTimeInput(form.get('starts_at'));
-        const endsAt = fromBahrainDateTimeInput(form.get('ends_at'));
+        const startsAt = frozen ? room.starts_at : fromBahrainDateTimeInput(form.get('starts_at'));
+        const endsAt = frozen ? room.ends_at : fromBahrainDateTimeInput(form.get('ends_at'));
         // On edit, an unchanged start is not re-checked: it may already be less than an hour away.
         const startChanged = !editing || form.get('starts_at') !== toBahrainDateTimeInput(room.starts_at);
-        const problem = scheduleError(startsAt, endsAt, { checkStart: startChanged });
+        const problem = frozen ? '' : scheduleError(startsAt, endsAt, { checkStart: startChanged });
         if (problem) return setError(problem);
 
         const values = {
@@ -48,12 +49,12 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
             difficulty: form.get('difficulty'),
             starts_at: startsAt,
             ends_at: endsAt,
-            capacity: form.get('capacity'),
+            capacity,
             visibility,
             group_id: form.get('group_id'),
             admission_policy: form.get('admission_policy'),
             district,
-            area: form.get('area'),
+            area,
             // The pin and notes are private: the backend only shows them to the host and admitted players.
             venue_location: pin,
             venue_notes: form.get('venue_notes'),
@@ -70,7 +71,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         setPending(true);
         setError('');
         try {
-            await onSubmit(body);
+            await onSubmit(frozen ? withoutFrozenFields(body) : body);
         } catch (failure) {
             // The inputs are uncontrolled, so they keep what the user typed; only the messages change.
             const { banner, fields } = roomErrors(failure);
@@ -83,9 +84,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
 
     return <form className="form-stack" onSubmit={submit}>
         {error && <p role="alert">{error}</p>}
+        {frozen && <p role="status">Schedule, location and capacity can't be changed in the last 15 minutes before the start.</p>}
 
         <Field label="Sport" error={fieldErrors.sport_id}>
-            <select name="sport_id" value={sportId} onChange={event => { setSportId(event.target.value); setCapacity(''); }} required>
+            <select name="sport_id" value={sportId} onChange={event => { setSportId(event.target.value); setCapacity(''); }} disabled={frozen} required>
                 <option value="" disabled>Select a sport</option>
                 {sports.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
@@ -95,10 +97,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         <Field label="Description" error={fieldErrors.description}><textarea name="description" defaultValue={room?.description || ''} /></Field>
 
         <Field label="Starts (Bahrain time)" error={fieldErrors.starts_at}>
-            <input name="starts_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.starts_at)} required />
+            <input name="starts_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.starts_at)} disabled={frozen} required />
         </Field>
         <Field label="Ends (Bahrain time)" error={fieldErrors.ends_at}>
-            <input name="ends_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.ends_at)} required />
+            <input name="ends_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.ends_at)} disabled={frozen} required />
         </Field>
         <p className="muted">Rooms can start between 1 hour and 14 days from now.</p>
 
@@ -110,22 +112,22 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
 
         <Field label={formats.length ? 'Format' : 'Capacity (players)'} error={fieldErrors.capacity}>
             {formats.length
-                ? <select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} required>
+                ? <select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required>
                     <option value="" disabled>Select a format</option>
                     {formats.map(format => <option key={format.key} value={format.capacity}>{format.key} ({format.capacity} players)</option>)}
                 </select>
-                : <input name="capacity" type="number" min="1" step="1" value={capacity} onChange={event => setCapacity(event.target.value)} required />}
+                : <input name="capacity" type="number" min="1" step="1" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required />}
         </Field>
 
         <Field label="Governorate" error={fieldErrors.district}>
-            <select name="district" value={district} onChange={event => { setDistrict(event.target.value); setArea(''); }} required>
+            <select name="district" value={district} onChange={event => { setDistrict(event.target.value); setArea(''); }} disabled={frozen} required>
                 <option value="" disabled>Select a governorate</option>
                 {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
             </select>
         </Field>
 
         <Field label="Area" error={fieldErrors.area}>
-            <select name="area" value={area} onChange={event => setArea(event.target.value)} disabled={!district} required>
+            <select name="area" value={area} onChange={event => setArea(event.target.value)} disabled={frozen || !district} required>
                 <option value="" disabled>{district ? 'Select an area' : 'Choose a governorate first'}</option>
                 {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
             </select>
@@ -134,10 +136,10 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel }) {
         <fieldset>
             <legend>Activity Location (private)</legend>
             <p className="muted">The area above is public. The pin and notes below are shown only to you and the players you admit.</p>
-            <LocationPicker value={pin} onChange={setPin} canClear={!room?.venue_location} />
+            <LocationPicker value={pin} onChange={setPin} canClear={!room?.venue_location} disabled={frozen} />
             {fieldErrors.venue_location && <p role="alert" className="field-error">{fieldErrors.venue_location}</p>}
             <Field label="Location notes (optional)" error={fieldErrors.venue_notes}>
-                <textarea name="venue_notes" placeholder="Court number, parking, meeting point…" defaultValue={room?.venue_notes || ''} />
+                <textarea name="venue_notes" placeholder="Court number, parking, meeting point…" defaultValue={room?.venue_notes || ''} disabled={frozen} />
             </Field>
         </fieldset>
 
