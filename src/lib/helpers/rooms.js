@@ -1,3 +1,6 @@
+import { parseDate } from './date';
+import { DIFFICULTIES, DISTRICTS, optionLabel, ROOM_STATUS_OPTIONS, VISIBILITY_OPTIONS } from './filters';
+
 export function roomPositions(room) {
   const layout = room.slot_layout || {};
   const positions = layout.slots || layout.positions || layout.teams?.flatMap(team => team.slots || []) || [];
@@ -126,4 +129,56 @@ export function joinedMembershipLabel(membership) {
   if (membership.status === 'pending') return membership.requested === false ? 'Invitation' : 'Request pending';
   const labels = { accepted: 'Accepted', declined: 'Declined', removed: 'Removed', left: 'Left' };
   return labels[membership.status] || membership.status;
+}
+
+const FREEZE_WINDOW_MS = 15 * 60 * 1000;
+
+export const FROZEN_ROOM_FIELDS = [
+  'sport_id',
+  'starts_at',
+  'ends_at',
+  'capacity',
+  'slot_layout',
+  'district',
+  'area',
+  'venue_location',
+  'venue_notes',
+];
+
+export function isRoomFrozen(room, now = Date.now()) {
+  const start = parseDate(room.starts_at)?.getTime();
+  return start === undefined || now >= start - FREEZE_WINDOW_MS;
+}
+
+export function withoutFrozenFields(body) {
+  const result = { ...body };
+  for (const key of FROZEN_ROOM_FIELDS) delete result[key];
+  return result;
+}
+
+export function isStaleConflict(failure) {
+  return failure?.status === 409 && !/^capacity/i.test(failure.message || '');
+}
+
+const ADMISSION_LABELS = {
+  approval: 'The host approves each request',
+  open: 'Anyone can join',
+};
+
+export function roomDetailItems(room, { sportName, hostName } = {}) {
+  const items = [
+    ['Activity', sportName],
+    ['Status', optionLabel(ROOM_STATUS_OPTIONS, room.status)],
+    ['Difficulty', optionLabel(DIFFICULTIES, room.difficulty)],
+    ['Governorate', optionLabel(DISTRICTS, room.district)],
+    ['Area', room.area],
+    ['Visibility', optionLabel(VISIBILITY_OPTIONS, room.visibility)],
+    ['Joining', ADMISSION_LABELS[room.admission_policy] || room.admission_policy],
+    ['Host', hostName],
+    ['Capacity', room.capacity != null ? `${room.capacity} places` : null],
+    ['Distance', room.distance_km != null ? `${room.distance_km} km` : null],
+    ['Pace', room.pace_notes],
+    ['Route', room.route_notes],
+  ];
+  return items.filter(([, value]) => value !== undefined && value !== null && value !== '');
 }

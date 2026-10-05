@@ -35,3 +35,9 @@ export function getRoomAdmissionState(room, members, user, now = Date.now()) {
     canWithdraw: Boolean(user && !isHost && membership?.status === 'pending'),
   };
 }
+
+export function occupiedPlaces(room, members) {
+  const taken = new Set(members.filter((member) => member.status === 'accepted').map((member) => String(member.user_id)));
+  taken.add(String(room.host_id));
+  return taken.size;
+}

@@ -16,6 +16,7 @@ import RoomPage from './pages/RoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
 import MyRoomsPage from './pages/MyRoomsPage';
 import JoinedRoomsPage from './pages/JoinedRoomsPage';
+import EditRoomPage from './pages/EditRoomPage';
 import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="/rooms/new" element={<RequireAuth session={session}><CreateRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/my-rooms" element={<RequireAuth session={session}><MyRoomsPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/joined-rooms" element={<RequireAuth session={session}><JoinedRoomsPage key={accountKey} /></RequireAuth>} />
+      <Route path="/rooms/:roomId/edit" element={<RequireAuth session={session}><EditRoomPage key={accountKey} session={session} /></RequireAuth>} />
       <Route path="/rooms/:roomId" element={<RoomPage key={accountKey} session={session} />} />
 
       <Route path="/notifications" element={<NotificationsPage key={accountKey} session={session} />} />

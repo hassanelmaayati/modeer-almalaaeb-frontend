@@ -13,7 +13,7 @@ function ClickToPin({ onPick }) {
  * Click the map to drop or move the pin. `value` is { latitude, longitude } or null; `onChange` gets the same shape
  * (or null when cleared). Pass canClear={false} when the backend cannot remove a saved pin (editing a room).
  */
-export default function LocationPicker({ value, onChange, canClear = true }) {
+export default function LocationPicker({ value, onChange, canClear = true, disabled = false }) {
   const position = value ? [value.latitude, value.longitude] : null;
   return <div className="location-picker">
     <MapContainer
@@ -25,12 +25,14 @@ export default function LocationPicker({ value, onChange, canClear = true }) {
       style={{ height: '320px', width: '100%' }}
     >
       <TileLayer attribution={OSM_TILES.attribution} url={OSM_TILES.url} />
-      <ClickToPin onPick={({ lat, lng }) => onChange({ latitude: Number(lat.toFixed(6)), longitude: Number(lng.toFixed(6)) })} />
+      {!disabled && <ClickToPin onPick={({ lat, lng }) => onChange({ latitude: Number(lat.toFixed(6)), longitude: Number(lng.toFixed(6)) })} />}
       {position && <Marker position={position} />}
     </MapContainer>
     <p className="muted">
-      {position ? `Pin at ${value.latitude}, ${value.longitude}. Click the map to move it.` : 'Click the map to drop a pin on the exact venue (optional).'}
+      {disabled
+        ? (position ? `Pin at ${value.latitude}, ${value.longitude}.` : 'No pin set.')
+        : (position ? `Pin at ${value.latitude}, ${value.longitude}. Click the map to move it.${canClear ? '' : ' A saved pin can be moved but not removed.'}` : 'Click the map to drop a pin on the exact venue (optional).')}
     </p>
-    {position && canClear && <button type="button" onClick={() => onChange(null)}>Clear pin</button>}
+    {position && canClear && !disabled && <button type="button" onClick={() => onChange(null)}>Clear pin</button>}
   </div>;
 }

@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import roomService from '../services/roomService';
 import roomMemberService from '../services/roomMemberService';
+import sportService from '../services/sportService';
 import userService from '../services/userService';
 import { listen } from '../services/websocketService';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import { roomEvent } from '../lib/helpers/live';
 import { getRoomAdmissionState } from '../lib/helpers/memberships';
-import { roomPositions } from '../lib/helpers/rooms';
+import { roomDetailItems, roomPositions } from '../lib/helpers/rooms';
 import { playerName } from '../lib/helpers/groups';
-import { formatActivitySchedule, parseDate } from '../lib/helpers/date';
+import { formatActivityDate, formatActivitySchedule, formatActivityTime, parseDate } from '../lib/helpers/date';
+import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
+import CancelRoomForm from '../components/activities/CancelRoomForm';
 import LocationView from '../components/activities/LocationView';
 
 export default function RoomPage({ session }) {
@@ -22,12 +25,12 @@ export default function RoomPage({ session }) {
   const [retry, setRetry] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(location.state?.saved ? 'Changes saved.' : '');
   const [now, setNow] = useState(() => Date.now());
   const reload = () => setRetry(value => value + 1);
   useEffect(() => startRequest(async signal => {
-    const [room, members, users] = await Promise.all([roomService.get(roomId, { signal }), roomMemberService.list(roomId, { signal }), userService.list({ signal })]);
-    return { room, members, users };
+    const [room, members, users, sports] = await Promise.all([roomService.get(roomId, { signal }), roomMemberService.list(roomId, { signal }), userService.list({ signal }), sportService.list({ signal })]);
+    return { room, members, users, sports };
   }, setResource), [roomId, userId, retry]);
   useEffect(() => listen(event => { if (event.type === 'connection.ready' || roomEvent(event, roomId)) setRetry(value => value + 1); }), [roomId]);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer); }, []);
@@ -47,7 +50,7 @@ export default function RoomPage({ session }) {
     return roomMemberService.request(roomId);
   }
 
-  const { room, members = [], users = [] } = resource.data || {};
+  const { room, members = [], users = [], sports = [] } = resource.data || {};
   const admission = room ? getRoomAdmissionState(room, members, user, now) : null;
   const own = admission?.membership;
   const canSeeRoster = admission?.isHost || own?.status === 'accepted';
@@ -59,7 +62,14 @@ export default function RoomPage({ session }) {
   return <main>
     <AsyncState loading={resource.loading || session.loading} error={resource.error} onRetry={reload}>
       {room && <>
-        <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {room.district}</p></header>
+        <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {optionLabel(DISTRICTS, room.district)}</p></header>
+        {room.status === 'cancelled' && <section className="panel" aria-label="Cancellation"><h2>Room cancelled</h2>
+          <p>{room.cancelled_at ? `The host cancelled this room on ${formatActivityDate(room.cancelled_at)} at ${formatActivityTime(room.cancelled_at)} (Bahrain time).` : 'The host cancelled this room.'}</p>
+          {room.cancellation_reason && <p>Reason: {room.cancellation_reason}</p>}
+        </section>}
+        <section className="panel"><h2>Details</h2><dl className="activity-details">
+          {roomDetailItems(room, { sportName: sports.find(sport => sport.id === room.sport_id)?.name, hostName: playerName(users, room.host_id) }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+        </dl></section>
         <section className="panel"><h2>Room lobby</h2><p>Status: {room.status}</p><p>{room.slots_left} available places of {room.capacity}; the host has a place.</p>
           {room.description && <p>{room.description}</p>}{room.notes && <p>Notes: {room.notes}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
           {room.venue_location && <><h3>Venue location</h3><LocationView location={room.venue_location} /></>}
@@ -103,13 +113,12 @@ export default function RoomPage({ session }) {
           {own.position && !positions.some(position => position.value === own.position) && <option value={own.position}>{own.position}</option>}
         </select></label><button disabled={pending}>Save place</button></form></section>}
         {admission.isHost && room.status === 'open' && <section className="panel"><h2>Host controls</h2>
+          <Link className="button-secondary" to={`/rooms/${roomId}/edit`}>Edit room</Link>
           <form className="form-stack" onSubmit={event => { event.preventDefault(); const id = Number(new FormData(event.currentTarget).get('user_id')); run(() => roomMemberService.invite(roomId, id), 'Invitation sent.'); }}>
             <label>Invite player<select name="user_id" required defaultValue=""><option value="" disabled>Choose a player</option>{candidates.map(player => <option value={player.id} key={player.id}>{player.user_name}</option>)}</select></label>
             <button disabled={pending || admission.atCutoff || admission.full || !candidates.length}>Invite player</button>
           </form>
-          <form className="form-stack" onSubmit={event => { event.preventDefault(); const reason = String(new FormData(event.currentTarget).get('reason')).trim(); if (reason) run(() => roomService.cancel(roomId, reason), 'Room cancelled.'); }}>
-            <label>Cancellation reason<input name="reason" required /></label><button disabled={pending}>Cancel room</button>
-          </form>
+          <CancelRoomForm title={room.title} pending={pending} onConfirm={reason => run(() => roomService.cancel(roomId, reason), 'Room cancelled.')} />
         </section>}
       </>}
     </AsyncState>
