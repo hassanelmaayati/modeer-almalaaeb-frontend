@@ -3,6 +3,7 @@ import { toBahrainDateTimeInput } from '../../lib/helpers/date';
 import {
   MEMBERSHIP_OPTIONS,
   ORDER_OPTIONS,
+  REQUEST_OPTIONS,
   ROOM_STATUS_OPTIONS,
   VISIBILITY_OPTIONS,
 } from '../../lib/helpers/filters';
@@ -57,6 +58,9 @@ export default function RoomListFilters({ filterSet, filters, sports = [], field
       <div className="filter-fields">
         {has('sport_id') && (
           <SelectField name="sport_id" label="Activity" anyLabel="All activities" options={sportOptions} value={filters.sport_id} />
+        )}
+        {has('requested') && (
+          <SelectField name="requested" label="Request type" anyLabel="Any" options={REQUEST_OPTIONS} value={filters.requested} />
         )}
         {has('visibility') && (
           <SelectField name="visibility" label="Visibility" anyLabel="Any visibility" options={VISIBILITY_OPTIONS} value={filters.visibility} />

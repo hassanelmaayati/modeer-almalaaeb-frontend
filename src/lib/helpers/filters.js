@@ -215,6 +215,23 @@ export const myRoomFilters = createRoomListFilters({
   textKeys: ['sport_id', 'visibility', 'difficulty', 'starts_from', 'starts_to', 'order'],
 });
 
+export const joinedRoomFilters = createRoomListFilters({
+  views: [
+    { value: 'upcoming', label: 'Upcoming', preset: { membership: ['accepted'], status: ['open', 'started'], order: 'asc' } },
+    { value: 'past', label: 'Past', preset: { membership: ['accepted'], status: ['completed', 'cancelled'], order: 'desc' } },
+    { value: 'requests', label: 'Requests', preset: { membership: ['pending'], requested: 'true', status: ['open', 'started'], order: 'asc' } },
+    { value: 'invitations', label: 'Invitations', preset: { membership: ['pending'], requested: 'false', status: ['open', 'started'], order: 'asc' } },
+    { value: 'other', label: 'Other', preset: { membership: ['declined', 'removed', 'left'], order: 'desc' } },
+  ],
+  listKeys: ['status', 'membership'],
+  textKeys: ['sport_id', 'requested', 'starts_from', 'starts_to', 'order'],
+});
+
+export const REQUEST_OPTIONS = [
+  { value: 'true', label: 'Asked to join' },
+  { value: 'false', label: 'Invited by the host' },
+];
+
 export function myRoomsEmptyState(filters) {
   const refined = Object.keys(myRoomFilters.normalize(filters)).some((key) => key !== 'view');
   if (refined) {

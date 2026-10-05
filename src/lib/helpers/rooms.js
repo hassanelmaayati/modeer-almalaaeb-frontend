@@ -121,3 +121,9 @@ export function roomErrors(error) {
   }
   return { banner: general.join(' '), fields };
 }
+
+export function joinedMembershipLabel(membership) {
+  if (membership.status === 'pending') return membership.requested === false ? 'Invitation' : 'Request pending';
+  const labels = { accepted: 'Accepted', declined: 'Declined', removed: 'Removed', left: 'Left' };
+  return labels[membership.status] || membership.status;
+}
