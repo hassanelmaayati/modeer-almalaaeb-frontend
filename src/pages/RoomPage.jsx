@@ -58,9 +58,9 @@ export default function RoomPage({ session }) {
   return <main>
     <AsyncState loading={resource.loading || session.loading} error={resource.error} onRetry={reload}>
       {room && <>
-        <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.public_area} · {room.district}</p></header>
+        <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {room.district}</p></header>
         <section className="panel"><h2>Room lobby</h2><p>Status: {room.status}</p><p>{room.slots_left} available places of {room.capacity}; the host has a place.</p>
-          {room.description && <p>{room.description}</p>}{room.venue_details && <p>Meeting details: {room.venue_details}</p>}
+          {room.description && <p>{room.description}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
           {admission.message && <p role="status">{admission.message}</p>}
           {!user && <Link to="/sign-in" state={{ from: location.pathname }}>Sign in to request a place</Link>}
           {admission.canRequest && <button type="button" disabled={pending} onClick={() => run(requestPlace, 'Request sent. Waiting for host approval.')}>Request to join</button>}
@@ -79,7 +79,7 @@ export default function RoomPage({ session }) {
               <button disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'declined' }), 'Request declined.')}>Decline {playerName(users, member.user_id)}</button>
             </div>}
             {admission.isHost && ['pending', 'accepted'].includes(member.status) && ['open', 'started'].includes(room.status) && <button disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'removed' }), 'Player removed.')}>Remove {playerName(users, member.user_id)}</button>}
-            {admission.isHost && member.status === 'accepted' && ['started', 'finished'].includes(room.status) && <form className="form-stack" onSubmit={event => {
+            {admission.isHost && member.status === 'accepted' && ['started', 'completed'].includes(room.status) && <form className="form-stack" onSubmit={event => {
               event.preventDefault();
               const values = new FormData(event.currentTarget);
               const attendance = values.get('attendance');

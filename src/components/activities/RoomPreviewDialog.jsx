@@ -80,13 +80,13 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
           <p className="eyebrow">{sportName || 'Activity'}</p>
           <p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain time)</p>
           <dl className="activity-details">
-            <div><dt>Area</dt><dd>{room.public_area} · {optionLabel(DISTRICTS, room.district)}</dd></div>
+            <div><dt>Area</dt><dd>{room.area} · {optionLabel(DISTRICTS, room.district)}</dd></div>
             <div><dt>Difficulty</dt><dd>{optionLabel(DIFFICULTIES, room.difficulty)}</dd></div>
             <div><dt>{room.slots_left == null ? 'Accepted players' : 'Available places'}</dt><dd>{room.slots_left == null ? `${admission.acceptedCount} / ${room.capacity}` : `${room.slots_left} / ${room.capacity}`}</dd></div>
             <div><dt>Status</dt><dd>{room.status}</dd></div>
             {room.distance_km != null && <div><dt>Distance</dt><dd>{room.distance_km} km</dd></div>}
             {room.pace_notes && <div><dt>Pace</dt><dd>{room.pace_notes}</dd></div>}
-            {room.venue_details && <div><dt>Venue details</dt><dd>{room.venue_details}</dd></div>}
+            {room.venue_notes && <div><dt>Venue details</dt><dd>{room.venue_notes}</dd></div>}
           </dl>
           {room.description && <p>{room.description}</p>}
           {room.route_notes && <p>{room.route_notes}</p>}
