@@ -78,3 +78,44 @@ export function buildRoomBody(values, { editing = false, revision } = {}) {
   if (editing) body.revision = revision;
   return { body };
 }
+
+const ROOM_FIELDS = [
+  'sport_id', 'title', 'description', 'difficulty', 'starts_at', 'ends_at', 'capacity', 'visibility',
+  'group_id', 'admission_policy', 'district', 'area', 'venue_location', 'venue_notes', 'distance_km',
+  'pace_notes', 'route_notes',
+];
+const spaced = text => text.replaceAll('_', ' ').toLowerCase();
+
+// Which form field a validation message is about, from its path or, for rule messages, its first words.
+function fieldFor(path, text) {
+  const named = path.find(part => ROOM_FIELDS.includes(String(part).split('.')[0]));
+  if (named) return String(named).split('.')[0];
+  const lead = spaced(text);
+  return ROOM_FIELDS.find(name => lead.startsWith(spaced(name))) || null;
+}
+
+/**
+ * Splits a failed create/update into messages for specific fields and a general banner.
+ * 422 validation messages (area not in district, pin outside Bahrain, capacity not matching the sport's format,
+ * group required, start window...) go to their field. Network, server and conflict errors only get the banner.
+ * @returns {{ banner: string, fields: Record<string, string> }}
+ */
+export function roomErrors(error) {
+  const fields = {};
+  const general = [];
+  if (error?.status === 422) {
+    const issues = Array.isArray(error.detail)
+      ? error.detail.map(issue => ({ path: issue.loc || [], text: issue.msg || 'Invalid value' }))
+      : [{ path: [], text: String(error.detail || error.message) }];
+    for (const { path, text } of issues) {
+      const message = text.replace(/^Value error, /, '');
+      const field = fieldFor(path, message);
+      if (field && !fields[field]) fields[field] = message;
+      else if (!field) general.push(message);
+    }
+    if (Object.keys(fields).length) general.unshift('Please fix the highlighted fields.');
+  } else {
+    general.push(error?.message || 'Something went wrong. Please try again.');
+  }
+  return { banner: general.join(' '), fields };
+}
