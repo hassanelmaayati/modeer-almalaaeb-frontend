@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Field from '../common/Field';
+import { DISTRICTS } from '../../lib/helpers/filters';
 
 export default function ProfileForm({ user, onSubmit }) {
   const [pending, setPending] = useState(false);
@@ -14,6 +15,7 @@ export default function ProfileForm({ user, onSubmit }) {
       user_name: form.get('user_name').trim(),
       photo_url: form.get('photo_url').trim() || null,
       bio: form.get('bio').trim() || null,
+      district: form.get('district') || null,
     };
     setPending(true);
     setError('');
@@ -28,6 +30,12 @@ export default function ProfileForm({ user, onSubmit }) {
     {saved && <p role="status">Profile saved.</p>}
     <Field label="User name"><input name="user_name" defaultValue={user.user_name} autoComplete="username" minLength={3} maxLength={60} required /></Field>
     <Field label="Photo URL"><input name="photo_url" type="url" defaultValue={user.photo_url || ''} /></Field>
+    <Field label="Governorate">
+      <select name="district" defaultValue={user.district || ''}>
+        <option value="">No preference (show all governorates)</option>
+        {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+      </select>
+    </Field>
     <Field label="Bio"><textarea name="bio" defaultValue={user.bio || ''} /></Field>
     <div className="actions"><button disabled={pending}>{pending ? 'Saving…' : 'Save profile'}</button></div>
   </form>;
