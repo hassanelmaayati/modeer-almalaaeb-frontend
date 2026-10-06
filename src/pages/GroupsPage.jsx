@@ -6,9 +6,24 @@ import GroupCard from '../components/groups/GroupCard';
 import GroupDialog from '../components/groups/GroupDialog';
 import CreateGroupDialog from '../components/groups/CreateGroupDialog';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
+import { GroupsArt } from '../components/home/HeroArt';
 import { filterGroups, loadGroups } from '../lib/helpers/groups';
 import { listen } from '../services/websocketService';
 import { roomEvent } from '../lib/helpers/live';
+
+const VIEWS = [{ value: 'joined', label: 'Your groups' }, { value: 'invitations', label: 'Invitations' }];
+
+function GroupsBanner({ children }) {
+  return <section className="sports-banner groups-banner" aria-labelledby="groups-title">
+    <GroupsArt />
+    <div>
+      <p className="sports-banner-eyebrow">Teams. Friends. Community.</p>
+      <h1 id="groups-title">My groups</h1>
+      <p>Keep your communities together and choose which invitations to accept.</p>
+    </div>
+    {children}
+  </section>;
+}
 
 export default function GroupsPage({ session }) {
   const { user, loading, error: sessionError } = session;
@@ -35,24 +50,45 @@ export default function GroupsPage({ session }) {
   function openCreated(id) { setCreating(false); setSelectedGroupId(id); }
   function previewRoom(room) { setSelectedGroupId(null); setSelectedRoom(room); }
 
-  if (loading) return <main><p role="status">Restoring session…</p></main>;
-  if (!user) return <main><h1>My groups</h1><p>Sign in to see your groups and invitations.</p>{sessionError && <p role="alert">{sessionError.message}</p>}<Link to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in</Link></main>;
+  if (loading) return <main className="home groups-scope"><div className="home-content"><p role="status">Restoring session…</p></div></main>;
+  if (!user) return <main className="home groups-scope"><div className="home-content">
+    <GroupsBanner />
+    <section className="home-section group-panel">
+      <h2>Join the community</h2>
+      <p className="home-subtitle">Sign in to see your groups and invitations.</p>
+      {sessionError && <p role="alert">{sessionError.message}</p>}
+      <Link className="button-primary" to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in</Link>
+    </section>
+  </div></main>;
 
-  return <main>
-    <header className="page-header"><h1>My groups</h1><p>Keep your communities together and choose which invitations to accept.</p>
-      <button type="button" disabled={resource.loading || !resource.data} onClick={() => setCreating(true)}>Create group</button>
-    </header>
-    <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
-      <div className="filters">
-        <div><label htmlFor="group-view">Group view</label><select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}><option value="joined">Your groups</option><option value="invitations">Invitations</option></select></div>
-        <div><label htmlFor="group-search">Search my groups</label><input id="group-search" type="search" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></div>
-        <div><label htmlFor="group-activity">Activity</label><select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></div>
-      </div>
-      {failedMemberships && <div role="alert"><p>Some memberships could not be loaded. Your groups or invitations may be incomplete.</p><button type="button" onClick={reload}>Try again</button></div>}
-      <AsyncState isEmpty={!visible.length} emptyTitle={filters.view === 'invitations' ? 'No invitations found' : 'No groups found'} emptyDescription="Try another filter, or create a group.">
-        <div className="card-grid">{visible.map((group) => <GroupCard key={group.id} group={group} onOpen={setSelectedGroupId} />)}</div>
-      </AsyncState>
-    </AsyncState>
+  const invitations = filters.view === 'invitations';
+  return <main className="home groups-scope">
+    <div className="home-content">
+      <GroupsBanner>
+        <div className="sports-banner-actions">
+          <button type="button" className="button-primary" disabled={resource.loading || !resource.data} onClick={() => setCreating(true)}>Create group</button>
+        </div>
+      </GroupsBanner>
+      <section className="home-section" aria-labelledby="groups-list-title">
+        <div className="home-section-head">
+          <div>
+            <h2 id="groups-list-title">{invitations ? 'Invitations' : 'Your groups'}</h2>
+            <p className="home-subtitle">{resource.loading || resource.error ? 'Pick a group to see its members and activities.' : `${visible.length} ${invitations ? (visible.length === 1 ? 'invitation' : 'invitations') : (visible.length === 1 ? 'group' : 'groups')} found`}</p>
+          </div>
+        </div>
+        <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
+          <div className="filters group-filters">
+            <div><label htmlFor="group-view">Group view</label><select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}>{VIEWS.map(view => <option key={view.value} value={view.value}>{view.label}</option>)}</select></div>
+            <div><label htmlFor="group-search">Search my groups</label><input id="group-search" type="search" placeholder="Name or activity" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></div>
+            <div><label htmlFor="group-activity">Activity</label><select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></div>
+          </div>
+          {failedMemberships && <div role="alert"><p>Some memberships could not be loaded. Your groups or invitations may be incomplete.</p><button type="button" onClick={reload}>Try again</button></div>}
+          <AsyncState isEmpty={!visible.length} emptyTitle={invitations ? 'No invitations found' : 'No groups found'} emptyDescription="Try another filter, or create a group.">
+            <div className="card-grid">{visible.map((group) => <GroupCard key={group.id} group={group} invitation={invitations} owned={!invitations && group.owner_id === user.id} onOpen={setSelectedGroupId} />)}</div>
+          </AsyncState>
+        </AsyncState>
+      </section>
+    </div>
     {creating && <CreateGroupDialog sports={sports} users={users} userId={user.id} onClose={() => setCreating(false)} onCreated={reload} onOpenGroup={openCreated} />}
     {selectedGroupId && <GroupDialog key={selectedGroupId} user={user} groupId={selectedGroupId} sports={sports} users={users} onClose={() => setSelectedGroupId(null)} onChanged={reload} onPreviewRoom={previewRoom} />}
     {selectedRoom && <RoomPreviewDialog session={session} room={selectedRoom} sportName={sports.find((sport) => sport.id === selectedRoom.sport_id)?.name} onClose={() => setSelectedRoom(null)} onUpdated={reload} />}

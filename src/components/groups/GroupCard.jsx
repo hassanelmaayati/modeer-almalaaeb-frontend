@@ -1,12 +1,23 @@
+import Icon from '../common/Icon';
+import SportIcon from '../common/SportIcon';
 import { acceptedMemberCount } from '../../lib/helpers/memberships';
 
-export default function GroupCard({ group, onOpen }) {
-  return <article className="group-card">
+export default function GroupCard({ group, onOpen, invitation = false, owned = false }) {
+  const count = group.members ? acceptedMemberCount(group.members) : null;
+  return <article className={`group-card${invitation ? ' group-card-invitation' : ''}`}>
+    <header className="group-card-top">
+      <span className="group-card-sport"><SportIcon name={group.sportName} size={30} /></span>
+      <span className="group-card-kicker">{group.sportName}</span>
+      {invitation && <span className="status-badge group-badge-invite">Invitation</span>}
+      {owned && <span className="status-badge group-badge-owner">Owner</span>}
+    </header>
     <h3>{group.name}</h3>
-    <p>{group.sportName}{group.members && ` · ${acceptedMemberCount(group.members)} accepted members`}</p>
     {group.photo_url && <img className="group-cover" src={group.photo_url} alt="" loading="lazy" />}
-    {group.description && <p>{group.description}</p>}
-    {group.membershipError && <p>Membership details are unavailable.</p>}
-    <button type="button" onClick={() => onOpen(group.id)}>Open group</button>
+    {group.description && <p className="group-card-description">{group.description}</p>}
+    {group.membershipError && <p className="muted">Membership details are unavailable.</p>}
+    <footer className="group-card-foot">
+      {count !== null && <span className="group-card-members"><Icon name="people" />{count} {count === 1 ? 'member' : 'members'}</span>}
+      <button type="button" className="group-card-cta" onClick={() => onOpen(group.id)}>Open group <Icon name="arrow" size={16} /></button>
+    </footer>
   </article>;
 }

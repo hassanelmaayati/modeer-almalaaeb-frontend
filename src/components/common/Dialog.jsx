@@ -4,11 +4,11 @@ function openDialog(dialog) {
   return () => dialog.close();
 }
 
-export default function Dialog({ title, onClose, children, actions }) {
+export default function Dialog({ title, onClose, children, actions, className = '' }) {
   return (
     <dialog
       ref={openDialog}
-      className="dialog-panel"
+      className={`dialog-panel ${className}`.trim()}
       aria-label={title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       onClick={(event) => {
