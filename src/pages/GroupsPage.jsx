@@ -50,7 +50,7 @@ export default function GroupsPage({ session }) {
   function openCreated(id) { setCreating(false); setSelectedGroupId(id); }
   function previewRoom(room) { setSelectedGroupId(null); setSelectedRoom(room); }
 
-  if (loading) return <main className="home groups-scope"><div className="home-content"><p role="status">Restoring session…</p></div></main>;
+  if (loading) return <main className="home groups-scope"><div className="home-content"><p className="status-message" role="status">Restoring session…</p></div></main>;
   if (!user) return <main className="home groups-scope"><div className="home-content">
     <GroupsBanner />
     <section className="home-section group-panel">

@@ -8,7 +8,7 @@ export default function Dialog({ title, onClose, children, actions, className = 
   return (
     <dialog
       ref={openDialog}
-      className={`dialog-panel ${className}`.trim()}
+      className={`dialog-panel groups-scope ${className}`.trim()}
       aria-label={title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       onClick={(event) => {

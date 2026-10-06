@@ -22,6 +22,7 @@ const SignInPage = lazy(() => import('./pages/SignInPage'));
 const SignUpPage = lazy(() => import('./pages/SignUpPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const CupsPage = lazy(() => import('./pages/CupsPage'));
 const CreateCupPage = lazy(() => import('./pages/CreateCupPage'));
 const CupPage = lazy(() => import('./pages/CupPage'));
@@ -97,7 +98,7 @@ export default function App() {
       <Route path="/sign-in" element={<SignInPage session={session} />} />
       <Route path="/sign-up" element={<SignUpPage session={session} />} />
 
-      <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
     </Suspense>
   </>;

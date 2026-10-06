@@ -50,7 +50,7 @@ export default function NotificationsPage({ session }) {
     finally { setPending(false); }
   }
 
-  if (session.loading) return <main className="home notifications-scope"><div className="home-content"><p role="status">Restoring session…</p></div></main>;
+  if (session.loading) return <main className="home notifications-scope"><div className="home-content"><p className="status-message" role="status">Restoring session…</p></div></main>;
   const banner = (children) => <section className="sports-banner notifications-banner" aria-labelledby="notifications-title">
     <NotificationsArt />
     <div>

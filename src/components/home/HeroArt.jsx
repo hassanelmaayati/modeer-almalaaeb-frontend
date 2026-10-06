@@ -384,3 +384,80 @@ export function HostArt() {
     </g>
   </svg>;
 }
+
+// Room scene in the same grey line-art: a match ticket with a ball seal, a location pin and a stopwatch counting down to kick-off.
+export function RoomArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(130 -4) scale(.95)">
+      <path d="M560 146H1000" strokeWidth="1.500" strokeDasharray="3 7" />
+      <g transform="rotate(-5 700 84)">
+        <path d="M600 40h200a8 8 0 0 1 8 8v22a10 10 0 0 0 0 20v22a8 8 0 0 1-8 8H600a8 8 0 0 1-8-8V90a10 10 0 0 0 0-20V48a8 8 0 0 1 8-8Z" fill="#f3f5f4" />
+        <path d="M730 44v10M730 66v10M730 88v10M730 110v10" strokeWidth="1.600" strokeDasharray="1 5" />
+        <path d="M614 62h88M614 78h64M614 94h76" strokeWidth="1.600" />
+        <circle cx="768" cy="82" r="20" />
+        <path d="M768 70l7 5-2.700 8h-8.600l-2.700-8z" strokeWidth="1.500" />
+        <path d="M768 70v-7M775 75l6-3M772 83l5 6M764 83l-5 6M761 75l-6-3" strokeWidth="1.300" />
+      </g>
+      <g strokeWidth="1.800">
+        <path d="M860 36a18 18 0 0 1 18 18c0 14-18 32-18 32S842 68 842 54a18 18 0 0 1 18-18Z" fill="#f3f5f4" />
+        <circle cx="860" cy="54" r="6" />
+        <path d="M860 90v10" strokeDasharray="2 5" />
+      </g>
+      <g strokeWidth="1.800">
+        <circle cx="932" cy="96" r="24" fill="#f3f5f4" />
+        <path d="M932 72v-10M924 60h16M932 96l12-12M932 96v-16M956 76l8-8" />
+      </g>
+      <path d="M980 146l9-24 9 24zM975 146h28" strokeWidth="1.800" />
+      <g strokeWidth="1.200"><path d="M850 112l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M570 56l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}
+
+// Welcome scene for the sign-in and sign-up pages: bunting and a welcome sign over a few players arriving, with a ball.
+export function AuthArt() {
+  return <svg className="auth-art" viewBox="0 0 420 300" preserveAspectRatio="xMidYMax meet" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M24 292H396" strokeWidth="1.500" strokeDasharray="3 7" />
+    <path d="M40 292V56M380 292V56" strokeWidth="3" />
+    <path d="M40 60Q210 130 380 60" strokeWidth="1.800" />
+    {[0.12, 0.26, 0.4, 0.6, 0.74, 0.88].map(t => {
+      const u = 1 - t;
+      const x = 40 * u * u + 2 * 210 * u * t + 380 * t * t;
+      const y = 60 * u * u + 2 * 130 * u * t + 60 * t * t;
+      return <path key={t} d={`M${x - 11} ${y}H${x + 11}L${x} ${y + 24}Z`} fill="#f3f5f4" strokeWidth="1.800" strokeDasharray={Math.round(t * 100) % 2 ? '4 3' : undefined} />;
+    })}
+    <g strokeWidth="1.800">
+      <path d="M150 112V150M270 112V150" strokeWidth="1.500" />
+      <rect x="110" y="150" width="200" height="54" rx="9" fill="#f3f5f4" />
+      <text x="210" y="184" textAnchor="middle" fontSize="22" fontWeight="800" letterSpacing="3" fill="currentColor" stroke="none">WELCOME</text>
+    </g>
+    <g>
+      <circle cx="150" cy="236" r="9" />
+      <path d="M150 247V272M150 272L142 292M150 272L158 292M150 255L134 244M150 255L166 262" />
+      <circle cx="210" cy="238" r="9" />
+      <path d="M210 249V274M210 274L202 292M210 274L218 292M210 257L194 266M210 257L228 246" />
+      <circle cx="270" cy="236" r="9" />
+      <path d="M270 247V272M270 272L262 292M270 272L278 292M270 255L254 262M270 255L286 242" />
+    </g>
+    <circle cx="336" cy="278" r="13" fill="#f3f5f4" strokeWidth="1.800" />
+    <path d="M336 272l5 3.500-2 6h-6l-2-6z" strokeWidth="1.400" />
+    <g strokeWidth="1.200"><path d="M76 200l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M350 196l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+  </svg>;
+}
+
+// 404 scene: the ball has gone over the touchline, with the corner flag and a goal kick spot waiting.
+export function OutOfBoundsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.200" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(-120 -4) scale(.95)">
+      <path d="M560 112H1000" strokeWidth="2.600" />
+      <path d="M560 120H1000M560 144H1000" strokeWidth="1.500" strokeDasharray="3 7" opacity=".7" />
+      <path d="M640 112V60M640 60L670 72L640 84" strokeWidth="2.400" fill="#f3f5f4" />
+      <path d="M624 112h32" strokeWidth="2.400" />
+      <path d="M700 100C740 40 800 40 840 100" strokeDasharray="2 7" />
+      <circle cx="862" cy="132" r="14" fill="#f3f5f4" strokeWidth="1.800" />
+      <path d="M862 125l5 3.500-2 6h-6l-2-6z" strokeWidth="1.400" />
+      <path d="M900 76l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z" strokeWidth="1.600" />
+      <text x="930" y="60" fontSize="30" fontWeight="800" fill="currentColor" stroke="none" opacity=".9">404</text>
+      <circle cx="768" cy="112" r="3" fill="currentColor" stroke="none" />
+    </g>
+  </svg>;
+}
