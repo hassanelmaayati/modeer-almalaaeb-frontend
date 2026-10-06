@@ -297,3 +297,76 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .format-pill { display: inline-block; margin-left: .6rem; padding: .1rem .6rem; border: 1px solid #c9d0cc; border-radius: 2rem; letter-spacing: .1em; color: #6b7570; }
 .cup-facts .cup-deadline { margin-top: .2rem; }
 .cups-scope .home-section > p a, .cups-scope .entry-controls a, .cups-scope .cup-panel a { color: var(--green); font-weight: 600; }
+
+/* Groups */
+.groups-scope .group-panel { padding: 1.4rem 1.6rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 3px; background: #f6f8f7; }
+.groups-scope .group-panel h2 { margin-bottom: .2rem; }
+.groups-scope .group-panel .button-primary { margin-top: .4rem; }
+
+/* filters */
+.group-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .9rem; align-items: end; margin: 0 0 1.4rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 3px; background: #f6f8f7; }
+.group-filters > div { display: grid; gap: .3rem; }
+.group-filters label { font-weight: 600; font-size: .9rem; }
+
+/* shared form look inside groups pages and dialogs */
+.groups-scope input, .groups-scope select, .groups-scope textarea { padding: .55rem .6rem; border: 1px solid #c9d1cd; border-radius: 4px; background: #fff; font: inherit; box-sizing: border-box; max-width: 100%; }
+.groups-scope input:focus-visible, .groups-scope select:focus-visible, .groups-scope textarea:focus-visible, .groups-scope button:focus-visible, .groups-scope a:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.groups-scope .form-field { display: grid; gap: .3rem; font-weight: 600; font-size: .9rem; }
+.groups-scope .form-field input, .groups-scope .form-field select, .groups-scope .form-field textarea { width: 100%; font-weight: 400; }
+.groups-scope .form-stack { max-width: none; }
+.groups-scope .form-stack > * { margin-bottom: .8rem; }
+.groups-scope .actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.groups-scope button, .groups-scope a.button { padding: .5rem 1.2rem; border: 2px solid var(--green); border-radius: 4px; background: var(--green); color: #fff; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.groups-scope button:hover:not(:disabled), .groups-scope a.button:hover { background: var(--green-dark); border-color: var(--green-dark); }
+.groups-scope button.button-secondary, .groups-scope .form-stack .actions button[type="button"] { background: #fff; color: var(--green); }
+.groups-scope button.button-secondary:hover:not(:disabled), .groups-scope .form-stack .actions button[type="button"]:hover:not(:disabled) { background: var(--green-soft); border-color: var(--green); }
+.groups-scope button:disabled { opacity: .55; cursor: not-allowed; }
+.groups-scope [role="alert"] { padding: .6rem .9rem; border-left: 4px solid #b00020; border-radius: 3px; background: #fdecea; color: #7a1f1a; font-weight: 400; }
+.groups-scope [role="status"] { padding: .6rem .9rem; border-left: 4px solid var(--green); border-radius: 3px; background: var(--green-soft); color: var(--green-dark); }
+.groups-scope .status-badge { padding: .1rem .6rem; border: 1px solid var(--green); border-radius: 1rem; background: var(--green-soft); color: var(--green); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+
+/* group cards */
+.groups-scope .card-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.2rem; }
+.group-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .8rem; padding: 1.2rem 1.3rem 1rem; margin: 0; border: 1px solid var(--line); border-top: 4px solid var(--green); border-radius: 4px; background: #fff; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.group-card-invitation { border-top-color: #c89b1c; }
+.group-card:hover, .group-card:focus-within { transform: translateY(-3px); border-color: var(--green); box-shadow: 0 10px 24px rgba(20, 89, 74, .14); }
+.group-card-top { display: flex; align-items: center; gap: .7rem; }
+.group-card-sport { display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 50%; background: #f3f5f4; color: #2a3430; flex-shrink: 0; }
+.group-card-kicker { flex: 1; min-width: 0; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-ink); }
+.group-card h3 { margin: 0; font-size: 1.3rem; letter-spacing: -.01em; }
+.group-card .group-cover { width: 100%; max-height: 9rem; object-fit: cover; border-radius: 3px; }
+.group-card-description { margin: 0; color: var(--muted-ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.group-card-foot { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-top: auto; padding-top: .8rem; border-top: 1px solid var(--line); }
+.group-card-members { display: inline-flex; align-items: center; gap: .45rem; color: var(--muted-ink); font-size: .92rem; }
+.group-card-members .ui-icon { color: var(--green); }
+.groups-scope .group-card-cta { display: inline-flex; align-items: center; gap: .35rem; padding: 0; border: 0; background: none; color: var(--green); font-weight: 700; transition: gap .18s ease; margin-left: auto; }
+.groups-scope .group-card-cta:hover:not(:disabled) { background: none; gap: .65rem; }
+.group-card-cta::after { content: ""; position: absolute; inset: 0; }
+.groups-scope .group-badge-invite { background: #fff6dd; border-color: #c89b1c; color: #7a5a00; }
+
+/* group dialog */
+.dialog-panel.groups-scope { width: min(44rem, calc(100% - 2rem)); padding: 0; border: 1px solid var(--line); border-top: 4px solid var(--green); border-radius: 6px; color: var(--ink); }
+.dialog-panel.groups-scope::backdrop { background: rgb(15 40 32 / 40%); }
+.dialog-panel.groups-scope .dialog-header { justify-content: space-between; padding: 1rem 1.4rem; border-bottom: 1px solid var(--line); background: #f3f5f4; position: sticky; top: 0; z-index: 1; }
+.dialog-panel.groups-scope .dialog-header h2 { margin: 0; font-size: 1.4rem; letter-spacing: -.01em; }
+.dialog-panel.groups-scope .dialog-body { padding: 1.2rem 1.4rem 1.4rem; display: grid; gap: 1rem; }
+.dialog-panel.groups-scope .dialog-body > * { margin: 0; }
+.group-dialog-sport { display: inline-flex; align-items: center; gap: .6rem; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-ink); }
+.group-owner { display: flex; align-items: center; gap: .5rem; color: var(--muted-ink); }
+.group-owner .ui-icon { color: var(--green); }
+.groups-scope .group-cover { width: 100%; max-height: 12rem; object-fit: cover; border-radius: 4px; }
+.group-section { padding-top: 1rem; border-top: 1px solid var(--line); display: grid; gap: .7rem; }
+.group-section h3 { margin: 0; font-size: 1.1rem; }
+.groups-scope .member-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.member-row { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: 3px; background: #fff; margin: 0; }
+.groups-scope .member-list li { margin-bottom: 0; }
+.member-initial { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 800; }
+.member-name { flex: 1; min-width: 6rem; font-weight: 600; }
+.groups-scope .member-owner { background: var(--green); color: #fff; }
+.groups-scope .member-pending { background: #fff6dd; border-color: #c89b1c; color: #7a5a00; }
+.groups-scope .member-declined, .groups-scope .member-removed { background: #fdecea; border-color: #b00020; color: #7a1f1a; }
+.groups-scope .member-left { background: #eee; border-color: #888; color: var(--muted-ink); }
+.member-row button { padding: .3rem .8rem; font-size: .85rem; }
+.groups-scope .room-grid { grid-template-columns: 1fr; }
+.groups-scope .game-card { flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { .group-card, .group-card-cta { transition: none; } .group-card:hover { transform: none; } }

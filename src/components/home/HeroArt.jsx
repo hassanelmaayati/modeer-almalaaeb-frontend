@@ -79,3 +79,42 @@ export function TrophyArt({ size = 56 }) {
     <path d="M24 11l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5Z" fill="currentColor" stroke="none" />
   </svg>;
 }
+
+// Groups scene in the same grey line-art: a team on the pitch - a high-five, a runner and a kick heading for the goal.
+export function GroupsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(78 0) scale(.9)">
+      <path d="M440 142H1010" strokeWidth="1.5" strokeDasharray="3 7" />
+      <g>
+        <circle cx="480" cy="52" r="9" />
+        <path d="M480 63V102M480 102L467 138M480 102L493 138M480 72L462 54M480 72L508 52" />
+      </g>
+      <g>
+        <circle cx="538" cy="52" r="9" />
+        <path d="M538 63V102M538 102L525 138M538 102L551 138M538 72L556 54M538 72L510 52" />
+      </g>
+      <path d="M509 40V30M499 43L494 35M519 43L524 35" strokeWidth="1.5" />
+      <path d="M598 142L608 118L618 142Z" strokeWidth="1.6" />
+      <g>
+        <circle cx="690" cy="52" r="9" />
+        <path d="M686 63L676 102M676 102L696 120L692 140M676 102L658 114L642 108M686 72L704 84M686 72L666 82" />
+      </g>
+      <path d="M612 80H636M606 92H630" strokeWidth="1.5" opacity=".8" />
+      <g>
+        <circle cx="800" cy="52" r="9" />
+        <path d="M800 63V102M800 102L796 140M800 102L828 114L844 100M800 72L780 86M800 72L820 64" />
+      </g>
+      <g strokeWidth="1.8">
+        <circle cx="888" cy="92" r="11" fill="#f3f5f4" />
+        <path d="M888 86L893 90L891 96H885L883 90Z" />
+        <path d="M850 108C862 112 870 108 876 100" strokeDasharray="2 6" />
+      </g>
+      <g>
+        <path d="M930 142V58H1010V142" />
+        <path d="M930 58L914 74V142M1010 58L1026 74V142" strokeWidth="1.5" />
+        <path d="M946 58V142M962 58V142M978 58V142M994 58V142M930 78H1010M930 98H1010M930 118H1010" strokeWidth="1" opacity=".7" />
+      </g>
+      <g strokeWidth="1.2"><path d="M1040 36l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M445 36l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}

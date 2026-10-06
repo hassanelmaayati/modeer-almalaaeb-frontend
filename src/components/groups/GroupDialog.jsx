@@ -5,6 +5,9 @@ import Dialog from '../common/Dialog';
 import AsyncState from '../common/AsyncState';
 import GroupForm from './GroupForm';
 import RoomList from '../activities/RoomList';
+import HomeGameCard from '../home/HomeGameCard';
+import Icon from '../common/Icon';
+import SportIcon from '../common/SportIcon';
 import { emptyResource, startRequest } from '../../lib/helpers/request';
 import groupService from '../../services/groupService';
 import groupMemberService from '../../services/groupMemberService';
@@ -35,6 +38,7 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
   const { group, members = [], rooms = [] } = resource.data || {};
   const owner = group?.owner_id === user?.id;
   const ownMembership = findOwnMembership(members, user?.id);
+  const sportName = group ? sports.find((sport) => sport.id === group.sports_id)?.name || 'Activity' : '';
   const candidates = group ? inviteCandidates(users, group.owner_id, members) : [];
 
   async function runAction(action, success) {
@@ -69,44 +73,52 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
     runAction(() => groupMemberService.update(groupId, targetId, { status }), success);
   }
 
-  return <Dialog title={group?.name || 'Group details'} onClose={onClose}>
+  return <Dialog title={group?.name || 'Group details'} className="groups-scope" onClose={onClose}>
     <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
       {group && <>
-        <p>{sports.find((sport) => sport.id === group.sports_id)?.name || 'Activity'}</p>
+        <p className="group-dialog-sport"><SportIcon name={sportName} size={26} /><span>{sportName}</span></p>
         {editing ? <GroupForm group={group} sports={sports} onSubmit={save} onCancel={() => { setEditing(false); reload(); }} /> : <>
           {group.description && <p>{group.description}</p>}
           {group.photo_url && <img className="group-cover" src={group.photo_url} alt="" />}
-          <p>Owner: {playerName(users, group.owner_id)}</p>
-          {(owner || ownMembership?.status === 'accepted') && <p><Link className="button" to={chatPath('group', group.id)}>Open group chat</Link></p>}
-          {owner && <button type="button" disabled={pending} onClick={() => setEditing(true)}>Edit group</button>}
+          <p className="group-owner"><Icon name="people" />Owner: {playerName(users, group.owner_id)}</p>
+          <div className="actions">
+            {(owner || ownMembership?.status === 'accepted') && <Link className="button button-primary" to={chatPath('group', group.id)}>Open group chat</Link>}
+            {owner && <button type="button" className="button-secondary" disabled={pending} onClick={() => setEditing(true)}>Edit group</button>}
+          </div>
         </>}
         {ownMembership?.status === 'pending' && !owner && <div className="actions">
           <button type="button" disabled={pending} onClick={() => changeMember(user.id, 'accepted', 'Invitation accepted.')}>Accept invitation</button>
-          <button type="button" disabled={pending} onClick={() => changeMember(user.id, 'declined', 'Invitation declined.')}>Decline invitation</button>
+          <button type="button" className="button-secondary" disabled={pending} onClick={() => changeMember(user.id, 'declined', 'Invitation declined.')}>Decline invitation</button>
         </div>}
-        {ownMembership?.status === 'accepted' && !owner && <button type="button" disabled={pending} onClick={() => changeMember(user.id, 'left', 'You left the group.')}>Leave group</button>}
+        {ownMembership?.status === 'accepted' && !owner && <button type="button" className="button-secondary" disabled={pending} onClick={() => changeMember(user.id, 'left', 'You left the group.')}>Leave group</button>}
         {ownMembership && !['pending', 'accepted'].includes(ownMembership.status) && <p>Your membership is {ownMembership.status}. A new invitation is currently unavailable.</p>}
-        <section aria-label="Group members">
+        <section aria-label="Group members" className="group-section">
           <h3>Members</h3>
           <ul className="member-list">
-            <li>{playerName(users, group.owner_id)} — Owner</li>
-            {members.filter((member) => member.user_id !== group.owner_id).map((member) => <li key={member.id}>
-              {playerName(users, member.user_id)} — {member.status}{' '}
-              {owner && ['accepted', 'pending'].includes(member.status) && <button type="button" aria-label={`Remove ${playerName(users, member.user_id)}`} disabled={pending} onClick={() => changeMember(member.user_id, 'removed', 'Member removed.')}>Remove member</button>}
+            <li className="member-row">
+              <span className="member-initial" aria-hidden="true">{playerName(users, group.owner_id)[0]?.toUpperCase()}</span>
+              <span className="member-name">{playerName(users, group.owner_id)}</span>
+              <span className="status-badge member-owner">Owner</span>
+            </li>
+            {members.filter((member) => member.user_id !== group.owner_id).map((member) => <li key={member.id} className="member-row">
+              <span className="member-initial" aria-hidden="true">{playerName(users, member.user_id)[0]?.toUpperCase()}</span>
+              <span className="member-name">{playerName(users, member.user_id)}</span>
+              <span className={`status-badge member-${member.status}`}>{member.status}</span>
+              {owner && ['accepted', 'pending'].includes(member.status) && <button type="button" className="button-secondary" aria-label={`Remove ${playerName(users, member.user_id)}`} disabled={pending} onClick={() => changeMember(member.user_id, 'removed', 'Member removed.')}>Remove member</button>}
             </li>)}
           </ul>
         </section>
-        {owner && <section>
+        {owner && <section className="group-section">
           <h3>Invite registered player</h3>
           {candidates.length > 0 ? <form onSubmit={invite} className="form-stack">
             <label htmlFor="invite-player">Player</label><select id="invite-player" name="player" defaultValue="" required><option value="" disabled>Choose a player</option>{candidates.map((player) => <option key={player.id} value={player.id}>{player.user_name}</option>)}</select>
             <button disabled={pending}>{pending ? 'Sending…' : 'Invite'}</button>
           </form> : <p>No other players are available to invite.</p>}
         </section>}
-        <section>
+        <section className="group-section">
           <h3>Public activities</h3>
-          <p>This list includes discoverable public activities. Private group activities are unavailable here.</p>
-          <RoomList rooms={rooms} sports={sports} onPreview={onPreviewRoom} emptyTitle="No upcoming public group activities" />
+          <p className="muted">This list includes discoverable public activities. Private group activities are unavailable here.</p>
+          <RoomList Card={HomeGameCard} rooms={rooms} sports={sports} onPreview={onPreviewRoom} emptyTitle="No upcoming public group activities" />
         </section>
       </>}
     </AsyncState>
