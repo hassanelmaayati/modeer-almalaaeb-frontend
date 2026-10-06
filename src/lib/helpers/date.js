@@ -21,7 +21,7 @@ export function formatActivityDate(value) {
 }
 
 export function formatActivityDay(value) {
-  return formatDate(value, { day: 'numeric' }, '–');
+  return formatDate(value, { day: 'numeric' }, 'â€“');
 }
 
 export function formatActivityMonth(value) {

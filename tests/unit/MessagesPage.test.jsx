@@ -1,7 +1,9 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
+import { useLayoutEffect, useRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import useConversations from '../../src/lib/helpers/useConversations';
 
 const ME = 1;
 const recent = () => new Date().toISOString();
@@ -27,6 +29,7 @@ vi.mock('../../src/services/messageService', () => ({
   },
 }));
 vi.mock('../../src/services/userService', () => ({ default: { list: async () => users } }));
+vi.mock('../../src/services/roomService', () => ({ default: { get: async (id) => ({ id, status: 'open' }) } }));
 vi.mock('../../src/services/websocketService', () => ({
   listen: (callback) => {
     socketHandler = callback;
@@ -62,6 +65,11 @@ const rows = () => [...sidebar().querySelectorAll('.conversation-row')].map((row
 }));
 const titles = () => rows().map((row) => row.title);
 const send = (event) => act(async () => { socketHandler(event); });
+const deferred = () => {
+  let resolve;
+  const promise = new Promise((done) => { resolve = done; });
+  return { promise, resolve };
+};
 
 beforeEach(() => {
   conversations.mockReset();
@@ -222,6 +230,22 @@ describe('Inbox filters', () => {
 });
 
 describe('Inbox live updates', () => {
+  it('handles a message immediately after the inbox commits, before passive effects synchronize', async () => {
+    function ArrivalOnCommit() {
+      const inbox = useConversations(ME);
+      const sent = useRef(false);
+      useLayoutEffect(() => {
+        if (!inbox.conversations.length || sent.current) return;
+        sent.current = true;
+        socketHandler({ type: 'message.created', message: message(80, { room_id: 3, body: 'Arrived on commit' }) });
+      }, [inbox.conversations]);
+      return <ul>{inbox.conversations.map((chat) => <li key={chat.title}>{chat.title}: {chat.last_message?.body}</li>)}</ul>;
+    }
+    render(<ArrivalOnCommit />);
+    const updated = await screen.findByText('Friday game: Arrived on commit');
+    expect(screen.getAllByRole('listitem')[0]).toBe(updated);
+  });
+
   it('moves a chat to the top with its new preview when a message arrives', async () => {
     mount();
     await screen.findByText('Sara');
@@ -229,6 +253,18 @@ describe('Inbox live updates', () => {
     expect(titles()).toEqual(['Friday game', 'Sara', 'Sunday run', 'Runners', 'Omar']);
     expect(rows()[0].preview).toBe('Layla: Anyone coming?');
     expect(rows()[0].system).toBe(false);
+  });
+
+  it('preserves both previews when two messages arrive before the next render', async () => {
+    mount();
+    await screen.findByText('Sara');
+    await act(async () => {
+      socketHandler({ type: 'message.created', message: message(80, { room_id: 3, body: 'First arrival' }) });
+      socketHandler({ type: 'message.created', message: message(90, { group_id: 2, type: 'group', body: 'Second arrival' }) });
+    });
+    expect(titles().slice(0, 2)).toEqual(['Runners', 'Friday game']);
+    expect(rows()[0].preview).toBe('Layla: Second arrival');
+    expect(rows()[1].preview).toBe('Layla: First arrival');
   });
 
   it('puts a first message into an empty direct chat, using the other person as the key', async () => {
@@ -274,5 +310,65 @@ describe('Inbox live updates', () => {
     await send({ type: 'connection.ready' });
     expect(titles()).toHaveLength(5);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('keeps the current list while a refresh is pending, then displays the new snapshot', async () => {
+    const refresh = deferred();
+    mount();
+    await screen.findByText('Sara');
+    conversations.mockReturnValueOnce(refresh.promise);
+    await send({ type: 'connection.ready' });
+    expect(titles()).toHaveLength(5);
+    expect(within(sidebar()).queryByText('Loading…')).not.toBeInTheDocument();
+    await act(async () => { refresh.resolve([{ type: 'direct', user_id: 9, title: 'Refreshed chat', last_message: null }]); });
+    expect(await screen.findByText('Refreshed chat')).toBeInTheDocument();
+    expect(titles()).toEqual(['Refreshed chat']);
+  });
+
+  it('recovers the inbox after a transient failed refresh', async () => {
+    mount();
+    await screen.findByText('Sara');
+    conversations.mockRejectedValueOnce(new Error('Temporary connection failure'));
+    await send({ type: 'connection.ready' });
+    expect(titles()).toHaveLength(5);
+    conversations.mockResolvedValueOnce([{ type: 'direct', user_id: 9, title: 'Recovered chat', last_message: null }]);
+    await send({ type: 'connection.ready' });
+    expect(await screen.findByText('Recovered chat')).toBeInTheDocument();
+    expect(titles()).toEqual(['Recovered chat']);
+  });
+
+  it.each([401, 403, 404])('clears cached conversations after an access failure with HTTP %i', async (status) => {
+    mount();
+    await screen.findByText('Sara');
+    conversations.mockRejectedValueOnce({ status, message: 'Inbox access no longer available' });
+    await send({ type: 'connection.ready' });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Inbox access no longer available');
+    expect(titles()).toEqual([]);
+    expect(screen.queryByText('See you at 6')).not.toBeInTheDocument();
+    conversations.mockRejectedValueOnce(new Error('Connection unavailable during retry'));
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Connection unavailable during retry');
+    expect(titles()).toEqual([]);
+  });
+
+  it('clears the old account immediately and ignores its late refresh after switching', async () => {
+    const oldRefresh = deferred();
+    const newInbox = deferred();
+    const page = (id) => <MemoryRouter><MessagesPage session={{ user: { id } }} /></MemoryRouter>;
+    const view = render(page(ME));
+    await screen.findByText('Sara');
+    conversations.mockReturnValueOnce(oldRefresh.promise).mockReturnValueOnce(newInbox.promise);
+    await send({ type: 'connection.ready' });
+    const oldOptions = conversations.mock.calls.at(-1)[1];
+    view.rerender(page(2));
+    expect(titles()).toEqual([]);
+    expect(screen.queryByText('Sara')).not.toBeInTheDocument();
+    await waitFor(() => expect(conversations).toHaveBeenCalledTimes(3));
+    expect(oldOptions.signal.aborted).toBe(true);
+    await act(async () => { oldRefresh.resolve(baseConversations()); });
+    expect(titles()).toEqual([]);
+    await act(async () => { newInbox.resolve([{ type: 'direct', user_id: 9, title: 'New account private chat', last_message: null }]); });
+    expect(await screen.findByText('New account private chat')).toBeInTheDocument();
+    expect(titles()).toEqual(['New account private chat']);
   });
 });
