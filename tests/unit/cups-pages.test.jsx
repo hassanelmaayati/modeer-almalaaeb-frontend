@@ -2,6 +2,9 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import CupPage from '../../src/pages/CupPage';
+import CupsPage from '../../src/pages/CupsPage';
+import CupHeader from '../../src/components/cups/CupHeader';
+import CupStatusFilters from '../../src/components/cups/CupStatusFilters';
 import CupForm from '../../src/components/cups/CupForm';
 import CupOrganizerActions from '../../src/components/cups/CupOrganizerActions';
 import FixtureResultControls from '../../src/components/cups/FixtureResultControls';
@@ -12,24 +15,28 @@ import { cupSports, eligibleGroups, formatDuration, parseDuration, publishBlocke
 import cupService from '../../src/services/cupService';
 import sportService from '../../src/services/sportService';
 import groupService from '../../src/services/groupService';
+import cupRosterService from '../../src/services/cupRosterService';
+import userService from '../../src/services/userService';
 
-vi.mock('../../src/services/cupService', () => ({ default: { get: vi.fn(), update: vi.fn(), remove: vi.fn(), createEntry: vi.fn(), updateEntry: vi.fn() } }));
+vi.mock('../../src/services/cupService', () => ({ default: { list: vi.fn(), get: vi.fn(), update: vi.fn(), remove: vi.fn(), createEntry: vi.fn(), updateEntry: vi.fn() } }));
+vi.mock('../../src/services/cupRosterService', () => ({ default: { list: vi.fn() } }));
+vi.mock('../../src/services/userService', () => ({ default: { list: vi.fn() } }));
 vi.mock('../../src/services/sportService', () => ({ default: { list: vi.fn() } }));
 vi.mock('../../src/services/groupService', () => ({ default: { list: vi.fn() } }));
 const now = Date.parse('2030-01-01T12:00:00Z');
-const sports = [{ id: 1, name: 'Football' }, { id: 2, name: 'Running' }, { id: 3, name: 'Walking' }];
+const sports = [{ id: 1, name: 'Football', cup_format: 'knockout' }, { id: 2, name: 'Running', cup_format: 'race' }, { id: 3, name: 'Walking', cup_format: null }];
 const entries = [1, 2, 3, 4].map(group_id => ({ group_id, group_name: 'Team ' + group_id, owner_user_id: group_id + 1, status: 'accepted', entered_at: '2030-01-01T11:00:00Z' }));
 const cup = { id: 1, revision: 3, name: 'Winter cup', rules: 'Play fairly', sport_id: 1, format: 'knockout', status: 'registration', team_count: 4, roster_limit: 5, registration_closes_at: '2030-01-02T12:00:00Z', organizer: { id: 1, user_name: 'Alice' }, entries, fixtures: [] };
 const addedSports = [
-  { id: 5, name: 'Walking', formats: null },
-  { id: 6, name: 'Running', formats: null },
-  { id: 7, name: 'Cycling', formats: null },
-  { id: 8, name: 'Handball', formats: null },
-  { id: 9, name: 'Billiards', formats: null },
-  { id: 10, name: 'Kayak', formats: null },
-  { id: 3, name: 'Padel', formats: null },
-  { id: 4, name: 'Swimming', formats: null },
-  { id: 11, name: 'Marathon', formats: null },
+  { id: 5, name: 'Walking', formats: null, cup_format: null },
+  { id: 6, name: 'Running', formats: null, cup_format: 'race' },
+  { id: 7, name: 'Cycling', formats: null, cup_format: 'race' },
+  { id: 8, name: 'Handball', formats: null, cup_format: 'knockout' },
+  { id: 9, name: 'Billiards', formats: null, cup_format: 'knockout' },
+  { id: 10, name: 'Kayak', formats: null, cup_format: 'race' },
+  { id: 3, name: 'Padel', formats: null, cup_format: 'knockout' },
+  { id: 4, name: 'Swimming', formats: null, cup_format: 'race' },
+  { id: 11, name: 'Marathon', formats: null, cup_format: 'race' },
 ];
 beforeEach(() => {
   vi.spyOn(Date, 'now').mockReturnValue(now);
@@ -41,6 +48,9 @@ beforeEach(() => {
   cupService.updateEntry.mockReset().mockResolvedValue(cup);
   sportService.list.mockReset().mockResolvedValue(sports);
   groupService.list.mockReset().mockResolvedValue([]);
+  cupRosterService.list.mockReset().mockResolvedValue([]);
+  userService.list.mockReset().mockResolvedValue([]);
+  cupService.list.mockReset().mockResolvedValue([]);
 });
 function show(data = cup, user = { id: 1 }) {
   cupService.get.mockResolvedValue(data);
@@ -48,9 +58,8 @@ function show(data = cup, user = { id: 1 }) {
 }
 
 describe('cup sport, registration and participant rules', () => {
-  it.each(['Football', 'Basketball', 'Volleyball', 'Tennis', 'Padel', 'Badminton', 'Billiards'])('recognizes %s as a knockout sport', name => expect(sportFormat({ name })).toBe('knockout'));
-  it.each(['Running', 'Marathon', 'Cycling', 'Kayaking', 'Kayak', 'Swimming'])('recognizes %s as a race sport', name => expect(sportFormat({ name })).toBe('race'));
-  it.each(['Walking', 'Unknown', ''])('does not invent a cup format for %s', name => expect(sportFormat({ name })).toBeNull());
+  it.each([['knockout', 'knockout'], ['race', 'race'], [null, null], [undefined, null], ['league', null]])('uses the backend cup_format %s', (value, expected) => expect(sportFormat({ name: 'Football', cup_format: value })).toBe(expected));
+  it('no longer guesses a cup format from the sport name', () => expect(sportFormat({ name: 'Football' })).toBeNull());
   it('requires exactly the knockout bracket size and at least two accepted race teams', () => {
     expect(publishBlocker(cup)).toBe('');
     expect(publishBlocker({ ...cup, entries: entries.slice(0, 3) })).toMatch(/exactly 4 accepted teams/);
@@ -170,7 +179,8 @@ describe('cup and result forms', () => {
 describe('new deployed sport cup eligibility', () => {
   it.each([['Walking', null], ['Running', 'race'], ['Marathon', 'race'], ['Cycling', 'race'], ['Handball', 'knockout'], ['Billiards', 'knockout'], ['Kayak', 'race'], ['Padel', 'knockout'], ['Swimming', 'race']])('derives the approved %s cup policy independently of null room formats', (name, format) => {
     expect(sportFormat(addedSports.find(sport => sport.name === name))).toBe(format);
-    expect(sportFormat({ name: ` ${name.toUpperCase()} `, formats: null })).toBe(format);
+    // The name alone no longer decides anything; only cup_format does.
+    expect(sportFormat({ name, formats: null })).toBeNull();
   });
   it('offers every supported current and legacy competition while leaving Walking out', () => {
     expect(cupSports(addedSports).map(sport => sport.id)).toEqual([6, 7, 8, 9, 10, 3, 4, 11]);
@@ -234,5 +244,59 @@ describe('cup page role controls and stale revision recovery', () => {
     render(<MemoryRouter initialEntries={['/cups/1']}><Routes><Route path="/cups/:cupId" element={<CupPage session={{ user: { id: 2 } }} />} /></Routes></MemoryRouter>);
     expect(await screen.findByRole('alert')).toHaveTextContent('Draft cups are only visible to their organizer.');
     expect(screen.queryByRole('heading', { name: 'Winter cup' })).not.toBeInTheDocument();
+  });
+});
+
+describe('backend audit contract on cup pages', () => {
+  it('shows the backend 409 reason and reloads the cup', async () => {
+    cupService.update.mockRejectedValueOnce({ status: 409, message: 'All team places are taken' });
+    show();
+    fireEvent.click(await screen.findByRole('button', { name: 'Publish cup' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('All team places are taken');
+    await waitFor(() => expect(cupService.get).toHaveBeenCalledTimes(2));
+  });
+  it('sends the current revision when reviewing an entry', async () => {
+    show({ ...cup, entries: [...entries, { group_id: 7, group_name: 'Late team', owner_user_id: 1, status: 'pending', entered_at: '2030-01-01T11:30:00Z' }] });
+    fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
+    await waitFor(() => expect(cupService.updateEntry).toHaveBeenCalledWith(1, 7, { status: 'accepted', revision: 3 }));
+  });
+  it('lists accepted rosters read-only under their team', async () => {
+    cupRosterService.list.mockResolvedValue([
+      { id: 1, user_id: 20, group_id: 1, cup_id: 1, status: 'accepted' },
+      { id: 2, user_id: 21, group_id: 1, cup_id: 1, status: 'pending' },
+    ]);
+    userService.list.mockResolvedValue([{ id: 20, user_name: 'Sara' }, { id: 21, user_name: 'Invited only' }]);
+    show();
+    const roster = await screen.findByRole('list', { name: 'Roster' });
+    expect(within(roster).getByRole('link', { name: 'Sara' })).toHaveAttribute('href', '/users/20');
+    expect(screen.queryByText('Invited only')).not.toBeInTheDocument();
+    expect(cupRosterService.list).toHaveBeenCalledWith('1', expect.anything());
+  });
+  it('requires a closing time when editing a cup whose registration is open', async () => {
+    const onSubmit = vi.fn();
+    render(<CupForm cup={cup} sports={sports} onSubmit={onSubmit} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Registration closes (Bahrain time, optional)'), { target: { value: '' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Save changes' }).closest('form'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Registration is open, so a closing time is required.');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+  it('hides the Draft filter from guests only', () => {
+    const { rerender } = render(<CupStatusFilters value="" onChange={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Draft' })).not.toBeInTheDocument();
+    rerender(<CupStatusFilters value="" onChange={vi.fn()} signedIn />);
+    expect(screen.getByRole('button', { name: 'Draft' })).toBeVisible();
+  });
+  it.each([['registration', true], ['draft', true], ['published', false], ['completed', false]])('shows the registration deadline for a %s cup: %s', (status, visible) => {
+    render(<MemoryRouter><CupHeader cup={{ ...cup, status }} sportName="Football" /></MemoryRouter>);
+    expect(!!screen.queryByText('Registration closes')).toBe(visible);
+  });
+  it('pages the cup list with Load more', async () => {
+    const page = (start, count) => Array.from({ length: count }, (_, index) => ({ ...cup, id: start + index, name: `Cup ${start + index}` }));
+    cupService.list.mockResolvedValueOnce(page(1, 50)).mockResolvedValueOnce(page(51, 2));
+    render(<MemoryRouter><CupsPage session={{ user: null }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Load more' }));
+    expect(await screen.findByText('Cup 52')).toBeVisible();
+    expect(cupService.list.mock.calls.map(([query]) => query)).toEqual([{ status: '', limit: 50, offset: 0 }, { status: '', limit: 50, offset: 50 }]);
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
   });
 });

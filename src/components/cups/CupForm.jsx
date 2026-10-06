@@ -21,13 +21,16 @@ export default function CupForm({ cup, sports, onSubmit, onCancel }) {
     const form = new FormData(event.currentTarget);
     const name = form.get('name').trim(), rules = form.get('rules').trim();
     if (!name || !rules) return setError('Name and rules are required.');
+    const closesAt = fromBahrainDateTimeInput(form.get('registration_closes_at')) || null;
+    // Open registration needs a closing time; the backend rejects clearing it with a 400.
+    if (editing && cup.status === 'registration' && !closesAt) return setError('Registration is open, so a closing time is required.');
     // No format field: the backend derives it from sport_id.
     const body = {
       name,
       rules,
       team_count: Number(form.get('team_count')),
       roster_limit: Number(form.get('roster_limit')),
-      registration_closes_at: fromBahrainDateTimeInput(form.get('registration_closes_at')) || null,
+      registration_closes_at: closesAt,
     };
     if (!editing) body.sport_id = Number(sportId);
     setPending(true);
