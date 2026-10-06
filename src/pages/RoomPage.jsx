@@ -16,6 +16,7 @@ import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
 import CancelRoomForm from '../components/activities/CancelRoomForm';
 import LocationView from '../components/activities/LocationView';
+import RatePlayers from '../components/ratings/RatePlayers';
 
 export default function RoomPage({ session }) {
   const { roomId } = useParams();
@@ -106,6 +107,7 @@ export default function RoomPage({ session }) {
             </form>}
           </li>)}
         </ul></section>}
+        <RatePlayers room={room} members={members} users={users} user={user} />
         {canChoose && <section className="panel"><h2>Your place</h2><form className="form-stack" onSubmit={event => {
           event.preventDefault();
           const position = new FormData(event.currentTarget).get('position') || null;
