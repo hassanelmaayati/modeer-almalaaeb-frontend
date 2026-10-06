@@ -254,3 +254,47 @@ export function JoinedRoomsArt() {
     </g>
   </svg>;
 }
+
+// Friends scene in the same grey line-art, from padel (a doubles sport): partners tapping rackets, a ball over the net and the glass wall.
+const RACKET_HOLES = [[0, -8], [-5, -2], [5, -2], [0, 4], [-5, 8], [5, 8]];
+
+function PadelRacket({ x, y, tilt }) {
+  return <g transform={`translate(${x} ${y}) rotate(${tilt})`}>
+    <ellipse cx="0" cy="-16" rx="13" ry="16" fill="#f3f5f4" />
+    <path d="M0 0V16" strokeWidth="3" />
+    {RACKET_HOLES.map(([cx, cy]) => <circle key={`${cx}${cy}`} cx={cx} cy={cy - 14} r="1.600" fill="currentColor" stroke="none" />)}
+  </g>;
+}
+
+export function FriendsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(40 -11) scale(1.05)">
+      <path d="M520 144H1070" strokeWidth="1.5" strokeDasharray="3 7" />
+      <g>
+        <circle cx="574" cy="62" r="9" />
+        <path d="M574 73V110M574 110L562 144M574 110L586 144M574 82L606 76" />
+        <circle cx="674" cy="62" r="9" />
+        <path d="M674 73V110M674 110L662 144M674 110L686 144M674 82L644 76" />
+        <PadelRacket x={610} y={76} tilt={8} />
+        <PadelRacket x={640} y={76} tilt={-8} />
+        <path d="M619 40l-4-8M630 37v-9M641 40l4-8" strokeWidth="1.500" />
+      </g>
+      <g strokeWidth="1.800">
+        <path d="M740 144V70M920 144V70" strokeWidth="2.600" />
+        <path d="M740 74H920" strokeWidth="2.600" />
+        <path d="M752 74v36M764 74v36M776 74v36M788 74v36M800 74v36M812 74v36M824 74v36M836 74v36M848 74v36M860 74v36M872 74v36M884 74v36M896 74v36M908 74v36M740 92H920M740 110H920" strokeWidth="1.200" opacity=".75" />
+      </g>
+      <g strokeWidth="1.800">
+        <circle cx="828" cy="40" r="9" fill="#f3f5f4" />
+        <path d="M821 36c4 3 4 9 0 12M835 32c-4 3-4 9 0 12" strokeWidth="1.400" />
+        <path d="M700 52C730 20 780 14 818 36" strokeDasharray="2 7" />
+      </g>
+      <g strokeWidth="1.800">
+        <rect x="960" y="30" width="92" height="114" rx="4" fill="#f3f5f4" />
+        <path d="M991 30V144M1022 30V144" strokeWidth="1.400" />
+        <path d="M968 62l14-14M968 82l24-24M1000 62l14-14M1000 82l24-24M1032 62l14-14M1032 82l14-14" strokeWidth="1.400" opacity=".7" />
+      </g>
+      <g strokeWidth="1.200"><path d="M1082 34l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M520 44l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}

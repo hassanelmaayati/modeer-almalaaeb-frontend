@@ -639,3 +639,65 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .rooms-scope .empty-state .button, .rooms-scope .empty-state .button-secondary { margin-top: .8rem; }
 .rooms-scope .home-content > .button-secondary { margin-top: .8rem; }
 @media (prefers-reduced-motion: reduce) { .rooms-scope .room-card, .rooms-scope nav[aria-label="Room views"] a { transition: none; } .rooms-scope .room-card:hover { transform: none; } }
+
+/* Friends */
+.friends-scope nav[aria-label="Friend lists"] { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1.4rem 0 1.2rem; padding: .3rem; border: 1px solid var(--line); border-radius: 2.2rem; background: #f3f5f4; width: fit-content; max-width: 100%; }
+.friends-scope nav[aria-label="Friend lists"] a { padding: .45rem 1.2rem; border: 0; border-radius: 2rem; background: transparent; color: var(--muted-ink); font-weight: 600; text-decoration: none; transition: background .15s ease, color .15s ease; }
+.friends-scope nav[aria-label="Friend lists"] a:hover { background: #fff; color: var(--green); }
+.friends-scope nav[aria-label="Friend lists"] a[aria-current="page"] { background: var(--green); color: #fff; box-shadow: 0 2px 6px rgba(20, 89, 74, .25); }
+
+/* shared look inside the page */
+.friends-scope input, .friends-scope select { font: inherit; box-sizing: border-box; max-width: 100%; }
+.friends-scope input:focus-visible, .friends-scope button:focus-visible, .friends-scope a:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.friends-scope .button, .friends-scope .button-secondary { display: inline-flex; align-items: center; justify-content: center; padding: .45rem 1.1rem; border: 2px solid var(--green); border-radius: 4px; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.friends-scope .button { background: var(--green); color: #fff; }
+.friends-scope .button:hover:not(:disabled) { background: var(--green-dark); border-color: var(--green-dark); }
+.friends-scope .button-secondary { background: #fff; color: var(--green); }
+.friends-scope .button-secondary:hover:not(:disabled) { background: var(--green-soft); }
+.friends-scope button:disabled { opacity: .55; cursor: not-allowed; }
+.friends-scope [role="alert"] { margin: 1rem 0 0; padding: .6rem .9rem; border-left: 4px solid #b00020; border-radius: 3px; background: #fdecea; color: #7a1f1a; }
+.friends-scope [role="status"] { margin: 1rem 0 0; padding: .6rem .9rem; border-left: 4px solid var(--green); border-radius: 3px; background: var(--green-soft); color: var(--green-dark); }
+
+/* add a friend */
+.friends-scope section.panel[aria-label="Add a friend"] { margin: 1.4rem 0 0; padding: 1.2rem 1.4rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 3px; background: #f6f8f7; }
+.friends-scope section.panel[aria-label="Add a friend"] h2 { margin: 0 0 .7rem; font-size: 1.3rem; letter-spacing: -.01em; }
+.friends-scope .form-field { display: grid; gap: .35rem; font-weight: 600; font-size: .9rem; }
+.friends-scope .form-field input { width: 100%; padding: .65rem .8rem .65rem 2.6rem; border: 1px solid #c9d1cd; border-radius: 2rem; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2346514c' stroke-width='1.8' stroke-linecap='round'><circle cx='11' cy='11' r='6.500'/><path d='M16 16l4.500 4.500'/></svg>") no-repeat .9rem center; font-weight: 400; }
+.friends-scope .form-field input:disabled { background-color: #f3f5f4; }
+.friends-scope .panel .muted { margin: .7rem 0 0; }
+
+/* people lists */
+.friends-scope .friend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.friends-scope .friend-list .friend-list { margin-top: .8rem; }
+.friends-scope .friend-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: 0; padding: .85rem 1.1rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 4px; background: #fff; transition: transform .18s ease, box-shadow .18s ease; animation: friend-in .3s ease both; }
+.friends-scope .friend-row:hover { transform: translateX(3px); box-shadow: 0 6px 18px rgba(20, 40, 32, .08); }
+.friends-scope .friend-result { border-left-width: 1px; padding: .6rem .9rem; background: #fff; }
+.friends-scope .friend-result > span { flex: 1; font-weight: 600; }
+.friend-avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2.8rem; height: 2.8rem; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 800; font-size: 1.1rem; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--line); }
+.friend-tone-1 { background: #e3ecf8; color: #2a5384; }
+.friend-tone-2 { background: #fff6dd; color: #8a6410; }
+.friend-tone-3 { background: #f1e6f5; color: #6a3a7a; }
+.friends-scope .friend-name { flex: 1; min-width: 7rem; color: var(--ink); font-size: 1.05rem; font-weight: 700; text-decoration: none; }
+.friends-scope .friend-name:hover { color: var(--green); text-decoration: underline; }
+.friends-scope .friend-row .status-badge { padding: .1rem .7rem; border: 1px solid var(--green); border-radius: 1rem; background: var(--green-soft); color: var(--green); font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.friends-scope .friend-list-requests .friend-row { border-left-color: #c89b1c; }
+.friends-scope .friend-list-requests .status-badge { border-color: #c89b1c; background: #fff6dd; color: #7a5a00; }
+.friends-scope .friend-list-sent .friend-row { border-left-color: #3b6ea8; }
+.friends-scope .friend-list-sent .status-badge { border-color: #3b6ea8; background: #e3ecf8; color: #2a5384; }
+.friends-scope .friend-list-blocked .friend-row { border-left-color: #b00020; opacity: .9; }
+.friends-scope .friend-list-blocked .status-badge { border-color: #b00020; background: #fdecea; color: #7a1f1a; }
+.friends-scope .friend-row .button-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+.friends-scope .friend-row .button, .friends-scope .friend-row .button-secondary { padding: .35rem .95rem; font-size: .9rem; }
+
+/* empty */
+.friends-scope .empty-state { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 2.4rem 1rem; border: 2px dashed #c9d0cc; border-radius: 4px; background: #f6f8f7; text-align: center; }
+.friends-scope .empty-state h3 { margin: 0; font-size: 1.25rem; }
+.friends-scope .empty-state p { margin: 0; color: var(--muted-ink); }
+.friends-scope .empty-state button { margin-top: .8rem; }
+
+/* confirm dialog actions */
+.dialog-panel.friends-dialog .dialog-actions { display: flex; flex-wrap: wrap; gap: .7rem; padding: 0 1.4rem 1.4rem; }
+.dialog-panel.friends-dialog .dialog-body p { margin: 0; line-height: 1.5; }
+@keyframes friend-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .friends-scope .friend-row { animation: none; transition: none; } .friends-scope .friend-row:hover { transform: none; } }
+@media (max-width: 40rem) { .friends-scope .friend-row .button-row { margin-left: 0; width: 100%; } }

@@ -6,6 +6,7 @@ import FriendActions from '../components/friends/FriendActions';
 import FriendConfirmDialog from '../components/friends/FriendConfirmDialog';
 import FriendRow from '../components/friends/FriendRow';
 import FriendTabs from '../components/friends/FriendTabs';
+import { FriendsArt } from '../components/home/HeroArt';
 import {
   addFriendCandidates,
   addFriendError,
@@ -96,11 +97,16 @@ export default function FriendsPage({ session }) {
     else apply(kind, friendship);
   }
 
-  return <main>
-    <header className="page-header">
-      <h1>Friends</h1>
-      <p>Add friends to message them directly.</p>
-    </header>
+  return <main className="home friends-scope">
+    <div className="home-content">
+    <section className="sports-banner friends-banner" aria-labelledby="friends-title">
+      <FriendsArt />
+      <div>
+        <p className="sports-banner-eyebrow">Teammates. Rivals. Friends.</p>
+        <h1 id="friends-title">Friends</h1>
+        <p>Add friends to message them directly.</p>
+      </div>
+    </section>
     {error && <p role="alert" className="error-message">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     <AsyncState loading={resource.loading} error={resource.error} onRetry={() => setRetry((count) => count + 1)}>
@@ -114,7 +120,7 @@ export default function FriendsPage({ session }) {
           ? <button type="button" className="button-secondary" onClick={() => searchRef.current?.focus()}>Find people to add</button>
           : null}
       >
-        <ul className="friend-list">
+        <ul className={`friend-list friend-list-${tab.value}`}>
           {items.map((friendship) => (
             <FriendRow
               key={friendship.row.id}
@@ -133,6 +139,7 @@ export default function FriendsPage({ session }) {
         </ul>
       </AsyncState>
     </AsyncState>
+    </div>
     {confirming && <FriendConfirmDialog
       request={confirming}
       name={nameOf(confirming.friendship.otherUserId)}
