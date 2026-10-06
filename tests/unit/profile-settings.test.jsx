@@ -27,6 +27,15 @@ beforeEach(() => {
 });
 
 describe('profile edits and public display', () => {
+  it.each(['ftp://example.test/a.png', 'javascript:alert(1)', 'not a url'])('rejects the non-http(s) photo URL %s before saving', async photo => {
+    const onSubmit = vi.fn();
+    render(<ProfileForm user={me} onSubmit={onSubmit} />);
+    // fireEvent.submit skips native type=url checks, so this exercises the app's own validation.
+    fireEvent.change(screen.getByLabelText('Photo URL'), { target: { value: photo } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Save profile' }).closest('form'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a web address starting with http:// or https://.');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
   it('trims the user name and clears optional fields with null while excluding private account fields', async () => {
     const onSubmit = vi.fn().mockResolvedValue(null);
     render(<ProfileForm user={me} onSubmit={onSubmit} />);
@@ -83,8 +92,17 @@ describe('settings account persistence', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Save profile' }).closest('form'));
     await waitFor(() => expect(refreshUser).toHaveBeenCalledOnce());
     expect(userService.updateMe.mock.calls[0][0].user_name).toBe('Alice updated');
-    await waitFor(() => expect(userService.getMe).toHaveBeenCalledTimes(2));
+    // The PUT response is the saved user, so /users/me is not fetched again.
+    expect(userService.getMe).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('link', { name: 'View my profile' })).toHaveAttribute('href', '/users/1');
+  });
+  it('keeps a successful save when the account chrome refresh fails', async () => {
+    const refreshUser = vi.fn().mockRejectedValue(new Error('offline'));
+    render(<MemoryRouter><SettingsPage session={{ refreshUser }} /></MemoryRouter>);
+    await screen.findByLabelText('User name');
+    fireEvent.submit(screen.getByRole('button', { name: 'Save profile' }).closest('form'));
+    expect(await screen.findByText('Profile saved.')).toBeVisible();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
   it('recovers an account load failure through an explicit retry', async () => {
     userService.getMe.mockRejectedValueOnce(new Error('Account unavailable'));
@@ -115,10 +133,11 @@ describe('Google configuration and provider failure boundaries', () => {
     expect(screen.getByText('Google is linked. You can sign in with Google.')).toBeVisible();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
-  it('distinguishes a link conflict from a password account sign-in conflict', async () => {
-    render(<GoogleLinkControls me={me} onLink={vi.fn().mockRejectedValue({ status: 409 })} />);
+  it('shows the backend detail for a link conflict, not the sign-in conflict advice', async () => {
+    render(<GoogleLinkControls me={me} onLink={vi.fn().mockRejectedValue({ status: 409, message: 'Google account is linked to another user' })} />);
     fireEvent.click(screen.getByRole('button', { name: 'Google sign in' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('This Google account is already linked to another user.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Google account is linked to another user');
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Sign in with your password');
   });
   it('explains how to recover a sign-in conflict and permits another provider attempt', async () => {
     render(<GoogleSignInButton onCredential={vi.fn().mockRejectedValue({ status: 409 })} />);

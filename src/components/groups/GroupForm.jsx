@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Field from '../common/Field';
+import { photoUrlError } from '../../lib/helpers/photoUrl';
 
 export default function GroupForm({ group, sports, candidates = [], onSubmit, onCancel }) {
   const [pending, setPending] = useState(false);
@@ -12,6 +13,8 @@ export default function GroupForm({ group, sports, candidates = [], onSubmit, on
     const name = form.get('name').trim();
     if (!name) { setError('Group name is required.'); return; }
     const body = { name, description: form.get('description').trim() || null, photo_url: form.get('photo_url').trim() || null };
+    const photoError = photoUrlError(body.photo_url);
+    if (photoError) { setError(photoError); return; }
     if (!group) body.sports_id = Number(form.get('sports_id'));
     const recipients = form.getAll('recipients').map(Number);
     setPending(true);

@@ -1,10 +1,12 @@
 /** @typedef {{ signal?: AbortSignal }} RequestOptions */
 /** @typedef {{ id: number, user_name: string, photo_url: string|null, bio: string|null, district: string|null, created_at?: string|null }} User */
-/** @typedef {{ token: string, msg: string, user: User }} AuthResponse */
+/** Returned only to its owner (auth responses, /users/me, Google link). @typedef {User & { email: string, google_linked: boolean }} PrivateUser */
+/** @typedef {{ token: string, msg: string, user: PrivateUser }} AuthResponse */
 /** @typedef {{ user_name: string, email: string, password: string, photo_url?: string|null, bio?: string|null, district?: string|null }} SignupInput */
 /** @typedef {{ email: string, password: string }} LoginInput */
 /** @typedef {{ user_name: string, photo_url?: string|null, bio?: string|null, district?: string|null }} UserUpdate */
-/** @typedef {{ id: number, name: string }} Sport */
+/** @typedef {{ key: string, capacity: number }} SportFormat */
+/** formats are room size presets; cup_format is the cup type (null: no cups). @typedef {{ id: number, name: string, formats: SportFormat[]|null, cup_format: 'knockout'|'race'|null }} Sport */
 /** @typedef {{ id: number, owner_id: number, name: string, sports_id: number, description: string|null, photo_url: string|null }} Group */
 /** @typedef {{ name: string, sports_id: number, description?: string|null, photo_url?: string|null }} GroupInput */
 /** @typedef {{ name: string, description?: string|null, photo_url?: string|null }} GroupUpdate */

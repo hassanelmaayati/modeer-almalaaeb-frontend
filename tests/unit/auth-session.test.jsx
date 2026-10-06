@@ -57,7 +57,8 @@ describe('authoritative account restoration and session changes', () => {
     renderProvider();
     await screen.findByText('Alice');
     expect(userService.getMe).toHaveBeenCalledTimes(1);
-    expect(currentSession.user).toEqual(alice);
+    // currentSession is assigned in a passive effect that can land after the text renders under load.
+    await waitFor(() => expect(currentSession.user).toEqual(alice));
   });
 
   it('does not restore an old profile when logout happens during restoration', async () => {
@@ -168,6 +169,16 @@ describe('backend-compatible authentication forms', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials');
     expect(signIn).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled();
+  });
+
+  it('shows "Invalid credentials" for a login 401 whatever the backend wording', async () => {
+    const signIn = vi.fn().mockRejectedValue({ status: 401, message: 'Unauthorized' });
+    renderAuth(SignInForm, null, { signIn });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'bob@example.test' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials');
+    expect(screen.queryByText('Returned home')).not.toBeInTheDocument();
   });
 
   it('checks confirmation before issuing a signup request', async () => {

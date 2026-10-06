@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Field from '../common/Field';
 import { DISTRICTS } from '../../lib/helpers/filters';
+import { photoUrlError } from '../../lib/helpers/photoUrl';
 
 export default function ProfileForm({ user, onSubmit }) {
   const [pending, setPending] = useState(false);
@@ -17,6 +18,8 @@ export default function ProfileForm({ user, onSubmit }) {
       bio: form.get('bio').trim() || null,
       district: form.get('district') || null,
     };
+    const photoError = photoUrlError(body.photo_url);
+    if (photoError) { setSaved(false); return setError(photoError); }
     setPending(true);
     setError('');
     setSaved(false);

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CreateGroupDialog from '../../src/components/groups/CreateGroupDialog';
 import GroupForm from '../../src/components/groups/GroupForm';
@@ -64,4 +64,14 @@ it('retains edits after a server error and sends the required name without a spo
   expect(screen.getByLabelText('Description')).toHaveValue('Evening games');
   expect(onSubmit).toHaveBeenCalledExactlyOnceWith({ name: 'Team', description: 'Evening games', photo_url: null }, []);
   expect(screen.queryByLabelText('Sport')).not.toBeInTheDocument();
+});
+
+it('rejects a non-http(s) group photo URL before calling the backend', async () => {
+  const onSubmit = vi.fn();
+  render(<GroupForm group={{ id: 1, name: 'Team', sports_id: 1 }} sports={sports} onSubmit={onSubmit} onCancel={vi.fn()} />);
+  // fireEvent.submit skips native type=url checks, so this exercises the app's own validation.
+  fireEvent.change(screen.getByLabelText('Photo URL'), { target: { value: 'ftp://example.test/team.png' } });
+  fireEvent.submit(screen.getByRole('button', { name: 'Save changes' }).closest('form'));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a web address starting with http:// or https://.');
+  expect(onSubmit).not.toHaveBeenCalled();
 });
