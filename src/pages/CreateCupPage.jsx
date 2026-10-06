@@ -5,6 +5,7 @@ import cupService from '../services/cupService';
 import sportService from '../services/sportService';
 import AsyncState from '../components/common/AsyncState';
 import CupForm from '../components/cups/CupForm';
+import { BracketArt } from '../components/home/HeroArt';
 
 // Guarded by RequireAuth only: any signed-in user may organize a cup (no global role).
 export default function CreateCupPage() {
@@ -19,10 +20,23 @@ export default function CreateCupPage() {
     navigate('/cups');
   }
 
-  return <main>
-    <h1>Create a cup</h1>
-    <AsyncState loading={sports.loading} error={sports.error} onRetry={() => setRetry(count => count + 1)}>
-      <CupForm sports={sports.data || []} onSubmit={create} onCancel={() => navigate('/cups')} />
-    </AsyncState>
+  return <main className="home cups-scope">
+    <div className="home-content">
+      <section className="sports-banner cups-banner" aria-labelledby="create-cup-title">
+        <BracketArt />
+        <div className="cups-banner-title">
+          <div>
+            <p className="sports-banner-eyebrow">Be the organizer</p>
+            <h1 id="create-cup-title">Create a cup</h1>
+            <p>Pick a sport, set the rules and open the draw to teams.</p>
+          </div>
+        </div>
+      </section>
+      <section className="home-section cup-panel">
+        <AsyncState loading={sports.loading} error={sports.error} onRetry={() => setRetry(count => count + 1)}>
+          <CupForm sports={sports.data || []} onSubmit={create} onCancel={() => navigate('/cups')} />
+        </AsyncState>
+      </section>
+    </div>
   </main>;
 }

@@ -6,15 +6,18 @@ const LABELS = { accepted: 'Accepted', pending: 'Waiting for organizer', decline
 
 export default function EntryList({ entries, canReview, onReview }) {
   const { pending, error, run } = useAction();
-  if (!entries.length) return <p>No teams have entered yet.</p>;
+  if (!entries.length) return <p className="muted">No teams have entered yet.</p>;
   const sorted = [...entries].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
   return <>
     {error && <p role="alert">{error}</p>}
     <ul className="entry-list">
-      {sorted.map(entry => <li key={entry.group_id}>
-        <strong>{entry.group_name}</strong>{' '}
-        <span className={`status-badge entry-${entry.status}`}>{LABELS[entry.status] || entry.status}</span>{' '}
-        <span className="muted">entered {formatActivityDate(entry.entered_at)}</span>
+      {sorted.map(entry => <li key={entry.group_id} className="entry-card">
+        <span className="entry-badge-initial" aria-hidden="true">{entry.group_name?.[0]?.toUpperCase()}</span>
+        <div className="entry-card-body">
+          <strong>{entry.group_name}</strong>
+          <span className="muted">entered {formatActivityDate(entry.entered_at)}</span>
+        </div>
+        <span className={`status-badge entry-${entry.status}`}>{LABELS[entry.status] || entry.status}</span>
         {canReview && entry.status === 'pending' && <span className="actions">
           <button type="button" disabled={pending} onClick={() => run(() => onReview(entry.group_id, 'accepted'))}>Accept</button>
           <button type="button" className="button-secondary" disabled={pending} onClick={() => run(() => onReview(entry.group_id, 'declined'))}>Decline</button>
