@@ -23,7 +23,7 @@ test('running frontend home and sports pages render actual backend data', async 
   expect(roomsResponse.ok()).toBeTruthy()
   const rooms = await roomsResponse.json()
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Find your people. Get moving.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your next game starts here', exact: true })).toBeVisible()
   await page.goto('/sports')
   await expect(page.getByRole('heading', { name: 'Choose your activity', exact: true })).toBeVisible()
   for (const sport of sports) await expect(page.getByRole('combobox', { name: 'Activity', exact: true }).getByRole('option', { name: sport.name, exact: true })).toHaveCount(1)

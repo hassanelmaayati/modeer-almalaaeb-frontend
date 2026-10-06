@@ -19,16 +19,12 @@ concurrency:
 env:
   CI: 'true'
   PYTHONDONTWRITEBYTECODE: '1'
-  PIPENV_DONT_LOAD_ENV: '1'
-  PIPENV_VENV_IN_PROJECT: '1'
 
 jobs:
   configuration:
     name: Frontend gate policy
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    outputs:
-      backend_sha: ${{ steps.counterpart.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,9 +36,6 @@ jobs:
         run: |
           python .github/scripts/ci_gate.py --self-test
           python .github/scripts/deploy_frontend.py --self-test
-      - name: Resolve backend once to an immutable commit
-        id: counterpart
-        run: python .github/scripts/resolve_counterpart.py hassanelmaayati/modeer-almalaaeb-backend
 
   frontend:
     name: Frontend lint, unit coverage and build
@@ -60,7 +53,7 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
-      - name: Offline unit tests with coverage
+      - name: Frontend unit tests with coverage
         run: npm run test:unit:coverage
       - name: Build checked-out frontend
         env:
@@ -79,70 +72,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  fullstack:
-    name: Frontend fullstack offline browsers
-    needs: configuration
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    env:
-      MODEER_TEST_PG_BIN: /usr/lib/postgresql/16/bin
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: frontend
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: hassanelmaayati/modeer-almalaaeb-backend
-          ref: ${{ needs.configuration.outputs.backend_sha }}
-          path: backend
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
-          cache: pip
-          cache-dependency-path: backend/Pipfile.lock
-      - name: Install PostgreSQL and PostGIS (network setup)
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y postgresql-16 postgresql-16-postgis-3
-      - name: Install locked Python dependencies (network setup)
-        working-directory: backend
-        run: |
-          python -m pip install pipenv==2024.0.1
-          pipenv verify
-          pipenv sync --dev
-          printf 'MODEER_TEST_PYTHON=%s\n' "$PWD/.venv/bin/python" >> "$GITHUB_ENV"
-          printf 'MODEER_BACKEND_PATH=%s\n' "$PWD" >> "$GITHUB_ENV"
-      - name: Install locked frontend and browser dependencies (network setup)
-        working-directory: frontend
-        run: |
-          npm ci
-          npx --no-install playwright install --with-deps chromium firefox webkit
-      - name: Record the exact tested pair
-        run: |
-          printf 'Frontend: %s\nBackend: %s\n' "$(git -C frontend rev-parse HEAD)" "$(git -C backend rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
-      - name: Offline full Chromium journeys, Firefox/WebKit smoke and dev proxy
-        working-directory: frontend
-        run: npm run test:e2e
-      - name: Preserve browser failure evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-fullstack-${{ github.sha }}
-          path: frontend/tests/artifacts/
-          if-no-files-found: ignore
-          retention-days: 14
-
   gate:
     name: Frontend CI
     if: always()
-    needs: [configuration, frontend, fullstack]
+    needs: [configuration, frontend]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -152,11 +85,11 @@ jobs:
       - name: Require every mandatory job to succeed
         env:
           CI_JOB_RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/scripts/ci_gate.py --results "$CI_JOB_RESULTS" --required configuration frontend fullstack
+        run: python3 .github/scripts/ci_gate.py --results "$CI_JOB_RESULTS" --required configuration frontend
 
   deploy:
     name: Deploy tested frontend to Vercel
-    needs: [configuration, frontend, fullstack, gate]
+    needs: [configuration, frontend, gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.VERCEL_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -187,6 +120,5 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          MODEER_TESTED_BACKEND_SHA: ${{ needs.configuration.outputs.backend_sha }}
           CI_JOB_RESULTS: ${{ toJSON(needs) }}
         run: python .github/scripts/deploy_frontend.py

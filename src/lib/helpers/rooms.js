@@ -22,7 +22,7 @@ export const ADMISSION_POLICIES = [
 ];
 
 // Only these sports use distance, pace and route notes.
-const OUTDOOR_SPORTS = ['walking', 'running', 'marathon', 'cycling'];
+const OUTDOOR_SPORTS = ['walking', 'running', 'marathon', 'cycling', 'kayak', 'kayaking'];
 export const isOutdoorSport = sport => OUTDOOR_SPORTS.includes(sport?.name?.trim().toLowerCase());
 
 // Sports like football list fixed formats ({ key: '5v5', capacity: 10 }); others accept any capacity.

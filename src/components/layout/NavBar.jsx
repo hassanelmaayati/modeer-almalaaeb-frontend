@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { formatUnreadCount } from '../../lib/helpers/messages';
 
-export default function NavBar({ session, unreadCount = 0, messageUnread = 0, liveStatus = 'idle' }) {
-  const { user, loading, signOut } = session;
+function SignedInAccount({ user, signOut }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,6 +13,16 @@ export default function NavBar({ session, unreadCount = 0, messageUnread = 0, li
     catch { setError('Signed out on this device. The server could not confirm logout.'); }
     finally { setPending(false); }
   }
+
+  return <>
+    <Link className="button-primary nav-cta" to="/rooms/new">Host a room</Link>
+    <UserMenu user={user} pending={pending} onSignOut={handleSignOut} />
+    {error && <p className="nav-error" role="alert">{error}</p>}
+  </>;
+}
+
+export default function NavBar({ session, unreadCount = 0, messageUnread = 0, liveStatus = 'idle' }) {
+  const { user, loading, signOut } = session;
 
   return <header className="site-header">
     <Link to="/">Modeer Almalaaeb</Link>
@@ -38,6 +47,12 @@ export default function NavBar({ session, unreadCount = 0, messageUnread = 0, li
         <NavLink to="/sign-up">Sign up</NavLink>
       </>}
     </nav>
-    {error && <p role="alert">{error}</p>}
+    <div className="site-header-account">
+      {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span className="nav-status" role="status">Reconnecting…</span>}
+      {loading ? <span className="nav-status" role="status">Restoring session…</span> : user ? <SignedInAccount key={user.id} user={user} signOut={signOut} /> : <>
+        <Link className="nav-plain" to="/sign-up">Sign up</Link>
+        <Link className="header-google" to="/sign-in"><GoogleLogo size={20} />Sign in with Google</Link>
+      </>}
+    </div>
   </header>;
 }
