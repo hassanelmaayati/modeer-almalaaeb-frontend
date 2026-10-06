@@ -118,3 +118,35 @@ export function GroupsArt() {
     </g>
   </svg>;
 }
+
+// Messages scene in the same grey line-art: two friends trading chat bubbles with a paper plane between them.
+export function MessagesArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(70 0) scale(.92)">
+      <path d="M520 142H1000" strokeWidth="1.5" strokeDasharray="3 7" />
+      <g>
+        <circle cx="560" cy="62" r="9" />
+        <path d="M560 73V108M560 108L548 140M560 108L572 140M560 82L542 66M560 82L582 94" />
+      </g>
+      <g strokeWidth="1.8">
+        <path d="M584 22h70a7 7 0 0 1 7 7v26a7 7 0 0 1-7 7h-46l-14 12V62h-10a7 7 0 0 1-7-7V29a7 7 0 0 1 7-7Z" fill="#f3f5f4" />
+        <path d="M598 38h42M598 50h26" strokeWidth="1.5" />
+      </g>
+      <g>
+        <circle cx="940" cy="62" r="9" />
+        <path d="M940 73V108M940 108L928 140M940 108L952 140M940 82L958 66M940 82L918 94" />
+        <rect x="905" y="86" width="12" height="20" rx="2.5" strokeWidth="1.6" transform="rotate(-18 911 96)" />
+      </g>
+      <g strokeWidth="1.8">
+        <path d="M760 66h66a7 7 0 0 1 7 7v26a7 7 0 0 1-7 7h-10v12l-14-12h-42a7 7 0 0 1-7-7V73a7 7 0 0 1 7-7Z" fill="#f3f5f4" />
+        <path d="M776 82h46M776 94h30" strokeWidth="1.5" />
+      </g>
+      <g strokeWidth="1.8">
+        <path d="M690 100L736 82L700 124L694 108Z" />
+        <path d="M694 108L736 82" />
+        <path d="M600 112C630 130 660 128 686 112" strokeDasharray="2 7" />
+      </g>
+      <g strokeWidth="1.2"><path d="M1010 40l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M500 52l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}

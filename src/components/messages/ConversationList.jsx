@@ -11,9 +11,13 @@ export default function ConversationList({ viewerId, activeKey, conversations, u
   const visible = filterConversations(conversations, { type, query });
   const nameOf = (id) => playerName(users, id);
   const filtered = type !== 'all' || query.trim() !== '';
+  const totalUnread = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
 
   return <div className="conversation-list">
-    <h2>Chats</h2>
+    <div className="chats-head">
+      <h2>Chats</h2>
+      {totalUnread > 0 && <span className="chats-unread">{totalUnread} new</span>}
+    </div>
     <label className="form-field">Search chats
       <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name" />
     </label>
