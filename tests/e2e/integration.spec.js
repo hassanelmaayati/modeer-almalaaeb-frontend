@@ -13,6 +13,7 @@ async function signIn(page, account) {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   expect((await response).status()).toBe(200)
   await page.waitForURL('/')
+  await expect(page.getByRole('button', { name: `Test ${account[0].toUpperCase()}${account.slice(1)}`, exact: true })).toBeVisible()
 }
 
 async function authorization(page) {
@@ -40,8 +41,13 @@ test('public discovery filters real backend activities and preserves private ven
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Find your people. Get moving.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your next game starts here', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Friday Football Match', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'View game: Friday Football Match', exact: true }).click()
+  const homePreview = page.getByRole('dialog', { name: 'Friday Football Match', exact: true })
+  await expect(homePreview).toBeVisible()
+  await expect(homePreview.getByText('Private fixture meeting instructions', { exact: true })).toHaveCount(0)
+  await homePreview.getByRole('button', { name: 'Close dialog', exact: true }).click()
   await page.goto('/sports')
   await page.getByRole('combobox', { name: 'Activity', exact: true }).selectOption('2')
   await page.getByRole('button', { name: 'Apply filters', exact: true }).click()
@@ -158,17 +164,19 @@ test('SPA account changes clear the previous account and owner controls without 
   await page.evaluate(() => { window.__modeerAccountTest = 'same-document' })
 
   const logout = page.waitForResponse((response) => response.url().endsWith('/auth/logout') && response.request().method() === 'POST')
-  await navigation.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await page.getByRole('button', { name: 'Test Owner', exact: true }).click()
+  await page.getByRole('menu', { name: 'Account', exact: true }).getByRole('menuitem', { name: 'Sign out', exact: true }).click()
   expect((await logout).status()).toBe(204)
   await page.waitForURL('/')
-  await expect(page.getByRole('heading', { name: 'Find your people. Get moving.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your next game starts here', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Basketball Friends', exact: true })).toHaveCount(0)
 
-  await navigation.getByRole('link', { name: 'Sign in', exact: true }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'Sign in with Google', exact: true }).click()
   await page.getByLabel('Email', { exact: true }).fill('accepted@example.test')
   await page.getByLabel('Password', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
-  await expect(navigation.getByText('Signed in as Test Accepted', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Test Accepted', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Test Owner', exact: true })).toHaveCount(0)
   await navigation.getByRole('link', { name: 'Groups', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'My groups', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Basketball Friends', exact: true })).toHaveCount(0)

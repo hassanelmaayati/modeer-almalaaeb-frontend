@@ -40,9 +40,10 @@ beforeEach(() => {
 describe('application session and live notifications', () => {
   it('loads the complete guest application before notification data exists without private requests', async () => {
     render(<MemoryRouter><App /></MemoryRouter>);
-    expect(screen.getByRole('heading', { name: 'Find your people. Get moving.' })).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: 'No upcoming activities' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your next game starts here' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'No upcoming games' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in with Google' })).toHaveAttribute('href', '/sign-in');
+    expect(screen.getByRole('link', { name: 'Sign in to host a room' })).toHaveAttribute('href', '/sign-in');
     expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
     expect(notificationService.list).not.toHaveBeenCalled();
     expect(websocketService.start).not.toHaveBeenCalled();
@@ -62,11 +63,11 @@ describe('application session and live notifications', () => {
     expect(firstSignal.aborted).toBe(true);
     await act(async () => first({ items: [], unread_count: 99 }));
     expect(screen.getByRole('link', { name: 'Notifications', exact: true })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Notifications (99)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Notifications 99 unread notifications' })).not.toBeInTheDocument();
     await act(async () => second({ items: [], unread_count: 3 }));
-    expect(await screen.findByRole('link', { name: 'Notifications (3)' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Notifications 3 unread notifications' })).toBeInTheDocument();
     await changeUser(1);
-    expect(screen.queryByRole('link', { name: 'Notifications (3)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Notifications 3 unread notifications' })).not.toBeInTheDocument();
     await changeUser(null);
     expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
     expect(state.stops.every(stop => stop.mock.calls.length === 1)).toBe(true);
@@ -76,7 +77,7 @@ describe('application session and live notifications', () => {
     state.badges.mockResolvedValueOnce({ items: [], unread_count: 2 });
     const view = render(<MemoryRouter><App /></MemoryRouter>);
     await changeUser(1);
-    expect(await screen.findByRole('link', { name: 'Notifications (2)' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Notifications 2 unread notifications' })).toBeInTheDocument();
     await act(async () => { for (const callback of state.events) callback({ type: 'notifications.updated' }); });
     await waitFor(() => expect(screen.getByRole('link', { name: 'Notifications', exact: true })).toBeInTheDocument());
     expect(state.badges).toHaveBeenCalledTimes(2);
@@ -93,15 +94,15 @@ describe('application session and live notifications', () => {
       .mockImplementationOnce(() => new Promise(resolve => { fresh = resolve; }));
     render(<MemoryRouter><App /></MemoryRouter>);
     await changeUser(1);
-    expect(await screen.findByRole('link', { name: 'Notifications (5)' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Notifications 5 unread notifications' })).toBeInTheDocument();
     await changeUser(null);
     expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
     expect(state.badges).toHaveBeenCalledTimes(1);
     await changeUser(1);
     await waitFor(() => expect(state.badges).toHaveBeenCalledTimes(2));
     expect(screen.getByRole('link', { name: 'Notifications', exact: true })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Notifications (5)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Notifications 5 unread notifications' })).not.toBeInTheDocument();
     await act(async () => fresh({ items: [], unread_count: 1 }));
-    expect(await screen.findByRole('link', { name: 'Notifications (1)' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Notifications 1 unread notifications' })).toBeInTheDocument();
   });
 });

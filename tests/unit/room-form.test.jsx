@@ -29,9 +29,14 @@ const room = {
 };
 const addedSports = [
   { id: 5, name: 'Walking', formats: null, outdoor: true },
-  { id: 6, name: 'Marathon', formats: null, outdoor: true },
+  { id: 6, name: 'Running', formats: null, outdoor: true },
   { id: 7, name: 'Cycling', formats: null, outdoor: true },
   { id: 8, name: 'Handball', formats: null, outdoor: false },
+  { id: 9, name: 'Billiards', formats: null, outdoor: false },
+  { id: 10, name: 'Kayak', formats: null, outdoor: true },
+  { id: 3, name: 'Padel', formats: null, outdoor: false },
+  { id: 4, name: 'Swimming', formats: null, outdoor: false },
+  { id: 11, name: 'Marathon', formats: null, outdoor: true },
 ];
 
 beforeEach(() => {
@@ -190,6 +195,7 @@ describe('new deployed sports with no room format presets', () => {
   it.each(addedSports)('uses null formats and appropriate outdoor metadata for $name', sport => {
     expect(sportFormats(sport)).toEqual([]);
     expect(isOutdoorSport(sport)).toBe(sport.outdoor);
+    expect(isOutdoorSport({ ...sport, name: ` ${sport.name.toUpperCase()} ` })).toBe(sport.outdoor);
     expect(sportFormats({ ...sport, formats: undefined })).toEqual([]);
   });
   it.each(addedSports)('edits and submits $name with numeric capacity and its supported optional fields', async sport => {

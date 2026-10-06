@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch
 sys.dont_write_bytecode = True
 from ci_gate import require_success
 
-REQUIRED = ["configuration", "frontend", "fullstack", "gate"]
+REQUIRED = ["configuration", "frontend", "gate"]
 SECRETS = ["VERCEL_TOKEN", "VERCEL_ORG_ID", "VERCEL_PROJECT_ID"]
 PRODUCTION_API = "https://modeer-almalaaeb-backend.onrender.com/api/v1"
 
@@ -31,9 +31,8 @@ def require_eligible(context, main_sha):
         require_success(json.loads(context.get("CI_JOB_RESULTS", "null")), REQUIRED)
     except (ValueError, TypeError) as error:
         raise DeploymentDenied(str(error)) from error
-    for key in ("GITHUB_SHA", "MODEER_TESTED_BACKEND_SHA"):
-        if not re.fullmatch(r"[0-9a-f]{40}", context.get(key, "")):
-            raise DeploymentDenied(f"Missing immutable {key}")
+    if not re.fullmatch(r"[0-9a-f]{40}", context.get("GITHUB_SHA", "")):
+        raise DeploymentDenied("Missing immutable GITHUB_SHA")
     if context["GITHUB_SHA"] != main_sha:
         raise DeploymentDenied("Tested commit is no longer main's head")
     if any(not context.get(key) for key in SECRETS):
@@ -71,8 +70,7 @@ def execute(context, get_main_sha, run, get_production_api):
     run(["vercel", "build", "--prod", f"--token={token}"])
     require_eligible(context, get_main_sha())
     run(["vercel", "deploy", "--prebuilt", "--prod", "--yes", f"--token={token}",
-         "--meta", f"testedFrontendSha={context['GITHUB_SHA']}",
-         "--meta", f"testedBackendSha={context['MODEER_TESTED_BACKEND_SHA']}"])
+         "--meta", f"testedFrontendSha={context['GITHUB_SHA']}"])
 
 
 class DeploymentTests(unittest.TestCase):
@@ -80,7 +78,6 @@ class DeploymentTests(unittest.TestCase):
         self.sha = "a" * 40
         self.context = {"GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/main",
                         "VERCEL_DEPLOY_ENABLED": "true", "GITHUB_SHA": self.sha,
-                        "MODEER_TESTED_BACKEND_SHA": "b" * 40,
                         "CI_JOB_RESULTS": json.dumps({key: {"result": "success"} for key in REQUIRED}),
                         **{key: "fixture-value" for key in SECRETS}}
 
@@ -94,19 +91,26 @@ class DeploymentTests(unittest.TestCase):
         return calls
 
     def test_eligible_success_deploys_exactly_once(self):
+        self.assertNotIn("MODEER_TESTED_BACKEND_SHA", self.context)
         calls = self.run_policy()
         deployments = [call for call in calls if call[:2] == ["vercel", "deploy"]]
         self.assertEqual(len(deployments), 1)
         self.assertIn("--prebuilt", deployments[0])
         self.assertIn(f"testedFrontendSha={self.sha}", deployments[0])
+        self.assertFalse(any(argument.startswith("testedBackendSha=") for argument in deployments[0]))
 
     def test_ineligible_cases_never_call_the_executor(self):
         cases = [{"GITHUB_EVENT_NAME": "pull_request"}, {"GITHUB_EVENT_NAME": "workflow_dispatch"},
                  {"GITHUB_REF": "refs/heads/feature"},
-                 {"VERCEL_DEPLOY_ENABLED": "false"}, {"MODEER_TESTED_BACKEND_SHA": ""},
-                 {"CI_JOB_RESULTS": "{}"}]
+                 {"VERCEL_DEPLOY_ENABLED": "false"},
+                 {"GITHUB_SHA": ""}, {"GITHUB_SHA": "a" * 39}, {"GITHUB_SHA": "A" * 40},
+                 {"CI_JOB_RESULTS": "{}"}, {"CI_JOB_RESULTS": "null"},
+                 {"CI_JOB_RESULTS": "not-json"}]
         cases += [{key: ""} for key in SECRETS]
-        for result in ("failure", "skipped", "cancelled", "neutral"):
+        for job in REQUIRED:
+            results = {key: {"result": "success"} for key in REQUIRED if key != job}
+            cases.append({"CI_JOB_RESULTS": json.dumps(results)})
+        for result in ("failure", "skipped", "cancelled", "neutral", "timed_out", None):
             for job in REQUIRED:
                 results = {key: {"result": "success"} for key in REQUIRED}
                 results[job]["result"] = result
