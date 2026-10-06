@@ -6,6 +6,7 @@ import sportService from '../services/sportService';
 import groupService from '../services/groupService';
 import AsyncState from '../components/common/AsyncState';
 import RoomForm from '../components/activities/RoomForm';
+import { HostArt } from '../components/home/HeroArt';
 
 // Guarded by RequireAuth only: any signed-in user may host a room.
 export default function CreateRoomPage({ session }) {
@@ -32,15 +33,24 @@ export default function CreateRoomPage({ session }) {
         navigate(`/rooms/${room.id}`);
     }
 
-    return <main>
-        <h1>Host a room</h1>
-        <AsyncState loading={options.loading} error={options.error} onRetry={() => setRetry(count => count + 1)}>
-            <RoomForm
-                sports={options.data?.sports || []} 
-                groups={options.data?.groups || []}
-                onSubmit={create}
-                onCancel={() => navigate(-1)}
-            />
-        </AsyncState>
+    return <main className="home host-scope">
+        <div className="home-content">
+            <section className="sports-banner host-banner" aria-labelledby="host-title">
+                <HostArt />
+                <div>
+                    <p className="sports-banner-eyebrow">Call the players. Set the game.</p>
+                    <h1 id="host-title">Host a room</h1>
+                    <p>Build your game card, share the details and let players join.</p>
+                </div>
+            </section>
+            <AsyncState loading={options.loading} error={options.error} onRetry={() => setRetry(count => count + 1)}>
+                <RoomForm
+                    sports={options.data?.sports || []}
+                    groups={options.data?.groups || []}
+                    onSubmit={create}
+                    onCancel={() => navigate(-1)}
+                />
+            </AsyncState>
+        </div>
     </main>
 }

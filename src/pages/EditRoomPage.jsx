@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import RoomForm from '../components/activities/RoomForm';
+import { HostArt } from '../components/home/HeroArt';
 import AsyncState from '../components/common/AsyncState';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import { occupiedPlaces } from '../lib/helpers/memberships';
@@ -56,8 +57,16 @@ export default function EditRoomPage({ session }) {
     navigate(`/rooms/${roomId}`, { state: { saved: true } });
   }
 
-  return <main>
-    <h1>Edit room</h1>
+  return <main className="home host-scope">
+    <div className="home-content">
+    <section className="sports-banner host-banner" aria-labelledby="edit-room-title">
+      <HostArt />
+      <div>
+        <p className="sports-banner-eyebrow">Change the plan.</p>
+        <h1 id="edit-room-title">Edit room</h1>
+        <p>Update the details of your game while it is still open.</p>
+      </div>
+    </section>
     <AsyncState loading={resource.loading} error={resource.error} onRetry={() => setRetry((count) => count + 1)}>
       {room && !isHost && (
         <Blocked roomId={roomId} title="Only the host can edit this room" text="Ask the host if something about this room needs to change." />
@@ -79,5 +88,6 @@ export default function EditRoomPage({ session }) {
         />
       )}
     </AsyncState>
+    </div>
   </main>;
 }

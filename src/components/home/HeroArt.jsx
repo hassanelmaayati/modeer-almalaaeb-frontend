@@ -348,3 +348,39 @@ export function ProfileArt({ tag = 'YOU' }) {
     </g>
   </svg>;
 }
+
+// Host scene in the same grey line-art: the host calls out through a megaphone, a pin drops and players raise their hands to join.
+export function HostArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(246 -4) scale(.95)">
+      <path d="M560 146H960" strokeWidth="1.500" strokeDasharray="3 7" />
+      <g>
+        <circle cx="588" cy="60" r="9" />
+        <path d="M588 71V108M588 108L576 144M588 108L600 144M588 80L612 70" />
+        <path d="M612 70L650 52V88L612 78Z" fill="#f3f5f4" />
+        <path d="M650 52V88" strokeWidth="3" />
+        <path d="M626 80L624 94h8l-2-14" strokeWidth="1.800" />
+        <path d="M664 54Q676 70 664 86M676 44Q696 70 676 96M688 34Q716 70 688 106" strokeWidth="1.800" strokeDasharray="1 6" />
+      </g>
+      <g strokeWidth="1.800">
+        <path d="M800 22a16 16 0 0 1 16 16c0 12-16 28-16 28S784 50 784 38a16 16 0 0 1 16-16Z" fill="#f3f5f4" />
+        <circle cx="800" cy="38" r="5" />
+        <path d="M800 70v8" strokeDasharray="2 5" />
+      </g>
+      <g>
+        <circle cx="758" cy="92" r="7" />
+        <path d="M758 99V122M758 122L750 146M758 122L766 146M758 106L744 92M758 106L772 96" strokeWidth="2" />
+        <circle cx="800" cy="96" r="7" />
+        <path d="M800 103V126M800 126L792 146M800 126L808 146M800 110L786 98M800 110L814 82" strokeWidth="2" />
+        <circle cx="842" cy="92" r="7" />
+        <path d="M842 99V122M842 122L834 146M842 122L850 146M842 106L828 96M842 106L856 92" strokeWidth="2" />
+      </g>
+      <g strokeWidth="1.800">
+        <rect x="890" y="44" width="62" height="66" rx="6" fill="#f3f5f4" />
+        <path d="M890 62H952M906 38v12M936 38v12" />
+        <path d="M921 76v22M910 87h22" strokeWidth="2.400" />
+      </g>
+      <g strokeWidth="1.200"><path d="M718 30l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M966 40l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}
