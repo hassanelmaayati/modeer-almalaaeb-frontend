@@ -17,6 +17,7 @@ const rooms = [
   { id: 11, title: 'Friday football', sport_id: 1 },
   { id: 12, title: 'Evening basketball', sport_id: 2 },
   { id: 13, title: 'Weekend football', sport_id: 1 },
+  { id: 14, title: 'Later basketball', sport_id: 2 },
 ].map((room) => ({
   ...room, host_id: 1, starts_at: '2030-10-10T15:00:00Z', ends_at: '2030-10-10T16:00:00Z',
   area: 'Manama', district: 'capital', difficulty: 'beginners', capacity: 10, status: 'open',
@@ -38,18 +39,20 @@ beforeEach(() => {
 });
 
 describe('Home activity discovery', () => {
-  it('uses the live catalogue and shows only the first two upcoming rooms', async () => {
+  it('uses the live catalogue and shows only the first three upcoming rooms', async () => {
     renderPage(HomePage);
-    expect(screen.getByRole('heading', { name: 'Find your people. Get moving.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your next game starts here' })).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: 'Soccer' })).toHaveAttribute('href', '/sports?sport_id=1');
-    expect(screen.getByRole('link', { name: 'Find an activity' })).toHaveAttribute('href', '/sports');
+    expect(screen.getByRole('link', { name: 'Find a game' })).toHaveAttribute('href', '/sports');
+    expect(screen.getByRole('link', { name: 'View all games' })).toHaveAttribute('href', '/sports');
     await screen.findByRole('heading', { name: 'Friday football' });
     const cards = screen.getAllByRole('article');
-    expect(cards).toHaveLength(2);
-    expect(within(cards[0]).getByRole('button', { name: 'View activity' })).toBeInTheDocument();
-    expect(within(cards[0]).getByText('Manama · Capital')).toBeInTheDocument();
+    expect(cards).toHaveLength(3);
+    expect(within(cards[0]).getByRole('button', { name: 'View game: Friday football' })).toBeInTheDocument();
+    expect(within(cards[0]).getByText('Manama')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Evening basketball' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Weekend football' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Weekend football' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Later basketball' })).not.toBeInTheDocument();
     expect(roomService.list).toHaveBeenCalledWith({}, expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 
@@ -62,8 +65,8 @@ describe('Home activity discovery', () => {
     expect(screen.getAllByText('Loading…')).toHaveLength(2);
     await waitFor(() => expect(sportService.list).toHaveBeenCalledTimes(1));
     await act(async () => { resolveSports([]); resolveRooms([]); });
-    expect(await screen.findByRole('heading', { name: 'No activities available' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'No upcoming activities' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'No sports available' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'No upcoming games' })).toBeInTheDocument();
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
@@ -84,7 +87,7 @@ describe('Home activity discovery', () => {
     await screen.findByRole('heading', { name: 'Friday football' });
     roomService.list.mockResolvedValue([]);
     await act(async () => { for (const callback of live.listeners) callback({ type: 'lobby.ready' }); });
-    expect(await screen.findByRole('heading', { name: 'No upcoming activities' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'No upcoming games' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Friday football' })).not.toBeInTheDocument();
   });
 });

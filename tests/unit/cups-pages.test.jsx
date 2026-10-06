@@ -22,9 +22,14 @@ const entries = [1, 2, 3, 4].map(group_id => ({ group_id, group_name: 'Team ' + 
 const cup = { id: 1, revision: 3, name: 'Winter cup', rules: 'Play fairly', sport_id: 1, format: 'knockout', status: 'registration', team_count: 4, roster_limit: 5, registration_closes_at: '2030-01-02T12:00:00Z', organizer: { id: 1, user_name: 'Alice' }, entries, fixtures: [] };
 const addedSports = [
   { id: 5, name: 'Walking', formats: null },
-  { id: 6, name: 'Marathon', formats: null },
+  { id: 6, name: 'Running', formats: null },
   { id: 7, name: 'Cycling', formats: null },
   { id: 8, name: 'Handball', formats: null },
+  { id: 9, name: 'Billiards', formats: null },
+  { id: 10, name: 'Kayak', formats: null },
+  { id: 3, name: 'Padel', formats: null },
+  { id: 4, name: 'Swimming', formats: null },
+  { id: 11, name: 'Marathon', formats: null },
 ];
 beforeEach(() => {
   vi.spyOn(Date, 'now').mockReturnValue(now);
@@ -43,8 +48,8 @@ function show(data = cup, user = { id: 1 }) {
 }
 
 describe('cup sport, registration and participant rules', () => {
-  it.each(['Football', 'Basketball', 'Volleyball', 'Tennis', 'Padel', 'Badminton'])('recognizes %s as a knockout sport', name => expect(sportFormat({ name })).toBe('knockout'));
-  it.each(['Running', 'Cycling', 'Kayaking', 'Swimming'])('recognizes %s as a race sport', name => expect(sportFormat({ name })).toBe('race'));
+  it.each(['Football', 'Basketball', 'Volleyball', 'Tennis', 'Padel', 'Badminton', 'Billiards'])('recognizes %s as a knockout sport', name => expect(sportFormat({ name })).toBe('knockout'));
+  it.each(['Running', 'Marathon', 'Cycling', 'Kayaking', 'Kayak', 'Swimming'])('recognizes %s as a race sport', name => expect(sportFormat({ name })).toBe('race'));
   it.each(['Walking', 'Unknown', ''])('does not invent a cup format for %s', name => expect(sportFormat({ name })).toBeNull());
   it('requires exactly the knockout bracket size and at least two accepted race teams', () => {
     expect(publishBlocker(cup)).toBe('');
@@ -163,17 +168,17 @@ describe('cup and result forms', () => {
 });
 
 describe('new deployed sport cup eligibility', () => {
-  it.each([['Walking', null], ['Marathon', 'race'], ['Cycling', 'race'], ['Handball', 'knockout']])('derives the approved %s cup policy independently of null room formats', (name, format) => {
+  it.each([['Walking', null], ['Running', 'race'], ['Marathon', 'race'], ['Cycling', 'race'], ['Handball', 'knockout'], ['Billiards', 'knockout'], ['Kayak', 'race'], ['Padel', 'knockout'], ['Swimming', 'race']])('derives the approved %s cup policy independently of null room formats', (name, format) => {
     expect(sportFormat(addedSports.find(sport => sport.name === name))).toBe(format);
     expect(sportFormat({ name: ` ${name.toUpperCase()} `, formats: null })).toBe(format);
   });
-  it('offers Marathon, Cycling and Handball while leaving Walking out of competition choices', () => {
-    expect(cupSports(addedSports).map(sport => sport.id)).toEqual([6, 7, 8]);
+  it('offers every supported current and legacy competition while leaving Walking out', () => {
+    expect(cupSports(addedSports).map(sport => sport.id)).toEqual([6, 7, 8, 9, 10, 3, 4, 11]);
     render(<CupForm sports={addedSports} onSubmit={vi.fn()} />);
-    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Select a sport', 'Marathon', 'Cycling', 'Handball']);
+    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Select a sport', 'Running', 'Cycling', 'Handball', 'Billiards', 'Kayak', 'Padel', 'Swimming', 'Marathon']);
     expect(screen.queryByRole('option', { name: 'Walking' })).not.toBeInTheDocument();
   });
-  it.each([['Marathon', 'race', 3, 1], ['Cycling', 'race', 3, 1], ['Handball', 'knockout', 4, 7]])('creates a %s cup using its server-derived format and valid team count controls', async (name, format, teamCount, rosterLimit) => {
+  it.each([['Running', 'race', 3, 1], ['Marathon', 'race', 3, 1], ['Cycling', 'race', 3, 1], ['Handball', 'knockout', 4, 7], ['Billiards', 'knockout', 4, 1], ['Kayak', 'race', 3, 1], ['Padel', 'knockout', 4, 2], ['Swimming', 'race', 3, 1]])('creates a %s cup using its server-derived format and valid team count controls', async (name, format, teamCount, rosterLimit) => {
     const sport = addedSports.find(item => item.name === name);
     const onSubmit = vi.fn().mockResolvedValue(null);
     render(<CupForm sports={addedSports} onSubmit={onSubmit} onCancel={vi.fn()} />);

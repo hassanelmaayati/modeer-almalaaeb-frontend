@@ -137,7 +137,8 @@ test('browser reconnect recovers missed persisted messages and switching account
       window.__rtEvents = [];
       (await import('/src/lib/helpers/session.js')).setToken(token);
     }, outsider.token);
-    await expect(recipient.getByText(`Signed in as ${outsider.user.user_name}`, { exact: true })).toBeVisible();
+    await expect(recipient.getByRole('button', { name: outsider.user.user_name, exact: true })).toBeVisible();
+    await expect(recipient.getByRole('button', { name: member.user.user_name, exact: true })).toHaveCount(0);
     await expect.poll(() => recipient.evaluate(() => window.__rtStatuses.at(-1))).toBe('connected');
     const oldAccount = await message(sender, outbound, 'Only old account may receive this');
     await received(sender, oldAccount.id);

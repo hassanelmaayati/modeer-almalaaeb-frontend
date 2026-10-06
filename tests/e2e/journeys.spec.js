@@ -10,7 +10,7 @@ async function signIn(page, name) {
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.waitForURL('/');
-  await expect(page.getByText(`Signed in as Test ${name[0].toUpperCase()}${name.slice(1)}`, { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Test ${name[0].toUpperCase()}${name.slice(1)}`, exact: true })).toBeVisible();
 }
 async function headers(page) {
   return { Authorization: `Bearer ${await page.evaluate(() => localStorage.getItem('token'))}` };
@@ -46,8 +46,9 @@ test('signup validates confirmation/governorate, preserves full Unicode password
   const me = await json(request, page, 'get', '/users/me');
   expect(me).toMatchObject({ user_name: 'Unicode Player', email: 'unicode@example.test', district: 'northern' });
   const oldHeaders = await headers(page);
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true }).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Unicode Player', exact: true }).click();
+  await page.getByRole('menu', { name: 'Account', exact: true }).getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in with Google', exact: true })).toBeVisible();
   expect((await request.get(`${api}/users/me`, { headers: oldHeaders })).status()).toBe(401);
   await page.goto('/sign-in');
   await page.getByLabel('Email', { exact: true }).fill('UNICODE@example.test');
@@ -328,9 +329,12 @@ test('race cup records finish time and DNF without a bracket; draft deletion is 
 
 for (const activity of [
   { name: 'Walking', outdoor: true, distance: '10', cupFormat: null },
-  { name: 'Marathon', outdoor: true, distance: '42.2', cupFormat: 'race' },
+  { name: 'Running', outdoor: true, distance: '10', cupFormat: 'race' },
   { name: 'Cycling', outdoor: true, distance: '25', cupFormat: 'race' },
   { name: 'Handball', outdoor: false, cupFormat: 'knockout' },
+  { name: 'Padel', outdoor: false, cupFormat: 'knockout' },
+  { name: 'Billiards', outdoor: false, cupFormat: 'knockout' },
+  { name: 'Kayak', outdoor: true, distance: '5', cupFormat: 'race' },
 ]) {
   test(`new ${activity.name} supports rooms, discovery, groups and its cup eligibility`, async ({ page, request }) => {
     test.setTimeout(60000);
@@ -338,7 +342,7 @@ for (const activity of [
     expect(catalogResponse.status()).toBe(200);
     const catalog = await catalogResponse.json();
     expect(catalog.map(sport => sport.name).sort()).toEqual([
-      'Basketball', 'Cycling', 'Football', 'Handball', 'Marathon', 'Swimming', 'Tennis', 'Walking',
+      'Basketball', 'Billiards', 'Cycling', 'Football', 'Handball', 'Kayak', 'Padel', 'Running', 'Swimming', 'Walking',
     ]);
     const sport = catalog.find(item => item.name === activity.name);
     expect(sport.formats).toBe(null);

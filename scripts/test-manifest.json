@@ -16,11 +16,13 @@
     "tests/unit/live-helpers.test.js",
     "tests/unit/live-pages.test.jsx",
     "tests/unit/messages-ui.test.jsx",
+    "tests/unit/nav-menu.test.jsx",
     "tests/unit/notification-pagination.test.jsx",
     "tests/unit/personal-room-lists.test.jsx",
     "tests/unit/profile-settings.test.jsx",
     "tests/unit/room-form.test.jsx",
     "tests/unit/session-boundaries.test.jsx",
+    "tests/unit/sport-catalogue.test.jsx",
     "tests/unit/websocket-service.test.js"
   ],
   "fixtures": [

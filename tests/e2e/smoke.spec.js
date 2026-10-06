@@ -90,7 +90,7 @@ test('activity dialog supports keyboard entry, modal focus containment and Escap
     await page.keyboard.press('Tab');
     await expectModalPageFocus(page);
   }
-  const backgroundHome = page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true });
+  const backgroundHome = page.getByRole('link', { name: 'Modeer Almalaaeb home', exact: true });
   await backgroundHome.evaluate(element => element.focus());
   await expect(backgroundHome).not.toBeFocused();
   await expectModalPageFocus(page);
@@ -108,16 +108,22 @@ test('phone navigation and activity dialogs remain usable without horizontal ove
   const width = 390;
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Find your people. Get moving.', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your next game starts here', exact: true })).toBeVisible();
   const navigation = page.getByRole('navigation', { name: 'Main navigation', exact: true });
-  for (const name of ['Home', 'Groups', 'Sports', 'Host a room', 'Cups', 'Sign in', 'Sign up']) {
-    const link = navigation.getByRole('link', { name, exact: true });
+  const banner = page.getByRole('banner');
+  const guestLinks = [
+    banner.getByRole('link', { name: 'Modeer Almalaaeb home', exact: true }),
+    ...['Find games', 'Cups', 'Groups'].map(name => navigation.getByRole('link', { name, exact: true })),
+    ...['Sign up', 'Sign in with Google'].map(name => banner.getByRole('link', { name, exact: true })),
+    page.getByRole('link', { name: 'Sign in to host a room', exact: true }),
+  ];
+  for (const link of guestLinks) {
     await expect(link).toBeVisible();
     const bounds = await link.boundingBox();
     expect(bounds.x).toBeGreaterThanOrEqual(0);
     expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
   }
-  await navigation.getByRole('link', { name: 'Sports', exact: true }).click();
+  await navigation.getByRole('link', { name: 'Find games', exact: true }).click();
   await expect(page).toHaveURL(/\/sports$/);
   await roomCard(page).getByRole('button', { name: 'View activity', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: roomTitle, exact: true });
@@ -131,8 +137,61 @@ test('phone navigation and activity dialogs remain usable without horizontal ove
 
   await navigation.getByRole('link', { name: 'Groups', exact: true }).click();
   await expect(page.getByText('Sign in to see your groups and invitations.', { exact: true })).toBeVisible();
-  await navigation.getByRole('link', { name: 'Host a room', exact: true }).click();
+  await banner.getByRole('link', { name: 'Modeer Almalaaeb home', exact: true }).click();
+  await page.getByRole('link', { name: 'Sign in to host a room', exact: true }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
   await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+
+  await page.getByLabel('Email', { exact: true }).fill('owner@example.test');
+  await page.getByLabel('Password', { exact: true }).fill('TestPass123!');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.waitForURL('/');
+  const account = banner.getByRole('button', { name: 'Test Owner', exact: true });
+  await expect(account).toBeVisible();
+  await expect(banner.getByRole('link', { name: 'Sign in with Google', exact: true })).toHaveCount(0);
+  for (const name of ['Find games', 'Cups', 'Groups', 'Messages', 'Notifications']) {
+    const link = navigation.getByRole('link', { name, exact: true });
+    await link.scrollIntoViewIfNeeded();
+    await expect(link).toBeVisible();
+    const bounds = await link.boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
+  }
+
+  await account.focus();
+  await page.keyboard.press('Enter');
+  const menu = page.getByRole('menu', { name: 'Account', exact: true });
+  await expect(menu).toBeVisible();
+  await expect(account).toHaveAttribute('aria-expanded', 'true');
+  await expect(menu.getByRole('menuitem')).toHaveText(['My rooms', 'Joined rooms', 'Friends', 'Settings', 'Sign out']);
+  const menuBounds = await menu.boundingBox();
+  expect(menuBounds.x).toBeGreaterThanOrEqual(0);
+  expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(width + 1);
+  await expect(menu.getByRole('menuitem', { name: 'My rooms', exact: true })).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(menu.getByRole('menuitem', { name: 'Joined rooms', exact: true })).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(menu.getByRole('menuitem', { name: 'My rooms', exact: true })).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(menu.getByRole('menuitem', { name: 'Sign out', exact: true })).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(menu.getByRole('menuitem', { name: 'My rooms', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await expect(account).toHaveAttribute('aria-expanded', 'false');
+  await expect(account).toBeFocused();
+
+  await page.keyboard.press('ArrowDown');
+  await expect(menu.getByRole('menuitem', { name: 'My rooms', exact: true })).toBeFocused();
+  for (let step = 0; step < 3; step += 1) await page.keyboard.press('ArrowDown');
+  await expect(menu.getByRole('menuitem', { name: 'Settings', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(menu).toHaveCount(0);
+  await expect(page.getByLabel('User name', { exact: true })).toHaveValue('Test Owner');
+  await banner.getByRole('link', { name: 'Host a room', exact: true }).click();
+  await expect(page).toHaveURL(/\/rooms\/new$/);
+  await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
 });
