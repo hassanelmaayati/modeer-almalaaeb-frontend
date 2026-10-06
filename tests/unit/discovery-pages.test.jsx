@@ -93,6 +93,31 @@ describe('Home activity discovery', () => {
 });
 
 describe('Sports filters and discovery', () => {
+  it('navigates from the sport picker to its activities and scrolls only when selection changes', async () => {
+    const user = userEvent.setup();
+    renderPage(SportsPage, '/sports');
+    await screen.findByRole('heading', { name: 'Friday football' });
+    const picker = screen.getByRole('region', { name: 'Pick a sport' });
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+
+    await user.click(within(picker).getByRole('link', { name: 'Soccer', exact: true }));
+    expect(await screen.findByRole('heading', { name: 'Soccer activities' })).toBeInTheDocument();
+    expect(within(picker).getByRole('link', { name: 'Soccer', exact: true })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByLabelText('Current route')).toHaveTextContent('/sports?sport_id=1');
+    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({ sport_id: '1' }, expect.any(Object)));
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'smooth', block: 'start' });
+    expect(Element.prototype.scrollIntoView.mock.instances[0]).toBe(screen.getByRole('region', { name: 'Soccer activities' }));
+
+    await user.click(screen.getByRole('button', { name: 'Refresh activities' }));
+    await waitFor(() => expect(roomService.list).toHaveBeenCalledTimes(3));
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({}, expect.any(Object)));
+    expect(screen.getByRole('heading', { name: 'Browse activities' })).toBeInTheDocument();
+    expect(within(picker).getByRole('link', { name: 'Soccer', exact: true })).not.toHaveAttribute('aria-current');
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
   it('restores shareable backend filters from the URL in Bahrain time', async () => {
     renderPage(SportsPage, '/sports?sport_id=2&difficulty=advanced&district=southern&starts_from=2030-10-10T15%3A00%3A00Z&starts_to=2030-10-11T15%3A00%3A00Z');
     await screen.findByRole('link', { name: /Soccer/ });
@@ -105,6 +130,8 @@ describe('Sports filters and discovery', () => {
       sport_id: '2', difficulty: 'advanced', district: 'southern',
       starts_from: '2030-10-10T15:00:00Z', starts_to: '2030-10-11T15:00:00Z',
     }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'smooth', block: 'start' });
+    expect(screen.getByRole('heading', { name: 'Basketball activities' })).toBeInTheDocument();
   });
 
   it('applies all five filters with UTC timestamps and clears the URL and controls', async () => {
