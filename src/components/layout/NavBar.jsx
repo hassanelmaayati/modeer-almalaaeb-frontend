@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { formatUnreadCount } from '../../lib/helpers/messages';
-import { GoogleLogo } from '../common/Icon';
 import Logo from '../common/Logo';
 import UserMenu from './UserMenu';
 
@@ -47,7 +46,8 @@ export default function NavBar({ session, unreadCount = 0, messageUnread = 0, li
       {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span className="nav-status" role="status">Reconnecting…</span>}
       {loading ? <span className="nav-status" role="status">Restoring session…</span> : user ? <SignedInAccount key={user.id} user={user} signOut={signOut} /> : <>
         <Link className="nav-plain" to="/sign-up">Sign up</Link>
-        <Link className="header-google" to="/sign-in"><GoogleLogo size={20} />Sign in with Google</Link>
+        {/* Google sign-in lives only on the sign-in and sign-up pages; the header just links there. */}
+        <Link className="nav-plain" to="/sign-in">Sign in</Link>
       </>}
     </div>
   </header>;
