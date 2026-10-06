@@ -5,6 +5,7 @@ import userService from '../services/userService';
 import AsyncState from '../components/common/AsyncState';
 import PlayerProfile from '../components/users/PlayerProfile';
 import ProfileActions from '../components/users/ProfileActions';
+import AttendanceRatingSummary from '../components/ratings/AttendanceRatingSummary';
 
 export default function ProfilePage({ session }) {
   const { userId } = useParams();
@@ -16,6 +17,7 @@ export default function ProfilePage({ session }) {
     <AsyncState loading={profile.loading} error={profile.error} onRetry={() => setRetry(count => count + 1)}>
       {profile.data && <>
         <PlayerProfile user={profile.data} />
+        <AttendanceRatingSummary userId={profile.data.id} />
         <ProfileActions user={profile.data} session={session} />
       </>}
     </AsyncState>
