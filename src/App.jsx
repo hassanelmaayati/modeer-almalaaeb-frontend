@@ -29,6 +29,7 @@ import * as googleAuthService from './services/googleAuthService';
 import * as userService from './services/userService';
 import { initialSession, watchUser, authenticate, signOut } from './lib/helpers/auth';
 import './App.css';
+import './home.css';
 import './users.css';
 import './cups.css';
 
