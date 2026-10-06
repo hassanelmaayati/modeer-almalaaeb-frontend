@@ -3,9 +3,6 @@
 .filter-fields, .button-row, .section-heading, .dialog-header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
 .page-section, .room-filters, .filters { margin-block: 1rem; }
 .dialog-header { justify-content: space-between; }
-.site-header { border-bottom: 1px solid #bbb; }
-.site-header nav { margin-top: .5rem; }
-.site-header nav a[aria-current="page"] { font-weight: bold; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
 .panel, .activity-card, .room-card, .group-card { padding: .75rem; border: 1px solid #bbb; margin-bottom: 1rem; }
 .room-card.is-muted { opacity: .65; }
