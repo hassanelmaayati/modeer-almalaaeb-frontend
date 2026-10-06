@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MAX_MESSAGE_LENGTH, validateMessageBody } from '../../lib/helpers/messages';
+import { MAX_MESSAGE_LENGTH, messageBodyLength, validateMessageBody } from '../../lib/helpers/messages';
 
 export default function MessageComposer({ disabledReason, onSend }) {
   const [text, setText] = useState('');
@@ -29,7 +29,7 @@ export default function MessageComposer({ disabledReason, onSend }) {
     </div>;
   }
 
-  const length = text.trim().length;
+  const length = messageBodyLength(text);
   const tooLong = length > MAX_MESSAGE_LENGTH;
 
   return <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); submit(); }} noValidate>

@@ -5,7 +5,7 @@ import { listen } from '../../services/websocketService';
 import { applyMessage, sortConversations } from './messages';
 import { emptyResource, startRequest } from './request';
 
-const RELOAD_EVENTS = ['connection.ready', 'friend.updated', 'room.updated'];
+const RELOAD_EVENTS = ['connection.ready', 'friend.updated', 'room.updated', 'group.updated'];
 
 function load(options) {
   return Promise.all([
@@ -24,7 +24,8 @@ export default function useConversations(viewerId) {
   useEffect(() => startRequest((signal) => load({ signal }), setResource), [viewerId, retry]);
 
   useEffect(() => {
-    const refresh = () => load().then((data) => setResource({ data, loading: false, error: null })).catch(() => {});
+    // Route live refreshes through the cancellable effect, so old responses cannot replace a newer inbox.
+    const refresh = () => setRetry(count => count + 1);
 
     return listen((event) => {
       if (RELOAD_EVENTS.includes(event.type)) {
