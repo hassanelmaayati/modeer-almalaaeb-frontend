@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { formatUnreadCount } from '../../lib/helpers/messages';
+import { GoogleLogo } from '../common/Icon';
+import Logo from '../common/Logo';
+import UserMenu from './UserMenu';
+
+function CountBadge({ count, label }) {
+  if (count <= 0) return null;
+  return <span className="nav-badge" aria-label={`${count} unread ${label}`}>{formatUnreadCount(count)}</span>;
+}
 
 function SignedInAccount({ user, signOut }) {
   const [pending, setPending] = useState(false);
@@ -25,26 +33,14 @@ export default function NavBar({ session, unreadCount = 0, messageUnread = 0, li
   const { user, loading, signOut } = session;
 
   return <header className="site-header">
-    <Link to="/">Modeer Almalaaeb</Link>
+    <Link className="brand" to="/" aria-label="Modeer Almalaaeb home"><Logo size={44} /></Link>
     <nav aria-label="Main navigation">
-      <NavLink to="/" end>Home</NavLink>
-      <NavLink to="/groups">Groups</NavLink>
-      <NavLink to="/sports">Sports</NavLink>
-      <NavLink to="/rooms/new">Host a room</NavLink>
+      <NavLink to="/sports">Find games</NavLink>
       <NavLink to="/cups">Cups</NavLink>
-      {loading ? <span role="status">Restoring session…</span> : user ? <>
-        <NavLink to="/my-rooms">My rooms</NavLink>
-        <NavLink to="/joined-rooms">Joined rooms</NavLink>
-        <NavLink to="/friends">Friends</NavLink>
-        <NavLink to="/messages">Messages{messageUnread > 0 && ` (${formatUnreadCount(messageUnread)})`}</NavLink>
-        <NavLink to="/settings">Settings</NavLink>
-        <NavLink to="/notifications">Notifications{unreadCount > 0 && ` (${unreadCount})`}</NavLink>
-        {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span role="status">Live updates reconnecting…</span>}
-        <span>Signed in as {user.user_name}</span>
-        <button type="button" onClick={handleSignOut} disabled={pending}>{pending ? 'Signing out…' : 'Sign out'}</button>
-      </> : <>
-        <NavLink to="/sign-in">Sign in</NavLink>
-        <NavLink to="/sign-up">Sign up</NavLink>
+      <NavLink to="/groups">Groups</NavLink>
+      {user && <>
+        <NavLink to="/messages">Messages<CountBadge count={messageUnread} label="messages" /></NavLink>
+        <NavLink to="/notifications">Notifications<CountBadge count={unreadCount} label="notifications" /></NavLink>
       </>}
     </nav>
     <div className="site-header-account">
