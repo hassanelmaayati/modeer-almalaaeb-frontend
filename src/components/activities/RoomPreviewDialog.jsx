@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link } from 'react-router';
 import { emptyResource, startRequest } from '../../lib/helpers/request';
 import roomService from '../../services/roomService';
 import roomMemberService from '../../services/roomMemberService';
@@ -13,7 +13,6 @@ import { roomEvent } from '../../lib/helpers/live';
 
 export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClose, onUpdated, session = { user: null, loading: false } }) {
   const { user, loading: userLoading } = session;
-  const location = useLocation();
   const [preview, setPreview] = useState(() => emptyResource());
   const [retry, setRetry] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -94,7 +93,7 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
           <p className="muted">Requests are pending until the host approves them. New requests close 15 minutes before the start.</p>
           {admission.message && <p className="status-message" role="status">{admission.message}</p>}
           {!user && !userLoading && !admission.message && <p>
-            <Link className="button" to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in to request a place</Link>
+            <Link className="button" to="/sign-in">Sign in to request a place</Link>
           </p>}
           <div className="button-row">
             <Link className="button-secondary" to={`/rooms/${room.id}`}>Open room lobby</Link>

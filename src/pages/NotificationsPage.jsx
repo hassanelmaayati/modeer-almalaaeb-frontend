@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link } from 'react-router';
 import notificationService from '../services/notificationService';
 import { listen } from '../services/websocketService';
 import { emptyResource, startRequest } from '../lib/helpers/request';
@@ -8,7 +8,6 @@ import { formatActivityDate, formatActivityTime } from '../lib/helpers/date';
 import AsyncState from '../components/common/AsyncState';
 
 export default function NotificationsPage({ session }) {
-  const location = useLocation();
   const [resource, setResource] = useState(() => emptyResource({ items: [], unread_count: 0 }));
   const [retry, setRetry] = useState(0);
   const [before, setBefore] = useState(null);
@@ -28,7 +27,7 @@ export default function NotificationsPage({ session }) {
   }
 
   if (session.loading) return <main><p role="status">Restoring session…</p></main>;
-  if (!userId) return <main><h1>Notifications</h1><p>Sign in to see your notifications.</p><Link to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in</Link></main>;
+  if (!userId) return <main><h1>Notifications</h1><p>Sign in to see your notifications.</p><Link to="/sign-in">Sign in</Link></main>;
   const { items, unread_count: unreadCount } = resource.data;
   return <main>
     <header className="page-header"><h1>Notifications</h1><p>Invitations, admission decisions and updates to your activities.</p>

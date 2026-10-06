@@ -5,5 +5,5 @@ export default function CreateRoomAction({ session, className, label = 'Host a R
 
     return session.user
         ? <Link className={className} to="/rooms/new">{label}</Link>
-        : <Link className={className} to="/sign-in" state={{ from: '/rooms/new' }}>{signedOutLabel}</Link>
+        : <Link className={className} to="/sign-in">{signedOutLabel}</Link>
 }
