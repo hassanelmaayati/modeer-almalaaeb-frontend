@@ -4,6 +4,7 @@ import TeamCountAndRules from './TeamCountAndRules';
 import RegistrationDeadline from './RegistrationDeadline';
 import { cupSports, formatLabel, sportFormat } from '../../lib/helpers/cups';
 import { fromBahrainDateTimeInput } from '../../lib/helpers/date';
+import Select from '../common/Select';
 
 /** Creates a cup, or edits one when `cup` is passed (the sport can't change after creation). */
 export default function CupForm({ cup, sports, onSubmit, onCancel }) {
@@ -44,10 +45,10 @@ export default function CupForm({ cup, sports, onSubmit, onCancel }) {
     {error && <p role="alert">{error}</p>}
     <Field label="Cup name"><input name="name" maxLength={100} defaultValue={cup?.name || ''} required /></Field>
     {editing ? <p>Sport: {sports.find(sport => sport.id === cup.sport_id)?.name || 'Activity'} (cannot be changed)</p> : <Field label="Sport">
-      <select name="sport_id" value={sportId} onChange={event => setSportId(event.target.value)} required>
+      <Select name="sport_id" value={sportId} onChange={event => setSportId(event.target.value)} required>
         <option value="" disabled>Select a sport</option>
         {options.map(sport => <option key={sport.id} value={sport.id}>{sport.name}</option>)}
-      </select>
+      </Select>
     </Field>}
     {format && <p className="muted">Format: {formatLabel(format)}</p>}
     <TeamCountAndRules format={format} defaultValues={cup} />

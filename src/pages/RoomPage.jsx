@@ -16,6 +16,7 @@ import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
 import CancelRoomForm from '../components/activities/CancelRoomForm';
 import LocationView from '../components/activities/LocationView';
+import Select from '../components/common/Select';
 
 export default function RoomPage({ session }) {
   const { roomId } = useParams();
@@ -100,8 +101,8 @@ export default function RoomPage({ session }) {
               const rating = attendance === 'present' ? Number(values.get('rating')) : 0;
               run(() => roomMemberService.update(roomId, member.user_id, { attendance, ...(rating ? { rating } : {}) }), 'Player record updated.');
             }}>
-              <label>Attendance for {playerName(users, member.user_id)}<select name="attendance" defaultValue={member.attendance || 'unknown'}><option value="unknown">Unknown</option><option value="present">Present</option><option value="no_show">No show</option><option value="excused">Excused</option></select></label>
-              <label>Rating for {playerName(users, member.user_id)}<select name="rating" defaultValue={member.rating || ''}><option value="">No rating</option>{[1, 2, 3, 4, 5].map(rating => <option value={rating} key={rating}>{rating}</option>)}</select></label>
+              <label>Attendance for {playerName(users, member.user_id)}<Select name="attendance" defaultValue={member.attendance || 'unknown'}><option value="unknown">Unknown</option><option value="present">Present</option><option value="no_show">No show</option><option value="excused">Excused</option></Select></label>
+              <label>Rating for {playerName(users, member.user_id)}<Select name="rating" defaultValue={member.rating || ''}><option value="">No rating</option>{[1, 2, 3, 4, 5].map(rating => <option value={rating} key={rating}>{rating}</option>)}</Select></label>
               <button disabled={pending}>Save {playerName(users, member.user_id)} record</button>
             </form>}
           </li>)}
@@ -110,14 +111,14 @@ export default function RoomPage({ session }) {
           event.preventDefault();
           const position = new FormData(event.currentTarget).get('position') || null;
           run(() => roomMemberService.update(roomId, userId, { position }), 'Place updated.');
-        }}><label>Place<select key={own.position || 'unset'} name="position" defaultValue={own.position || ''}>
+        }}><label>Place<Select key={own.position || 'unset'} name="position" defaultValue={own.position || ''}>
           <option value="">No assigned place</option>{positions.map(position => <option key={position.value} value={position.value} disabled={occupied.has(position.value)}>{position.label}{occupied.has(position.value) ? ' — taken' : ''}</option>)}
           {own.position && !positions.some(position => position.value === own.position) && <option value={own.position}>{own.position}</option>}
-        </select></label><button disabled={pending}>Save place</button></form></section>}
+        </Select></label><button disabled={pending}>Save place</button></form></section>}
         {admission.isHost && room.status === 'open' && <section className="panel"><h2>Host controls</h2>
           <Link className="button-secondary" to={`/rooms/${roomId}/edit`}>Edit room</Link>
           <form className="form-stack" onSubmit={event => { event.preventDefault(); const id = Number(new FormData(event.currentTarget).get('user_id')); run(() => roomMemberService.invite(roomId, id), 'Invitation sent.'); }}>
-            <label>Invite player<select name="user_id" required defaultValue=""><option value="" disabled>Choose a player</option>{candidates.map(player => <option value={player.id} key={player.id}>{player.user_name}</option>)}</select></label>
+            <label>Invite player<Select name="user_id" required defaultValue=""><option value="" disabled>Choose a player</option>{candidates.map(player => <option value={player.id} key={player.id}>{player.user_name}</option>)}</Select></label>
             <button disabled={pending || admission.atCutoff || admission.full || !candidates.length}>Invite player</button>
           </form>
           <CancelRoomForm title={room.title} pending={pending} onConfirm={reason => run(() => roomService.cancel(roomId, reason), 'Room cancelled.')} />

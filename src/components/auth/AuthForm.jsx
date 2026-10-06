@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import Field from '../common/Field';
 import { DISTRICTS } from '../../lib/helpers/filters';
+import Select from '../common/Select';
 
 export default function AuthForm({ session, signup = false }) {
   const navigate = useNavigate();
@@ -43,10 +44,10 @@ export default function AuthForm({ session, signup = false }) {
       <Field label="Password"><input name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : undefined} required /></Field>
       {signup && <Field label="Confirm password"><input name="confirmation" type="password" autoComplete="new-password" minLength={8} required /></Field>}
       {signup && <Field label="Governorate">
-        <select name="district" defaultValue="" required>
+        <Select name="district" defaultValue="" required>
           <option value="" disabled>Select your governorate</option>
           {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        </Select>
       </Field>}
       <div className="actions"><button disabled={pending}>{pending ? signup ? 'Creating account…' : 'Signing in…' : title}</button><Link to={destination}>Cancel</Link></div>
     </form>

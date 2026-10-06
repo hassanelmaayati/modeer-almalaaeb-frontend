@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Field from '../common/Field';
 import { photoUrlError } from '../../lib/helpers/photoUrl';
+import Select from '../common/Select';
 
 export default function GroupForm({ group, sports, candidates = [], onSubmit, onCancel }) {
   const [pending, setPending] = useState(false);
@@ -28,10 +29,10 @@ export default function GroupForm({ group, sports, candidates = [], onSubmit, on
     {error && <p role="alert">{error}</p>}
     <Field label="Group name"><input name="name" defaultValue={group?.name || ''} required /></Field>
     <Field label="Description"><textarea name="description" defaultValue={group?.description || ''} /></Field>
-    {!group ? <Field label="Sport"><select name="sports_id" defaultValue="" required><option value="" disabled>Select an activity</option>{sports.map(sport => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></Field> : <p>Sport: {sports.find(sport => sport.id === group.sports_id)?.name || 'Activity'} (cannot be changed)</p>}
+    {!group ? <Field label="Sport"><Select name="sports_id" defaultValue="" required><option value="" disabled>Select an activity</option>{sports.map(sport => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</Select></Field> : <p>Sport: {sports.find(sport => sport.id === group.sports_id)?.name || 'Activity'} (cannot be changed)</p>}
     <Field label="Photo URL"><input name="photo_url" type="url" defaultValue={group?.photo_url || ''} /></Field>
     {!group && candidates.length > 0 && <div>
-      <Field label="Invite players (optional)"><select name="recipients" multiple defaultValue={[]} size={Math.min(candidates.length, 5)}>{candidates.map(player => <option key={player.id} value={player.id}>{player.user_name}</option>)}</select></Field>
+      <Field label="Invite players (optional)"><Select name="recipients" multiple data-placeholder="Choose players" defaultValue={[]} size={Math.min(candidates.length, 5)}>{candidates.map(player => <option key={player.id} value={player.id}>{player.user_name}</option>)}</Select></Field>
       <p>Players receive invitations and choose whether to accept.</p>
     </div>}
     {!group && sports.length === 0 && <p role="alert">No activities are available for creating a group.</p>}

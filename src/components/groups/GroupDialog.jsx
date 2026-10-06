@@ -16,6 +16,7 @@ import { inviteCandidates, playerName } from '../../lib/helpers/groups';
 import { findOwnMembership } from '../../lib/helpers/memberships';
 import { listen } from '../../services/websocketService';
 import { roomEvent } from '../../lib/helpers/live';
+import Select from '../common/Select';
 
 export default function GroupDialog({ user, groupId, sports, users, onClose, onChanged, onPreviewRoom }) {
   const [editing, setEditing] = useState(false);
@@ -111,7 +112,7 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
         {owner && <section className="group-section">
           <h3>Invite registered player</h3>
           {candidates.length > 0 ? <form onSubmit={invite} className="form-stack">
-            <label htmlFor="invite-player">Player</label><select id="invite-player" name="player" defaultValue="" required><option value="" disabled>Choose a player</option>{candidates.map((player) => <option key={player.id} value={player.id}>{player.user_name}</option>)}</select>
+            <label htmlFor="invite-player">Player</label><Select id="invite-player" name="player" defaultValue="" required><option value="" disabled>Choose a player</option>{candidates.map((player) => <option key={player.id} value={player.id}>{player.user_name}</option>)}</Select>
             <button disabled={pending}>{pending ? 'Sending…' : 'Invite'}</button>
           </form> : <p>No other players are available to invite.</p>}
         </section>}

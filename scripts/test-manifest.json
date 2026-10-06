@@ -41,7 +41,8 @@
     "tests/unit/room-form.test.jsx",
     "tests/unit/session-boundaries.test.jsx",
     "tests/unit/sport-catalogue.test.jsx",
-    "tests/unit/websocket-service.test.js"
+    "tests/unit/websocket-service.test.js",
+    "tests/unit/ui-widgets.test.jsx"
   ],
   "fixtures": [
     "tests/setup.js",

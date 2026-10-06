@@ -10,6 +10,7 @@ import { GroupsArt } from '../components/home/HeroArt';
 import { filterGroups, loadGroups } from '../lib/helpers/groups';
 import { listen } from '../services/websocketService';
 import { roomEvent } from '../lib/helpers/live';
+import Select from '../components/common/Select';
 
 const VIEWS = [{ value: 'joined', label: 'Your groups' }, { value: 'invitations', label: 'Invitations' }];
 
@@ -77,9 +78,9 @@ export default function GroupsPage({ session }) {
         </div>
         <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
           <div className="filters group-filters">
-            <div><label htmlFor="group-view">Group view</label><select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}>{VIEWS.map(view => <option key={view.value} value={view.value}>{view.label}</option>)}</select></div>
+            <div><label htmlFor="group-view">Group view</label><Select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}>{VIEWS.map(view => <option key={view.value} value={view.value}>{view.label}</option>)}</Select></div>
             <div><label htmlFor="group-search">Search my groups</label><input id="group-search" type="search" placeholder="Name or activity" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></div>
-            <div><label htmlFor="group-activity">Activity</label><select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></div>
+            <div><label htmlFor="group-activity">Activity</label><Select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</Select></div>
           </div>
           {failedMemberships && <div role="alert"><p>Some memberships could not be loaded. Your groups or invitations may be incomplete.</p><button type="button" onClick={reload}>Try again</button></div>}
           <AsyncState isEmpty={!visible.length} emptyTitle={invitations ? 'No invitations found' : 'No groups found'} emptyDescription="Try another filter, or create a group.">

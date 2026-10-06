@@ -6,6 +6,8 @@ import { DIFFICULTIES, DISTRICTS } from '../../lib/helpers/filters';
 import { areasFor } from '../../lib/helpers/areas';
 import { fromBahrainDateTimeInput, toBahrainDateTimeInput } from '../../lib/helpers/date';
 import { ADMISSION_POLICIES, VISIBILITIES, buildRoomBody, isOutdoorSport, isRoomFrozen, isStaleConflict, roomErrors, scheduleError, sportFormats, withoutFrozenFields } from '../../lib/helpers/rooms';
+import Select from '../common/Select';
+import DateTimeInput from '../common/DateTimeInput';
 
 export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onReload, occupied = 0 }) {
     const editing = !!room;
@@ -123,28 +125,28 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
             <section className="room-step" aria-labelledby="step-game">
                 <h2 id="step-game" className="room-step-title"><span className="room-step-num">1</span>Pick the game</h2>
                 <Field label="Sport" error={fieldErrors.sport_id}>
-                    <select name="sport_id" value={sportId} onChange={event => { setSportId(event.target.value); setCapacity(''); }} disabled={frozen} required>
+                    <Select name="sport_id" value={sportId} onChange={event => { setSportId(event.target.value); setCapacity(''); }} disabled={frozen} required>
                         <option value="" disabled>Select a sport</option>
                         {sports.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-                    </select>
+                    </Select>
                 </Field>
 
                 <Field label="Title" error={fieldErrors.title}><input name="title" maxLength={100} defaultValue={room?.title || ''} required /></Field>
                 <Field label="Description" error={fieldErrors.description}><textarea name="description" defaultValue={room?.description || ''} /></Field>
                 <Field label="Difficulty" error={fieldErrors.difficulty}>
-                    <select name="difficulty" defaultValue={room?.difficulty || 'beginners'}>
+                    <Select name="difficulty" defaultValue={room?.difficulty || 'beginners'}>
                         {DIFFICULTIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-                    </select>
+                    </Select>
                 </Field>
             </section>
 
             <section className="room-step" aria-labelledby="step-when">
                 <h2 id="step-when" className="room-step-title"><span className="room-step-num">2</span>Set the time</h2>
                 <Field label="Starts (Bahrain time)" error={fieldErrors.starts_at}>
-                    <input name="starts_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.starts_at)} disabled={frozen} required />
+                    <DateTimeInput name="starts_at"  min={earliest} defaultValue={toBahrainDateTimeInput(room?.starts_at)} disabled={frozen} required />
                 </Field>
                 <Field label="Ends (Bahrain time)" error={fieldErrors.ends_at}>
-                    <input name="ends_at" type="datetime-local" min={earliest} defaultValue={toBahrainDateTimeInput(room?.ends_at)} disabled={frozen} required />
+                    <DateTimeInput name="ends_at"  min={earliest} defaultValue={toBahrainDateTimeInput(room?.ends_at)} disabled={frozen} required />
                 </Field>
                 <p className="muted room-step-wide">Rooms can start between 1 hour and 14 days from now.</p>
             </section>
@@ -153,31 +155,31 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
                 <h2 id="step-who" className="room-step-title"><span className="room-step-num">3</span>Choose who plays</h2>
                 <Field label={formats.length ? 'Format' : 'Capacity (players)'} error={fieldErrors.capacity}>
                     {formats.length
-                        ? <select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required>
+                        ? <Select name="capacity" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required>
                             <option value="" disabled>Select a format</option>
                             {formats.map(format => <option key={format.key} value={format.capacity} disabled={format.capacity < occupied}>{format.key} ({format.capacity} players)</option>)}
-                        </select>
+                        </Select>
                         : <input name="capacity" type="number" min={Math.max(1, occupied)} step="1" value={capacity} onChange={event => setCapacity(event.target.value)} disabled={frozen} required />}
                     {editing && occupied > 0 && <span className="muted">{occupied} {occupied === 1 ? 'place is' : 'places are'} already taken, including yours. Capacity can't go below that.</span>}
                 </Field>
 
                 <Field label="Joining" error={fieldErrors.admission_policy}>
-                    <select name="admission_policy" defaultValue={room?.admission_policy || 'approval'}>
+                    <Select name="admission_policy" defaultValue={room?.admission_policy || 'approval'}>
                         {ADMISSION_POLICIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-                    </select>
+                    </Select>
                 </Field>
 
                 <Field label="Who can see this room" error={fieldErrors.visibility}>
-                    <select name="visibility" value={visibility} onChange={event => setVisibility(event.target.value)}>
+                    <Select name="visibility" value={visibility} onChange={event => setVisibility(event.target.value)}>
                         {VISIBILITIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-                    </select>
+                    </Select>
                 </Field>
 
                 {visibility === 'group' && <Field label="Group" error={fieldErrors.group_id}>
-                    <select name="group_id" defaultValue={room?.group_id || ''} required>
+                    <Select name="group_id" defaultValue={room?.group_id || ''} required>
                         <option value="" disabled>Select a group</option>
                         {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
-                    </select>
+                    </Select>
                     {groups.length === 0 && <span role="alert">You don't own any groups yet.</span>}
                 </Field>}
             </section>
@@ -185,17 +187,17 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
             <section className="room-step" aria-labelledby="step-where">
                 <h2 id="step-where" className="room-step-title"><span className="room-step-num">4</span>Say where</h2>
                 <Field label="Governorate" error={fieldErrors.district}>
-                    <select name="district" value={district} onChange={event => { setDistrict(event.target.value); setArea(''); }} disabled={frozen} required>
+                    <Select name="district" value={district} onChange={event => { setDistrict(event.target.value); setArea(''); }} disabled={frozen} required>
                         <option value="" disabled>Select a governorate</option>
                         {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-                    </select>
+                    </Select>
                 </Field>
 
                 <Field label="Area" error={fieldErrors.area}>
-                    <select name="area" value={area} onChange={event => setArea(event.target.value)} disabled={frozen || !district} required>
+                    <Select name="area" value={area} onChange={event => setArea(event.target.value)} disabled={frozen || !district} required>
                         <option value="" disabled>{district ? 'Select an area' : 'Choose a governorate first'}</option>
                         {areasFor(district).map(area => <option key={area} value={area}>{area}</option>)}
-                    </select>
+                    </Select>
                 </Field>
 
                 <fieldset className="room-step-wide">
