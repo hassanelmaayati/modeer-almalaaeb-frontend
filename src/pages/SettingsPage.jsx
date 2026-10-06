@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import userService from '../services/userService';
 import googleAuthService from '../services/googleAuthService';
 import AsyncState from '../components/common/AsyncState';
+import PlayerProfile from '../components/users/PlayerProfile';
 import ProfileForm from '../components/users/ProfileForm';
 import GoogleLinkControls from '../components/users/GoogleLinkControls';
+import { ProfileArt } from '../components/home/HeroArt';
 
+// One page for the signed-in player: their profile on top, the settings that change it underneath.
 export default function SettingsPage({ session }) {
   // Load /users/me here: the private user (email, google_linked) only comes from the account endpoints.
   const [me, setMe] = useState(() => emptyResource());
@@ -26,17 +28,27 @@ export default function SettingsPage({ session }) {
     setMe({ data: await googleAuthService.link({ credential }), loading: false, error: null });
   }
 
-  return <main>
-    <h1>Settings</h1>
-    <AsyncState loading={me.loading && !me.data} error={me.error} onRetry={reload}>
-      {me.data && <>
-        <p><Link to={`/users/${me.data.id}`}>View my profile</Link></p>
-        <section className="page-section">
-          <h2>Profile</h2>
-          <ProfileForm user={me.data} onSubmit={saveProfile} />
-        </section>
-        <GoogleLinkControls me={me.data} onLink={linkGoogle} />
-      </>}
-    </AsyncState>
+  return <main className="home account-scope">
+    <div className="home-content">
+      <AsyncState loading={me.loading && !me.data} error={me.error} onRetry={reload}>
+        {me.data && <>
+          <section className="sports-banner profile-banner" aria-label="Your profile">
+            <ProfileArt />
+            <PlayerProfile user={me.data} />
+          </section>
+          <section className="home-section account-settings" aria-labelledby="settings-title">
+            <h2 id="settings-title">Settings</h2>
+            <p className="home-subtitle">Update how other players see you and manage how you sign in.</p>
+            <div className="account-grid">
+              <section className="account-card" aria-labelledby="settings-profile-title">
+                <h3 id="settings-profile-title">Edit profile</h3>
+                <ProfileForm user={me.data} onSubmit={saveProfile} />
+              </section>
+              <GoogleLinkControls me={me.data} onLink={linkGoogle} />
+            </div>
+          </section>
+        </>}
+      </AsyncState>
+    </div>
   </main>;
 }

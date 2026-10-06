@@ -298,3 +298,53 @@ export function FriendsArt() {
     </g>
   </svg>;
 }
+
+// Account scene in the same grey line-art, from basketball: your locker with a tank-top jersey and a medal, a kit bag, a wall hoop and a ball.
+export function ProfileArt({ tag = 'YOU' }) {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(236 -4) scale(.95)">
+      <path d="M560 146H1010" strokeWidth="1.500" strokeDasharray="3 7" />
+      <g>
+        <rect x="600" y="20" width="92" height="126" rx="4" fill="#f3f5f4" />
+        <path d="M618 34H674M618 42H674M618 50H674" strokeWidth="1.600" />
+        <rect x="620" y="64" width="52" height="24" rx="3" strokeWidth="1.600" />
+        <text x="646" y="81" textAnchor="middle" fontSize="13" fontWeight="800" fill="currentColor" stroke="none">{tag}</text>
+        <rect x="672" y="96" width="6" height="22" rx="3" strokeWidth="1.800" />
+        <path d="M618 130H674M618 138H674" strokeWidth="1.600" />
+      </g>
+      <g>
+        <rect x="706" y="20" width="92" height="126" rx="4" fill="#f3f5f4" />
+        <path d="M706 34H798" strokeWidth="1.600" />
+        <g transform="translate(716 34) scale(.74)">
+          <path d="M30 -6v8" strokeWidth="2" />
+          <path d="M14 2H24Q26 20 30 20Q34 20 36 2H46Q48 24 56 32V68H4V32Q12 24 14 2Z" fill="#f3f5f4" />
+          <text x="30" y="52" textAnchor="middle" fontSize="20" fontWeight="800" fill="currentColor" stroke="none">23</text>
+        </g>
+        <path d="M778 34v6" strokeWidth="1.800" />
+        <path d="M770 40L778 62M786 40L778 62" strokeWidth="2" />
+        <circle cx="778" cy="76" r="11" fill="#f3f5f4" strokeWidth="1.800" />
+        <path d="M778 70l2.400 4.800 5.200.8-3.800 3.700.9 5.200-4.700-2.500-4.700 2.500.9-5.200-3.800-3.700 5.200-.8z" strokeWidth="1.200" />
+        <path d="M720 130H784" strokeWidth="1.600" />
+        <path d="M798 20L834 30V138L798 146Z" fill="#f3f5f4" />
+        <path d="M806 40L826 45M806 50L826 55M806 60L826 65" strokeWidth="1.500" />
+      </g>
+      <g>
+        <rect x="848" y="112" width="78" height="34" rx="15" fill="#f3f5f4" />
+        <path d="M866 112C866 96 908 96 908 112" strokeWidth="2" />
+        <path d="M848 130H926" strokeWidth="1.500" strokeDasharray="3 5" />
+      </g>
+      <g strokeWidth="1.800">
+        <rect x="946" y="22" width="52" height="38" rx="3" fill="#f3f5f4" />
+        <rect x="961" y="36" width="22" height="16" rx="1" strokeWidth="1.400" />
+        <path d="M972 60V66" />
+        <ellipse cx="972" cy="70" rx="14" ry="4" />
+        <path d="M959 71L964 94M967 74L968 96M977 74L976 96M985 71L980 94M963 84H981" strokeWidth="1.300" />
+      </g>
+      <g strokeWidth="1.800">
+        <circle cx="972" cy="132" r="13" fill="#f3f5f4" />
+        <path d="M959 132H985M972 119V145M962 123Q968 132 962 141M982 123Q976 132 982 141" strokeWidth="1.400" />
+      </g>
+      <g strokeWidth="1.200"><path d="M926 44l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M570 44l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}

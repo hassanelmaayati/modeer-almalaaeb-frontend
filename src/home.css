@@ -701,3 +701,48 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 @keyframes friend-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .friends-scope .friend-row { animation: none; transition: none; } .friends-scope .friend-row:hover { transform: none; } }
 @media (max-width: 40rem) { .friends-scope .friend-row .button-row { margin-left: 0; width: 100%; } }
+
+/* Profile + settings page */
+.profile-banner { align-items: center; gap: 1.4rem 2rem; padding: 1.6rem 1.8rem; }
+.profile-banner .player-profile { flex: 1; display: flex; flex-wrap: nowrap; align-items: center; gap: 1.4rem; min-width: 0; }
+.profile-banner .avatar-large { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 5.6rem; height: 5.6rem; border-radius: 50%; background: var(--green); color: #fff; font-size: 2.3rem; font-weight: 800; object-fit: cover; box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--green-soft); }
+.profile-banner .player-profile-body { min-width: 0; }
+.profile-banner .player-profile h1 { margin: 0; font-size: clamp(1.7rem, 3.5vw, 2.4rem); }
+.profile-banner .player-profile .muted { margin: .25rem 0 0; font-size: .9rem; color: #8a948f; }
+.profile-banner .player-district { display: inline-flex; align-items: center; gap: .4rem; margin: .5rem 0 0; padding: .1rem .75rem; border: 1px solid #c9d0cc; border-radius: 2rem; background: #fff; color: #46514c; font-size: .82rem; font-weight: 600; }
+.profile-banner .player-bio { margin: .6rem 0 0; max-width: 28rem; color: var(--muted-ink); line-height: 1.45; }
+.profile-banner .sports-banner-actions { position: relative; z-index: 1; }
+.profile-banner .button-outline { display: inline-flex; align-items: center; justify-content: center; padding: .6rem 1.3rem; border: 2px solid var(--green); border-radius: 4px; background: #fff; color: var(--green); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.profile-banner .button-outline:hover { background: var(--green-soft); }
+.profile-actions { margin: 1.2rem 0 0; }
+
+/* settings area */
+.account-settings h2 { margin-bottom: .1rem; }
+.account-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+.account-card { padding: 1.3rem 1.4rem; border: 1px solid var(--line); border-top: 4px solid var(--green); border-radius: 4px; background: #fff; }
+.account-card h3 { margin: 0 0 1rem; font-size: 1.2rem; letter-spacing: -.01em; }
+.account-card p { margin: 0 0 .7rem; color: var(--muted-ink); }
+.account-card p:last-child { margin-bottom: 0; }
+.account-scope .account-card .form-stack { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1rem; }
+.account-scope .account-card .form-stack > * { margin: 0; }
+.account-scope .account-card .form-stack > [role], .account-scope .account-card .form-stack > .actions, .account-scope .account-card .form-stack > label:has(textarea), .account-scope .account-card .form-stack > label:has([name="photo_url"]) { grid-column: 1 / -1; }
+.account-scope .form-field { display: grid; gap: .3rem; font-weight: 600; font-size: .9rem; }
+.account-scope input, .account-scope select, .account-scope textarea { width: 100%; padding: .6rem .7rem; border: 1px solid #c9d1cd; border-radius: 4px; background: #fff; font: inherit; font-weight: 400; box-sizing: border-box; max-width: 100%; }
+.account-scope textarea { min-height: 6rem; resize: vertical; }
+.account-scope input:focus-visible, .account-scope select:focus-visible, .account-scope textarea:focus-visible, .account-scope button:focus-visible, .account-scope a:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.account-scope .actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.account-scope .actions button, .account-scope .button, .account-scope .button-secondary { display: inline-flex; align-items: center; justify-content: center; padding: .5rem 1.3rem; border: 2px solid var(--green); border-radius: 4px; background: var(--green); color: #fff; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.account-scope .actions button:hover:not(:disabled), .account-scope .button:hover:not(:disabled) { background: var(--green-dark); border-color: var(--green-dark); }
+.account-scope .button-secondary { background: #fff; color: var(--green); }
+.account-scope .button-secondary:hover:not(:disabled) { background: var(--green-soft); }
+.account-scope button:disabled { opacity: .55; cursor: not-allowed; }
+.account-scope [role="alert"] { padding: .6rem .9rem; border-left: 4px solid #b00020; border-radius: 3px; background: #fdecea; color: #7a1f1a; font-weight: 400; }
+.account-scope [role="status"] { padding: .6rem .9rem; border-left: 4px solid var(--green); border-radius: 3px; background: var(--green-soft); color: var(--green-dark); }
+.account-scope .status-badge { padding: .1rem .7rem; border: 1px solid var(--green); border-radius: 1rem; background: var(--green-soft); color: var(--green); font-size: .8rem; font-weight: 600; }
+.account-scope .button-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+@media (max-width: 62rem) { .account-grid { grid-template-columns: 1fr; } }
+@media (max-width: 40rem) { .profile-banner .player-profile { flex-wrap: wrap; } .account-scope .account-card .form-stack { grid-template-columns: 1fr; } }
+.account-scope .account-card .form-stack > [role] { order: -1; }
+.account-scope .account-card .form-stack > label:has([name="photo_url"]) { order: 3; }
+.account-scope .account-card .form-stack > label:has(textarea) { order: 4; }
+.account-scope .account-card .form-stack > .actions { order: 5; }

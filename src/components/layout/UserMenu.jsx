@@ -5,7 +5,7 @@ const LINKS = [
   { to: '/my-rooms', label: 'My rooms' },
   { to: '/joined-rooms', label: 'Joined rooms' },
   { to: '/friends', label: 'Friends' },
-  { to: '/settings', label: 'Settings' },
+  { to: '/settings', label: 'Profile' },
 ];
 
 export default function UserMenu({ user, pending, onSignOut }) {
