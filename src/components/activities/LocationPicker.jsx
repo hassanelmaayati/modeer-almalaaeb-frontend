@@ -11,7 +11,7 @@ function ClickToPin({ onPick }) {
 
 /**
  * Click the map to drop or move the pin. `value` is { latitude, longitude } or null; `onChange` gets the same shape
- * (or null when cleared). Pass canClear={false} when the backend cannot remove a saved pin (editing a room).
+ * (or null when cleared). Set canClear={false} when a caller requires an existing pin to remain set.
  */
 export default function LocationPicker({ value, onChange, canClear = true, disabled = false }) {
   const position = value ? [value.latitude, value.longitude] : null;

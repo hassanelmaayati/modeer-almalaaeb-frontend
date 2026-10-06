@@ -1,0 +1,42 @@
+{
+  "unit": [
+    "tests/unit/activity-preview.test.jsx",
+    "tests/unit/activity-rules.test.js",
+    "tests/unit/api-contract.test.js",
+    "tests/unit/app-live.test.jsx",
+    "tests/unit/auth-session.test.jsx",
+    "tests/unit/chat-hooks.test.jsx",
+    "tests/unit/cups-pages.test.jsx",
+    "tests/unit/deployment.test.js",
+    "tests/unit/discovery-filters.test.js",
+    "tests/unit/discovery-pages.test.jsx",
+    "tests/unit/friends-pages.test.jsx",
+    "tests/unit/groups.test.jsx",
+    "tests/unit/live-groups.test.jsx",
+    "tests/unit/live-helpers.test.js",
+    "tests/unit/live-pages.test.jsx",
+    "tests/unit/messages-ui.test.jsx",
+    "tests/unit/notification-pagination.test.jsx",
+    "tests/unit/personal-room-lists.test.jsx",
+    "tests/unit/profile-settings.test.jsx",
+    "tests/unit/room-form.test.jsx",
+    "tests/unit/session-boundaries.test.jsx",
+    "tests/unit/websocket-service.test.js"
+  ],
+  "fixtures": [
+    "tests/setup.js",
+    "tests/vitest.config.js",
+    "tests/playwright.config.js",
+    "tests/playwright.proxy.config.js",
+    "tests/isolated_backend.py",
+    "tests/helpers/offline.js",
+    "tests/helpers/runtime.js",
+    "tests/e2e/integration.spec.js",
+    "tests/e2e/journeys.spec.js",
+    "tests/e2e/realtime.spec.js",
+    "tests/e2e/smoke.spec.js",
+    "scripts/deny-outbound.mjs",
+    "scripts/tests/deny-outbound.test.mjs",
+    "scripts/tests/offline-runner.test.mjs"
+  ]
+}

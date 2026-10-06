@@ -22,7 +22,7 @@ export const ADMISSION_POLICIES = [
 ];
 
 // Only these sports use distance, pace and route notes.
-const OUTDOOR_SPORTS = ['walking', 'running', 'cycling'];
+const OUTDOOR_SPORTS = ['walking', 'running', 'marathon', 'cycling'];
 export const isOutdoorSport = sport => OUTDOOR_SPORTS.includes(sport?.name?.trim().toLowerCase());
 
 // Sports like football list fixed formats ({ key: '5v5', capacity: 10 }); others accept any capacity.
@@ -70,8 +70,8 @@ export function buildRoomBody(values, { editing = false, revision } = {}) {
   };
   if (values.visibility === 'group') body.group_id = Number(values.group_id);
   if (hasValue(values.distance_km)) body.distance_km = Number(values.distance_km);
-  // The pin has no "clear" on the backend, so it is only sent when set.
   if (values.venue_location) body.venue_location = values.venue_location;
+  else if (editing && values.venue_location === null) body.venue_location = null;
 
   for (const name of ['description', 'notes', 'venue_notes', 'pace_notes', 'route_notes']) {
     const text = clean(values[name]);

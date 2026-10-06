@@ -168,10 +168,15 @@ export function threadErrorMessage(error) {
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
+// Match Python len() and PostgreSQL char_length() for the persisted, trimmed body.
+export function messageBodyLength(text) {
+  return Array.from(text.trim()).length;
+}
+
 export function validateMessageBody(text) {
   const trimmed = text.trim();
   if (!trimmed) return 'Write a message first.';
-  if (trimmed.length > MAX_MESSAGE_LENGTH) return `Messages can be up to ${MAX_MESSAGE_LENGTH} characters.`;
+  if (messageBodyLength(trimmed) > MAX_MESSAGE_LENGTH) return `Messages can be up to ${MAX_MESSAGE_LENGTH} characters.`;
   return '';
 }
 

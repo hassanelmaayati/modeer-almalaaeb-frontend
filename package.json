@@ -25,8 +25,13 @@
     "preview": "vite preview",
     "test": "vitest run --config tests/vitest.config.js",
     "test:watch": "vitest --config tests/vitest.config.js",
-    "test:e2e": "playwright test --config tests/playwright.config.js",
-    "test:live": "playwright test --config tests/playwright.live.config.js"
+    "test:e2e": "node scripts/offline-runner.mjs e2e",
+    "test:live": "playwright test --config tests/playwright.live.config.js",
+    "test:unit:coverage": "vitest run --config tests/vitest.config.js --coverage",
+    "test:e2e:production": "node scripts/offline-runner.mjs production",
+    "test:e2e:proxy": "node scripts/offline-runner.mjs proxy",
+    "test:offline": "node scripts/offline-runner.mjs all",
+    "test:prerequisites": "node scripts/offline-runner.mjs prerequisites"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
@@ -46,6 +51,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "^10.9.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",

@@ -146,7 +146,7 @@ export default function RoomForm({ room, sports, groups, onSubmit, onCancel, onR
         <fieldset>
             <legend>Activity Location (private)</legend>
             <p className="muted">The area above is public. The pin and notes below are shown only to you and the players you admit.</p>
-            <LocationPicker value={pin} onChange={setPin} canClear={!room?.venue_location} disabled={frozen} />
+            <LocationPicker value={pin} onChange={setPin} disabled={frozen} />
             {fieldErrors.venue_location && <p role="alert" className="field-error">{fieldErrors.venue_location}</p>}
             <Field label="Location notes (optional)" error={fieldErrors.venue_notes}>
                 <textarea name="venue_notes" placeholder="Court number, parking, meeting point…" defaultValue={room?.venue_notes || ''} disabled={frozen} />

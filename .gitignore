@@ -25,4 +25,8 @@ dist-ssr
 
 .env*
 !.env.example
-/tests/
+tests/artifacts/
+coverage/
+.vercel/
+.venv/
+.offline-build/
