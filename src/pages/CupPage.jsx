@@ -58,11 +58,13 @@ export default function CupPage({ session }) {
     navigate('/cups', { replace: true });
   }
 
-  return <main>
-    <AsyncState loading={cup.loading && !data} error={data ? null : cup.error} onRetry={reload}>
-      {data && <CupContent cup={data} user={user} sports={sports.data || []} groups={groups}
-        actions={{ update, review, enter, withdraw, remove }} />}
-    </AsyncState>
+  return <main className="home cups-scope">
+    <div className="home-content">
+      <AsyncState loading={cup.loading && !data} error={data ? null : cup.error} onRetry={reload}>
+        {data && <CupContent cup={data} user={user} sports={sports.data || []} groups={groups}
+          actions={{ update, review, enter, withdraw, remove }} />}
+      </AsyncState>
+    </div>
   </main>;
 }
 
@@ -76,22 +78,22 @@ function CupContent({ cup, user, sports, groups, actions }) {
   return <>
     <CupHeader cup={cup} sportName={sportName} />
     {organizer && <CupOrganizerActions cup={cup} sports={sports} onUpdate={actions.update} onDelete={actions.remove} />}
-    <section className="page-section">
-      <h2>Teams</h2>
+    <section className="home-section" aria-labelledby="cup-teams-title">
+      <h2 id="cup-teams-title">Teams</h2>
       {/* Only the organizer reviews entries, and only while registration is open. */}
       <EntryList entries={cup.entries} canReview={organizer && cup.status === 'registration'} onReview={actions.review} />
       {cup.status === 'registration' && cup.format && <EntryRosterControls cup={cup} user={user} groups={groupOptions}
         ownEntries={ownEntries} onEnter={actions.enter} onWithdraw={actions.withdraw} />}
     </section>
     {/* format is null for sports without cups (e.g. walking); there is nothing to draw or rank. */}
-    {!cup.format ? <p className="page-section">Cups aren't available for this sport.</p>
-      : cup.format === 'knockout' ? <section className="page-section">
-        <h2>Bracket</h2>
+    {!cup.format ? <p className="home-section">Cups aren't available for this sport.</p>
+      : cup.format === 'knockout' ? <section className="home-section" aria-labelledby="cup-bracket-title">
+        <h2 id="cup-bracket-title">Bracket</h2>
         <KnockoutBracket fixtures={cup.fixtures} entries={cup.entries} canRecord={organizer && published}
           onRecord={result => actions.update({ result })} />
       </section>
-      : <section className="page-section">
-        <h2>Results</h2>
+      : <section className="home-section" aria-labelledby="cup-results-title">
+        <h2 id="cup-results-title">Results</h2>
         <RaceResultsTable entries={acceptedEntries(cup)} />
         {/* Results can only be recorded after publishing; the server marks the cup completed. */}
         {organizer && published && <RaceResultsForm entries={acceptedEntries(cup)} onRecord={race_results => actions.update({ race_results })} />}

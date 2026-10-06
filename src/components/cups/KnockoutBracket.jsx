@@ -1,4 +1,5 @@
 import FixtureResultControls from './FixtureResultControls';
+import { TrophyArt } from '../home/HeroArt';
 
 function roundName(round, lastRound) {
   if (round === lastRound) return 'Final';
@@ -9,12 +10,14 @@ function roundName(round, lastRound) {
 
 export default function KnockoutBracket({ fixtures, entries, canRecord, onRecord }) {
   // The server draws the bracket on publish; until then there are no fixtures.
-  if (!fixtures.length) return <p>The bracket is drawn when the cup is published.</p>;
+  if (!fixtures.length) return <p className="muted">The bracket is drawn when the cup is published.</p>;
   const names = new Map(entries.map(entry => [entry.group_id, entry.group_name]));
   // A null side means that slot waits for an earlier round's winner.
   const name = groupId => groupId == null ? 'TBD' : names.get(groupId) || `Team ${groupId}`;
   const rounds = [...new Set(fixtures.map(fixture => fixture.round))].sort((a, b) => a - b);
   const lastRound = rounds.at(-1);
+  const final = fixtures.find(fixture => fixture.round === lastRound);
+  const champion = final?.winner_group_id != null ? name(final.winner_group_id) : null;
 
   return <div className="bracket">
     {rounds.map(round => <section key={round} className="bracket-round">
@@ -32,5 +35,12 @@ export default function KnockoutBracket({ fixtures, entries, canRecord, onRecord
         </article>;
       })}
     </section>)}
+    <section className="bracket-round bracket-champion">
+      <h3>Champion</h3>
+      <div className={`champion-card${champion ? ' has-champion' : ''}`}>
+        <TrophyArt size={64} />
+        <strong>{champion || 'To be decided'}</strong>
+      </div>
+    </section>
   </div>;
 }

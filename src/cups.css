@@ -1,5 +1,3 @@
-.cup-card { padding: .75rem; border: 1px solid #bbb; margin-bottom: 1rem; }
-.cup-card h3 { margin-block: .25rem; }
 .card-meta { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .status-badge { padding: .1rem .5rem; border: 1px solid #888; border-radius: 1rem; font-size: .85rem; }
 .cup-status-registration { background: #e3f4e3; }

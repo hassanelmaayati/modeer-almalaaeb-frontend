@@ -139,10 +139,10 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 @media (max-width: 40rem) { .logo-name { font-size: 1.1rem; } }
 
 /* Sports page */
-.sports-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; margin-top: 1rem; padding: 1.6rem 1.8rem; border: 1px solid var(--line); border-left: 6px solid var(--green); border-radius: 4px; background: linear-gradient(100deg, var(--green-soft), #fff 70%); }
+.sports-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; margin-top: 1rem; padding: 1.6rem 1.8rem; border-radius: 4px; background: #f3f5f4; }
 .sports-banner h1 { margin: 0; font-size: clamp(1.7rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
 .sports-banner p { margin: .3rem 0 0; color: var(--muted-ink); }
-.sports-banner .sports-banner-eyebrow { margin: 0 0 .4rem; font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--green); }
+.sports-banner .sports-banner-eyebrow { margin: 0 0 .4rem; font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #8a948f; }
 .sports-banner-actions { display: flex; flex-wrap: wrap; gap: .8rem; }
 .sports-refresh { margin-top: .6rem; padding: .5rem 1.1rem; font-size: .95rem; }
 .sport-tile[aria-current="true"] { border: 2px solid var(--green); padding: calc(.9rem - 1px) calc(.5rem - 1px); background: var(--green-soft); color: var(--green); box-shadow: 0 3px 0 var(--green); }
@@ -165,6 +165,135 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 
 /* Static pitch background for the sports banner */
 .sports-banner { position: relative; overflow: hidden; }
-.sports-banner > :not(.stadium-art) { position: relative; z-index: 1; }
-.stadium-art { position: absolute; inset: 0; width: 100%; height: 100%; color: #c4d6ce; opacity: .6; pointer-events: none; }
+.sports-banner > :not(.banner-art) { position: relative; z-index: 1; }
+.banner-art-pitch { color: #c9d0cc; }
+.banner-art { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sports-list { scroll-margin-top: 1rem; }
+
+/* Cups page */
+.cups-banner-title { display: flex; align-items: center; gap: 1.1rem; }
+.trophy-art { flex-shrink: 0; color: var(--green); }
+.status-chips { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.3rem; }
+.status-chip { padding: .45rem 1.1rem; border: 1px solid var(--line); border-radius: 2rem; background: #f6f8f7; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.status-chip:hover { border-color: var(--green); color: var(--green); }
+.status-chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #fff; }
+.status-chip:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.cups-list .card-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+
+/* Cup detail, forms and draws */
+.cup-header-sport { position: relative; z-index: 1; color: #aab4af; margin-left: auto; }
+.cups-banner-title h1 { margin: 0; }
+.cups-banner-title .cup-organizer { margin-top: .5rem; display: flex; align-items: center; gap: .5rem; }
+.cups-banner-title .cup-organizer a { color: var(--green); font-weight: 600; }
+.cups-banner-title .avatar { width: 1.6rem; height: 1.6rem; border-radius: 50%; object-fit: cover; }
+.cup-facts { list-style: none; display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin: 1rem 0 0; padding: 0; color: var(--muted-ink); }
+.cup-facts li { display: flex; align-items: center; gap: .5rem; }
+.cup-facts .ui-icon { color: #46514c; }
+.cup-rules-card .cup-rules { margin: .6rem 0 0; padding: 1rem 1.2rem; border-left: 4px solid var(--green); background: #f6f8f7; border-radius: 3px; }
+.cups-scope .status-badge { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: 600; }
+.cups-scope .cup-status-draft { background: #fff; border-color: #888; color: var(--muted-ink); }
+.cups-scope .cup-status-completed { background: #eee; border-color: #888; color: var(--muted-ink); }
+.cups-scope .cup-status-published { background: #e3ecf8; border-color: #3b6ea8; color: #2a5384; }
+
+/* buttons and forms inside cup pages */
+.cups-scope .actions button, .cups-scope .fixture-result button, .cups-scope .form-stack button, .cups-scope .entry-card button { padding: .5rem 1.2rem; border: 2px solid var(--green); border-radius: 4px; background: var(--green); color: #fff; font-weight: 600; cursor: pointer; }
+.cups-scope .actions button:hover:not(:disabled), .cups-scope .fixture-result button:hover:not(:disabled), .cups-scope .form-stack button:hover:not(:disabled), .cups-scope .entry-card button:hover:not(:disabled) { background: var(--green-dark); border-color: var(--green-dark); }
+.cups-scope button.button-secondary, .cups-scope .form-stack .actions button[type="button"] { background: #fff; color: var(--green); }
+.cups-scope button.button-secondary:hover:not(:disabled), .cups-scope .form-stack .actions button[type="button"]:hover:not(:disabled) { background: var(--green-soft); color: var(--green); }
+.cups-scope button:disabled { opacity: .55; cursor: not-allowed; }
+.cups-scope button:focus-visible, .cups-scope input:focus-visible, .cups-scope select:focus-visible, .cups-scope textarea:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.cups-scope .form-field { display: grid; gap: .3rem; font-weight: 600; font-size: .9rem; }
+.cups-scope .form-field input, .cups-scope .form-field select, .cups-scope .form-field textarea, .cups-scope .race-results input, .cups-scope .fixture-result input, .cups-scope .fixture-result select { padding: .55rem .6rem; border: 1px solid #c9d1cd; border-radius: 4px; background: #fff; font-weight: 400; box-sizing: border-box; }
+.cups-scope [role="alert"] { padding: .6rem .9rem; border-left: 4px solid #b00020; border-radius: 3px; background: #fdecea; color: #7a1f1a; }
+.cup-panel { padding: 1.2rem 1.4rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 3px; background: #f6f8f7; }
+.cup-panel h2 { margin-bottom: .8rem; }
+.cups-scope .form-stack { max-width: 36rem; }
+
+/* teams */
+.cups-scope .entry-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: .8rem; margin: 1rem 0; }
+.entry-card { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 3px; background: #fff; }
+.entry-badge-initial { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 800; font-size: 1.15rem; }
+.entry-card-body { display: flex; flex-direction: column; flex: 1; min-width: 8rem; }
+.entry-card .actions { margin-left: 0; width: 100%; }
+.cups-scope .entry-pending { background: #fff6dd; border-color: #c89b1c; color: #7a5a00; }
+.cups-scope .entry-declined { background: #fdecea; border-color: #b00020; color: #7a1f1a; }
+.cups-scope .entry-withdrawn { background: #eee; border-color: #888; color: var(--muted-ink); }
+.entry-controls { margin-top: 1rem; }
+.entry-controls .actions { align-items: end; }
+
+/* knockout draw */
+.cups-scope .bracket { gap: 0; padding-bottom: .5rem; align-items: stretch; }
+.cups-scope .bracket-round { min-width: 15rem; padding-inline: 1.4rem; align-content: space-around; position: relative; }
+.cups-scope .bracket-round h3 { text-align: center; font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--green); }
+.cups-scope .fixture { position: relative; padding: 0; border: 1px solid var(--line); border-radius: 3px; background: #fff; }
+.cups-scope .fixture p { margin: 0; padding: .55rem .8rem; }
+.cups-scope .fixture p + p { border-top: 1px solid var(--line); }
+.cups-scope .fixture-winner { background: var(--green-soft); color: var(--green); font-weight: 700; }
+.cups-scope .fixture::after, .cups-scope .fixture::before { content: ""; position: absolute; top: 50%; width: 1.4rem; border-top: 2px solid #c9d0cc; }
+.cups-scope .fixture::after { left: 100%; }
+.cups-scope .fixture::before { right: 100%; }
+.cups-scope .bracket-round:first-child .fixture::before { display: none; }
+.cups-scope .fixture-result { padding: .6rem .8rem; border-top: 1px dashed var(--line); background: #f6f8f7; }
+.cups-scope .fixture-result label { display: grid; gap: .2rem; font-size: .85rem; font-weight: 600; }
+.cups-scope .bracket-champion { align-content: center; min-width: 13rem; }
+.champion-card { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.2rem 1rem; border: 2px dashed #c9d0cc; border-radius: 3px; text-align: center; color: #c9d0cc; }
+.champion-card strong { color: var(--muted-ink); }
+.champion-card.has-champion { border: 2px solid #c89b1c; background: #fff6dd; color: #c89b1c; }
+.champion-card.has-champion strong { color: var(--ink); font-size: 1.15rem; }
+
+/* race results */
+.cups-scope .race-results { max-width: 40rem; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.cups-scope .race-results th { background: var(--green-soft); color: var(--green); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+.cups-scope .race-results th, .cups-scope .race-results td { padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.cups-scope .race-results tbody tr:last-child td { border-bottom: 0; }
+.cups-scope .race-results input[type="number"], .cups-scope .race-results input:not([type]) { width: 7rem; }
+.place { display: inline-flex; align-items: center; justify-content: center; width: 1.9rem; height: 1.9rem; border-radius: 50%; background: #e9ecea; font-weight: 700; }
+.place-1 { background: #f2c94c; }
+.place-2 { background: #cfd6d3; }
+.place-3 { background: #d9a679; }
+.cups-scope fieldset { border: 1px solid var(--line); border-radius: 3px; }
+
+
+/* Cup cards */
+.cups-list .card-grid { gap: 1.2rem; }
+.cup-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .8rem; padding: 1.2rem 1.3rem 1rem; margin: 0; border: 1px solid var(--line); border-top: 4px solid #c9d0cc; border-radius: 4px; background: #fff; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.cup-card:hover, .cup-card:focus-within { transform: translateY(-3px); border-color: var(--green); box-shadow: 0 10px 24px rgba(20, 89, 74, .14); }
+.cup-card-registration { border-top-color: var(--green); }
+.cup-card-published { border-top-color: #3b6ea8; }
+.cup-card > .trophy-art { position: absolute; right: -1rem; bottom: 1.6rem; color: #eef1ef; pointer-events: none; transition: color .18s ease, transform .18s ease; }
+.cup-card:hover > .trophy-art { color: var(--green-soft); transform: rotate(-6deg) scale(1.06); }
+.cup-card > :not(.trophy-art):not(h3) { position: relative; }
+.cup-card-top { display: flex; align-items: center; gap: .7rem; }
+.cup-card-sport { display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 50%; background: #f3f5f4; color: #2a3430; flex-shrink: 0; }
+.cup-card-kicker { flex: 1; min-width: 0; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-ink); }
+.cup-card h3 { margin: 0; font-size: 1.3rem; letter-spacing: -.01em; }
+.cup-card h3 a { color: var(--ink); text-decoration: none; }
+.cup-card h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.cup-card:hover h3 a { color: var(--green); }
+.cup-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.3rem; }
+.cup-chips li { display: inline-flex; align-items: center; gap: .4rem; font-size: .92rem; font-weight: 600; color: #2a3430; }
+.cup-chips .ui-icon { width: 15px; height: 15px; color: var(--green); }
+.cup-countdown { padding: .1rem .55rem; border-radius: 2rem; background: var(--green-soft); color: var(--green); font-size: .8rem; }
+.cup-countdown.is-urgent { background: #fff6dd; color: #7a5a00; }
+.cup-card-foot { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-top: auto; padding-top: .8rem; border-top: 1px solid var(--line); }
+.cup-organizer { display: inline-flex; align-items: center; gap: .55rem; color: var(--muted-ink); font-size: .92rem; }
+.cup-organizer a { position: relative; z-index: 2; color: var(--green); font-weight: 600; text-decoration: none; }
+.cup-organizer a:hover { text-decoration: underline; }
+.cup-organizer-initial { display: inline-flex; align-items: center; justify-content: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 800; font-size: .85rem; }
+.cup-card .avatar { width: 1.7rem; height: 1.7rem; border-radius: 50%; object-fit: cover; }
+.cup-card-cta { display: inline-flex; align-items: center; gap: .35rem; color: var(--green); font-weight: 700; transition: gap .18s ease; }
+.cup-card:hover .cup-card-cta { gap: .65rem; }
+@media (prefers-reduced-motion: reduce) { .cup-card, .cup-card > .trophy-art, .cup-card-cta { transition: none; } .cup-card:hover { transform: none; } }
+
+/* Registration deadline tile */
+.cup-deadline { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; }
+.cup-deadline-tile { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; width: 3rem; padding: .2rem 0 .25rem; border: 1px solid var(--line); border-top: 4px solid var(--green); border-radius: 4px; background: #fff; line-height: 1.1; }
+.cup-deadline-tile span { font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-ink); }
+.cup-deadline-tile strong { font-size: 1.2rem; color: var(--ink); }
+.cup-deadline-text { display: flex; flex-direction: column; min-width: 0; }
+.cup-deadline-label { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-ink); }
+.cup-deadline-text strong { font-size: .95rem; color: var(--ink); }
+.cup-deadline-text .muted { font-weight: 400; }
+.format-pill { display: inline-block; margin-left: .6rem; padding: .1rem .6rem; border: 1px solid #c9d0cc; border-radius: 2rem; letter-spacing: .1em; color: #6b7570; }
+.cup-facts .cup-deadline { margin-top: .2rem; }
+.cups-scope .home-section > p a, .cups-scope .entry-controls a, .cups-scope .cup-panel a { color: var(--green); font-weight: 600; }

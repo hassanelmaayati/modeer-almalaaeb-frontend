@@ -20,6 +20,18 @@ export function formatActivityDate(value) {
   return formatDate(value, { weekday: 'short', day: 'numeric', month: 'short' }, 'Date unavailable');
 }
 
+export function formatActivityDay(value) {
+  return formatDate(value, { day: 'numeric' }, '–');
+}
+
+export function formatActivityMonth(value) {
+  return formatDate(value, { month: 'short' }, '');
+}
+
+export function formatActivityWeekday(value) {
+  return formatDate(value, { weekday: 'long' }, '');
+}
+
 export function formatActivityTime(value) {
   return formatDate(value, { hour: '2-digit', minute: '2-digit', hour12: false }, 'Time unavailable');
 }

@@ -32,7 +32,7 @@ export default function CupOrganizerActions({ cup, sports, onUpdate, onDelete })
   }
 
   if (cup.status === 'published' || cup.status === 'completed') return null;
-  return <section className="page-section panel" aria-label="Organizer actions">
+  return <section className="home-section cup-panel" aria-label="Organizer actions">
     <h2>Organizer</h2>
     {error && <p role="alert">{error}</p>}
     {mode === 'edit' ? <CupForm cup={cup} sports={sports} onCancel={() => setMode(null)}

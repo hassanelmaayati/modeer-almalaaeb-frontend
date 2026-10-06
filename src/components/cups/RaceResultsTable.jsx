@@ -10,15 +10,17 @@ function rank(a, b) {
     || (a.finish_time_seconds ?? Infinity) - (b.finish_time_seconds ?? Infinity);
 }
 
+const placeClass = position => `place place-${position <= 3 ? position : 'other'}`;
+
 export default function RaceResultsTable({ entries }) {
-  if (!entries.length) return <p>No accepted teams yet.</p>;
-  if (!entries.some(hasResult)) return <p>No results yet.</p>;
+  if (!entries.length) return <p className="muted">No accepted teams yet.</p>;
+  if (!entries.some(hasResult)) return <p className="muted">No results yet.</p>;
   return <table className="race-results">
     <thead><tr><th>Team</th><th>Position</th><th>Time</th></tr></thead>
     <tbody>
       {[...entries].sort(rank).map(entry => <tr key={entry.group_id}>
         <td>{entry.group_name}</td>
-        <td>{entry.did_not_finish ? 'DNF' : entry.position ?? '—'}</td>
+        <td>{entry.did_not_finish ? 'DNF' : entry.position != null ? <span className={placeClass(entry.position)}>{entry.position}</span> : '—'}</td>
         <td>{entry.did_not_finish ? '—' : formatDuration(entry.finish_time_seconds) || '—'}</td>
       </tr>)}
     </tbody>

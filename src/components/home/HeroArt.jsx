@@ -26,7 +26,7 @@ export function CourtArt() {
 }
 
 export function StadiumArt() {
-  return <svg className="stadium-art" viewBox="0 0 1200 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
     <rect x="-2" y="-2" width="1204" height="164" />
     <path d="M600 -2V162" />
     <circle cx="600" cy="80" r="46" />
@@ -35,5 +35,47 @@ export function StadiumArt() {
     <rect x="-2" y="52" width="40" height="56" />
     <rect x="1092" y="20" width="110" height="120" />
     <rect x="1162" y="52" width="40" height="56" />
+  </svg>;
+}
+
+// Cup-draw scene in the same thin grey line-art as the home and sports art: balls drawn along a path towards a trophy.
+const DRAW_BALLS = [
+  { x: 470, y: 122, r: 19, n: 7 },
+  { x: 560, y: 64, r: 25, n: 3 },
+  { x: 650, y: 108, r: 21, n: 5 },
+  { x: 740, y: 52, r: 18, n: 1 },
+  { x: 830, y: 100, r: 26, n: 8 },
+];
+const SPARKLES = ['M900 30l3 8 8 3-8 3-3 8-3-8-8-3 8-3z', 'M1034 40l2 5 5 2-5 2-2 5-2-5-5-2 5-2z', 'M885 128l2 5 5 2-5 2-2 5-2-5-5-2 5-2z'];
+
+function DrawBall({ x, y, r, n }) {
+  return <g>
+    <circle cx={x} cy={y} r={r} fill="#f3f5f4" />
+    <text x={x} y={y + r * 0.22} textAnchor="middle" fontSize={r * 0.62} fontWeight="700" fill="currentColor" stroke="none">{n}</text>
+  </g>;
+}
+
+export function BracketArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(-60 0)">
+      <path d="M470 122C510 122 520 64 560 64S610 108 650 108S700 52 740 52S790 100 830 100S870 96 895 84" strokeDasharray="3 7" />
+      {DRAW_BALLS.map(ball => <DrawBall key={ball.n} {...ball} />)}
+      <g transform="translate(905 22) scale(2.2)" strokeWidth="1.1">
+        <path d="M14 3h20v15a10 10 0 0 1-20 0Z" />
+        <path d="M15 7H8c0 8 3 11 8 12M33 7h7c0 8-3 11-8 12" />
+        <path d="M24 28v5M17 33h14l2 5H15zM13 38h22v6H13z" />
+        <path d="M24 8l1.7 3.5 3.8.5-2.8 2.7.7 3.8-3.4-1.8-3.4 1.8.7-3.8-2.8-2.7 3.8-.5z" />
+      </g>
+      <g strokeWidth="1.2">{SPARKLES.map(d => <path key={d} d={d} />)}</g>
+    </g>
+  </svg>;
+}
+
+export function TrophyArt({ size = 56 }) {
+  return <svg className="trophy-art" width={size} height={size} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M15 6h18v12a9 9 0 0 1-18 0Z" />
+    <path d="M15 10H8c0 7 3 10 8 11M33 10h7c0 7-3 10-8 11" />
+    <path d="M24 27v8M19 35h10l2 7H17Z" />
+    <path d="M24 11l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5Z" fill="currentColor" stroke="none" />
   </svg>;
 }
