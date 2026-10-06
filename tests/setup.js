@@ -4,6 +4,8 @@ import { beforeEach, afterEach, vi } from 'vitest'
 import { clearToken } from '../src/lib/helpers/session.js'
 
 beforeEach(() => {
+  // jsdom has no layout/scrolling engine; keep browser scrolling observable.
+  vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {})
   // Application unit tests must explicitly mock every transport boundary.
   vi.stubGlobal('fetch', () => { throw new Error('Unmocked fetch is forbidden in offline unit tests') })
   vi.stubGlobal('WebSocket', class OfflineWebSocket {
@@ -30,4 +32,8 @@ if (!HTMLDialogElement.prototype.close) {
     this.removeAttribute('open')
     this.dispatchEvent(new Event('close'))
   }
+}
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function () {}
 }

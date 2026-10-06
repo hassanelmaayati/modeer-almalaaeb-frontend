@@ -22,7 +22,7 @@ const list = vi.fn();
 const create = vi.fn();
 const recover = vi.fn();
 const listeners = new Set();
-const emit = (event) => act(() => { for (const listener of [...listeners]) listener(event); });
+const emit = (event) => act(async () => { for (const listener of [...listeners]) listener(event); });
 
 vi.mock('../../src/services/messageService', () => ({
   default: {
@@ -34,6 +34,7 @@ vi.mock('../../src/services/messageService', () => ({
   },
 }));
 vi.mock('../../src/services/userService', () => ({ default: { list: async () => users } }));
+vi.mock('../../src/services/roomService', () => ({ default: { get: async (id) => ({ id, status: 'open' }) } }));
 vi.mock('../../src/services/websocketService', () => ({
   listen: (listener) => { listeners.add(listener); return () => listeners.delete(listener); },
   recoverMessages: (...args) => recover(...args),
@@ -113,14 +114,19 @@ describe('live updates in the open thread', () => {
     expect(recover.mock.calls[0][0]).toEqual({ type: 'room', id: 4 });
   });
 
-  it('recovers when the room of this chat is updated, but not another room', async () => {
-    recover.mockResolvedValue([message(1), message(2), message(3, { type: 'system', sender_id: null, body: 'Room cancelled: Rain' })]);
+  it('reauthorizes and reloads when this room is updated, but ignores another room', async () => {
     mount();
     await ready();
+    const requests = list.mock.calls.length;
+    list.mockResolvedValueOnce([message(1), message(2), message(3, { type: 'system', sender_id: null, body: 'Room cancelled: Rain' })]);
     await emit({ type: 'room.updated', room_id: 9 });
+    expect(list).toHaveBeenCalledTimes(requests);
     expect(recover).not.toHaveBeenCalled();
     await emit({ type: 'room.updated', room_id: 4 });
     await waitFor(() => expect(within(log()).getByText('Room cancelled: Rain')).toBeInTheDocument());
+    expect(list).toHaveBeenCalledTimes(requests + 1);
+    expect(list).toHaveBeenLastCalledWith({ room_id: 4, limit: 50 }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(recover).not.toHaveBeenCalled();
   });
 
   it('stops listening when the chat is closed', async () => {

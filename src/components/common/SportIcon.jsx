@@ -39,6 +39,12 @@ const ICONS = {
     <circle cx="24" cy="31" r="7" fill="var(--icon-fill, #fff)" />
     <path d="M17.4 28.6C21 31 27 31 30.6 28.6M24 24V38" />
   </>,
+  billiards: <>
+    <circle cx="24" cy="24" r="18" />
+    <circle cx="24" cy="24" r="10" />
+    <ellipse cx="24" cy="20.5" rx="3" ry="2.5" />
+    <ellipse cx="24" cy="27" rx="3.8" ry="3" />
+  </>,
   padel: <>
     <ellipse cx="20" cy="18.5" rx="11" ry="13.5" transform="rotate(-35 20 18.5)" />
     <path d="M27 28 38 41M34.5 37.5 37.5 34.7" />
@@ -67,8 +73,9 @@ const ICONS = {
 };
 
 function sportIconKey(name) {
-  const key = String(name || '').trim().toLowerCase();
-  return key in ICONS ? key : 'default';
+  const normalized = typeof name === 'string' ? name.trim().toLowerCase() : '';
+  const key = normalized === 'marathon' ? 'running' : normalized === 'kayak' ? 'kayaking' : normalized;
+  return Object.hasOwn(ICONS, key) ? key : 'default';
 }
 
 export default function SportIcon({ name, size = 44, className = '' }) {
