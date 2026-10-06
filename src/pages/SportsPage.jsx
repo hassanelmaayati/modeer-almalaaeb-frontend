@@ -54,16 +54,16 @@ export default function SportsPage({ session = { user: null, loading: false } })
           </div>
           <StadiumArt />
           <div className="sports-banner-actions">
-            <a className="button-outline" href="#sports-discovery-title">Browse games</a>
+            <a className="button-outline" href="#sports-discovery-title">Browse activities</a>
             <CreateRoomAction session={session} className="button-primary" label="Host a room" signedOutLabel="Sign in to host a room" />
           </div>
         </section>
-        <SportPicker sports={sports.data} loading={sports.loading} error={sports.error} onRetry={reloadSports} activeId={filters.sport_id} title="Pick a sport" subtitle="Tap a sport to see its games, or browse everything below." />
+        <SportPicker sports={sports.data} loading={sports.loading} error={sports.error} onRetry={reloadSports} activeId={filters.sport_id} title="Pick a sport" subtitle="Tap a sport to see its activities, or browse everything below." />
         <section ref={listRef} className="home-section sports-list" aria-labelledby="sports-discovery-title">
           <div className="home-section-head">
             <div>
-              <h2 id="sports-discovery-title">{activeSport ? `${activeSport.name} games` : 'Browse activities'}</h2>
-              <p className="home-subtitle">{rooms.loading || rooms.error ? 'Real people. Real games. Across Bahrain.' : `${rooms.data.length} ${rooms.data.length === 1 ? 'game' : 'games'} found`}</p>
+              <h2 id="sports-discovery-title">{activeSport ? `${activeSport.name} activities` : 'Browse activities'}</h2>
+              <p className="home-subtitle">{rooms.loading || rooms.error ? 'Real people. Real activities. Across Bahrain.' : `${rooms.data.length} ${rooms.data.length === 1 ? 'activity' : 'activities'} found`}</p>
             </div>
             <button type="button" className="button-outline sports-refresh" onClick={reloadRooms}>Refresh activities</button>
           </div>
