@@ -179,3 +179,78 @@ export function NotificationsArt() {
     </g>
   </svg>;
 }
+
+// My rooms scene in the same grey line-art: a coach pointing at a tactics board, with a stopwatch, cones and a ball.
+export function MyRoomsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(60 0) scale(.92)">
+      <path d="M520 144H1010" strokeWidth="1.5" strokeDasharray="3 7" />
+      <g>
+        <circle cx="570" cy="54" r="9" />
+        <path d="M570 65V106M570 106L558 142M570 106L582 142M570 76L552 94M570 76L604 70" />
+        <circle cx="548" cy="62" r="3.500" strokeWidth="1.600" />
+        <path d="M534 52l-6-6M532 62h-8M534 72l-6 6" strokeWidth="1.400" />
+      </g>
+      <g strokeWidth="1.8">
+        <rect x="620" y="26" width="220" height="96" rx="8" fill="#f3f5f4" />
+        <path d="M660 122v22M800 122v22" />
+        <rect x="634" y="38" width="192" height="72" rx="3" strokeWidth="1.500" />
+        <path d="M730 38V110" strokeWidth="1.500" />
+        <circle cx="730" cy="74" r="14" strokeWidth="1.500" />
+        <rect x="634" y="56" width="26" height="36" strokeWidth="1.500" />
+        <rect x="800" y="56" width="26" height="36" strokeWidth="1.500" />
+        <circle cx="668" cy="50" r="5" fill="#f3f5f4" />
+        <circle cx="672" cy="98" r="5" fill="#f3f5f4" />
+        <circle cx="700" cy="74" r="5" fill="#f3f5f4" />
+        <circle cx="704" cy="50" r="5" fill="#f3f5f4" />
+        <path d="M758 52l8 8M766 52l-8 8M772 88l8 8M780 88l-8 8M790 64l8 8M798 64l-8 8" strokeWidth="1.800" />
+        <path d="M706 56C722 62 738 62 752 58M746 52l6 6-8 3" strokeDasharray="3 5" strokeWidth="1.600" />
+        <path d="M708 80C730 92 750 92 782 80" strokeDasharray="3 5" strokeWidth="1.600" />
+      </g>
+      <g strokeWidth="1.8">
+        <circle cx="900" cy="84" r="22" fill="#f3f5f4" />
+        <path d="M900 62v-8M894 52h12M900 84l10-10M900 84v-14" />
+        <path d="M918 66l6-6" />
+      </g>
+      <path d="M948 144l10-26 10 26zM942 144h32" strokeWidth="1.800" />
+      <path d="M984 144l9-22 9 22zM979 144h28" strokeWidth="1.800" />
+      <circle cx="1040" cy="132" r="12" fill="#f3f5f4" strokeWidth="1.800" />
+      <path d="M1040 126l5 3.500-2 6h-6l-2-6z" strokeWidth="1.400" />
+      <g strokeWidth="1.200"><path d="M1060 40l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M520 36l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}
+
+// Joined rooms scene: numbered team jerseys on a changing-room rail, with one empty dashed shirt waiting for you.
+const JERSEYS = [{ x: 570, n: '7' }, { x: 650, n: '10' }, { x: 730, n: '4' }, { x: 810, n: '9' }];
+
+function Jersey({ x, n, dashed = false }) {
+  return <g transform={`translate(${x} 34)`}>
+    <path d="M30 -8v8" strokeWidth="1.800" />
+    <path d="M18 2L2 12L10 28L18 24V62H42V24L50 28L58 12L42 2Q30 12 18 2Z" fill="#f3f5f4" strokeDasharray={dashed ? '4 5' : undefined} />
+    {dashed
+      ? <path d="M30 34v20M20 44h20" strokeWidth="2.600" />
+      : <text x="30" y="50" textAnchor="middle" fontSize="19" fontWeight="800" fill="currentColor" stroke="none">{n}</text>}
+  </g>;
+}
+
+export function JoinedRoomsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(155 10) scale(.88)">
+      <path d="M540 26H960" strokeWidth="2.600" />
+      <path d="M540 26v10M960 26v10" strokeWidth="2.600" />
+      {JERSEYS.map(jersey => <Jersey key={jersey.x} {...jersey} />)}
+      <Jersey x={890} n="+" dashed />
+      <g strokeWidth="1.800">
+        <rect x="540" y="118" width="420" height="10" rx="3" fill="#f3f5f4" />
+        <path d="M560 128v16M940 128v16" />
+      </g>
+      <circle cx="610" cy="106" r="11" fill="#f3f5f4" strokeWidth="1.800" />
+      <path d="M610 100l5 3.500-2 6h-6l-2-6z" strokeWidth="1.400" />
+      <path d="M700 112h26a4 4 0 0 1 4 4v2H696v-2a4 4 0 0 1 4-4z" strokeWidth="1.800" />
+      <path d="M770 112h26a4 4 0 0 1 4 4v2H766v-2a4 4 0 0 1 4-4z" strokeWidth="1.800" />
+      <path d="M1000 144h30M1008 144l5-14h8l5 14" strokeWidth="1.800" />
+      <g strokeWidth="1.200"><path d="M990 52l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M520 70l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}
