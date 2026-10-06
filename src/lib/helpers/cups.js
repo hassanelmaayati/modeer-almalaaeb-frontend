@@ -8,8 +8,8 @@ export const CUP_STATUSES = [
 ];
 
 // Mirrors the backend: it derives a cup's format from its sport, so the client never sends format.
-const KNOCKOUT_SPORTS = ['football', 'basketball', 'volleyball', 'tennis', 'padel', 'badminton', 'handball'];
-const RACE_SPORTS = ['running', 'cycling', 'kayaking', 'swimming'];
+const KNOCKOUT_SPORTS = ['football', 'basketball', 'handball', 'volleyball', 'tennis', 'padel', 'badminton'];
+const RACE_SPORTS = ['running', 'marathon', 'cycling', 'kayaking', 'swimming'];
 
 // Knockout brackets need a power of two; races just rank finishers, so any size in range works.
 export const KNOCKOUT_TEAM_COUNTS = [4, 8, 16];
