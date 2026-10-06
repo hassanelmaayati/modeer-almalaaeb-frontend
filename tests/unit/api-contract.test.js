@@ -12,6 +12,7 @@ import cups from '../../src/services/cupService.js'
 import cupRoster from '../../src/services/cupRosterService.js'
 import notifications from '../../src/services/notificationService.js'
 import google from '../../src/services/googleAuthService.js'
+import ratings from '../../src/services/ratingService.js'
 import { ApiError, request } from '../../src/lib/api/client.js'
 import { clearToken, getToken, setToken } from '../../src/lib/helpers/session.js'
 
@@ -50,6 +51,9 @@ const contracts = [
   ['invite room member', () => roomMembers.invite(1, 2), 'POST', '/rooms/1/members', true, { user_id: 2 }],
   ['edit room member', () => roomMembers.update(1, 2, { status: 'accepted' }), 'PATCH', '/rooms/1/members/2', true, { status: 'accepted' }],
   ['withdraw room request', () => roomMembers.leave(1), 'DELETE', '/rooms/1/members/me', true],
+  ['rate a player', () => ratings.give(1, { user_id: 2, stars: 5 }), 'POST', '/rooms/1/ratings', true, { user_id: 2, stars: 5 }],
+  ['my ratings in a room', () => ratings.listMine(1), 'GET', '/rooms/1/ratings/mine', true],
+  ['public user rating', () => ratings.getForUser(2), 'GET', '/users/2/rating', false],
   ['friends', () => friends.list(), 'GET', '/friends', true],
   ['request friendship', () => friends.create({ other_user_id: 2 }), 'POST', '/friends', true, { other_user_id: 2 }],
   ['accept friendship', () => friends.update(2, { status: 'accepted' }), 'PATCH', '/friends/2', true, { status: 'accepted' }],

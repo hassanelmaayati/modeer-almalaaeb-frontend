@@ -37,6 +37,7 @@
     "tests/unit/nav-menu.test.jsx",
     "tests/unit/notification-pagination.test.jsx",
     "tests/unit/personal-room-lists.test.jsx",
+    "tests/unit/player-ratings.test.jsx",
     "tests/unit/profile-settings.test.jsx",
     "tests/unit/room-form.test.jsx",
     "tests/unit/session-boundaries.test.jsx",
