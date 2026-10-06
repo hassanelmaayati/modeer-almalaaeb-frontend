@@ -17,3 +17,4 @@
 .fixture-result input { width: 4rem; }
 .race-results { border-collapse: collapse; width: 100%; max-width: 35rem; }
 .race-results th, .race-results td { border-bottom: 1px solid #ddd; padding: .3rem; text-align: left; }
+.entry-roster { list-style: none; padding: 0; margin: .25rem 0 0; display: flex; flex-wrap: wrap; gap: .25rem .75rem; font-size: .9rem; }

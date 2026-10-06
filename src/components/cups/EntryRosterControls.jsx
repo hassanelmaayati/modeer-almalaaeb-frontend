@@ -6,7 +6,7 @@ import { registrationClosed } from '../../lib/helpers/cups';
 /** Group-owner controls during registration: enter an owned group, or withdraw one already entered. */
 export default function EntryRosterControls({ cup, user, groups, ownEntries, onEnter, onWithdraw }) {
   const { pending, error, run } = useAction();
-  if (!user) return <p><Link to="/sign-in" state={{ from: `/cups/${cup.id}` }}>Sign in</Link> to enter your team.</p>;
+  if (!user) return <p><Link to="/sign-in">Sign in</Link> to enter your team.</p>;
   const closed = registrationClosed(cup);
 
   function enter(event) {

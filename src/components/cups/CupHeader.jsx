@@ -27,7 +27,8 @@ export default function CupHeader({ cup, sportName }) {
       <li><CupStatusBadge status={cup.status} /></li>
       <li><Icon name="people" />{cup.team_count} teams</li>
       <li><Icon name="people" />Up to {cup.roster_limit} {cup.roster_limit === 1 ? 'player' : 'players'} per team</li>
-      {cup.registration_closes_at && <li><CupDeadline closesAt={cup.registration_closes_at} /></li>}
+      {/* The deadline only matters before publishing; afterwards entries are locked. */}
+      {['draft', 'registration'].includes(cup.status) && cup.registration_closes_at && <li><CupDeadline closesAt={cup.registration_closes_at} /></li>}
     </ul>
     <section className="home-section cup-rules-card" aria-labelledby="cup-rules-title">
       <h2 id="cup-rules-title">Rules</h2>

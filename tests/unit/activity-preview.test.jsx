@@ -71,13 +71,14 @@ describe('public activity previews', () => {
     expect(roomMemberService.request).not.toHaveBeenCalled();
   });
 
-  it('retains the filtered return destination when guests sign in', async () => {
+  it('sends guests to sign in without a return destination', async () => {
     const user = userEvent.setup();
     renderPreview({ session: { user: null, loading: false } });
     const signIn = await screen.findByRole('link', { name: 'Sign in to request a place' });
     expect(screen.queryByRole('button', { name: 'Request to join' })).not.toBeInTheDocument();
     await user.click(signIn);
-    expect(screen.getByLabelText('Return location')).toHaveTextContent('/sports?district=capital');
+    // Sign-in always lands on home now, so no return location is passed.
+    expect(screen.getByLabelText('Return location')).toBeEmptyDOMElement();
     expect(roomMemberService.request).not.toHaveBeenCalled();
   });
 

@@ -76,7 +76,7 @@ export default function RoomPage({ session }) {
           {room.description && <p>{room.description}</p>}{room.notes && <p>Notes: {room.notes}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
           {room.venue_location && <><h3>Venue location</h3><LocationView location={room.venue_location} /></>}
           {admission.message && <p role="status">{admission.message}</p>}
-          {!user && <Link to="/sign-in" state={{ from: location.pathname }}>Sign in to request a place</Link>}
+          {!user && <Link to="/sign-in">Sign in to request a place</Link>}
           {admission.canRequest && <button type="button" disabled={pending} onClick={() => run(requestPlace, 'Request sent. Waiting for host approval.')}>Request to join</button>}
           {own?.status === 'pending' && own.requested === false && <div className="button-row">
             <button type="button" disabled={pending || room.status !== 'open' || admission.atCutoff || admission.full} onClick={() => run(() => roomMemberService.update(roomId, userId, { status: 'accepted' }), 'Invitation accepted.')}>Accept invitation</button>

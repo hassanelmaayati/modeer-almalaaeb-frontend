@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import Field from '../common/Field';
 import { DISTRICTS } from '../../lib/helpers/filters';
 
 export default function AuthForm({ session, signup = false }) {
-  const location = useLocation(), navigate = useNavigate();
+  const navigate = useNavigate();
   const [error, setError] = useState(''), [pending, setPending] = useState(false);
   // Always home after auth (no return to state.from), so Back can't reopen the previous account's page.
   const destination = '/', title = signup ? 'Sign up' : 'Sign in';
@@ -25,7 +25,10 @@ export default function AuthForm({ session, signup = false }) {
     try {
       await (signup ? session.signUp : session.signIn)(body);
       navigate(destination, { replace: true });
-    } catch (failure) { setError(failure.message); }
+    } catch (failure) {
+      // Wrong login credentials are a 401. It never clears a session: the login request is sent without a token.
+      setError(!signup && failure.status === 401 ? 'Invalid credentials' : failure.message);
+    }
     finally { setPending(false); }
   }
 
@@ -47,6 +50,6 @@ export default function AuthForm({ session, signup = false }) {
       </Field>}
       <div className="actions"><button disabled={pending}>{pending ? signup ? 'Creating account…' : 'Signing in…' : title}</button><Link to={destination}>Cancel</Link></div>
     </form>
-    <p>{signup ? 'Already registered? ' : 'Need an account? '}<Link to={signup ? '/sign-in' : '/sign-up'} state={location.state}>{signup ? 'Sign in' : 'Sign up'}</Link></p>
+    <p>{signup ? 'Already registered? ' : 'Need an account? '}<Link to={signup ? '/sign-in' : '/sign-up'}>{signup ? 'Sign in' : 'Sign up'}</Link></p>
   </main>;
 }

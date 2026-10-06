@@ -1,8 +1,9 @@
 import { GOOGLE_CLIENT_ID } from '../../lib/helpers/google';
 import GoogleSignInButton from '../auth/GoogleSignInButton';
 
-// While linking, 409 means this Google account already belongs to another user (not the sign-in 409).
-const linkError = error => error?.status === 409 ? 'This Google account is already linked to another user.' : error?.message || 'Linking Google failed.';
+// While linking, a 409 means this Google account already belongs to another user; the backend's detail says so.
+// (Unlike the sign-in 409, which tells the user to link Google from Settings.)
+const linkError = error => error?.message || 'Linking Google failed.';
 
 /** @param {{ me: { email: string, google_linked: boolean }, onLink: (credential: string) => Promise<void> }} props */
 export default function GoogleLinkControls({ me, onLink }) {

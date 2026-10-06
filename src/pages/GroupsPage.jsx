@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import AsyncState from '../components/common/AsyncState';
 import GroupCard from '../components/groups/GroupCard';
@@ -27,7 +27,6 @@ function GroupsBanner({ children }) {
 
 export default function GroupsPage({ session }) {
   const { user, loading, error: sessionError } = session;
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [resource, setResource] = useState(emptyResource);
   const [revision, setRevision] = useState(0);
@@ -57,7 +56,7 @@ export default function GroupsPage({ session }) {
       <h2>Join the community</h2>
       <p className="home-subtitle">Sign in to see your groups and invitations.</p>
       {sessionError && <p role="alert">{sessionError.message}</p>}
-      <Link className="button-primary" to="/sign-in" state={{ from: location.pathname + location.search }}>Sign in</Link>
+      <Link className="button-primary" to="/sign-in">Sign in</Link>
     </section>
   </div></main>;
 

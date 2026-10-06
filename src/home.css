@@ -10,7 +10,7 @@
 
 body { font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: var(--ink); background: #fff; }
 
-.button-primary, .button-outline, .header-google {
+.button-primary, .button-outline {
   display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
   padding: .7rem 1.5rem; border-radius: 4px; font-weight: 600; text-decoration: none; cursor: pointer; line-height: 1.2;
 }
@@ -18,7 +18,7 @@ body { font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-ser
 .button-primary:hover, .button-primary:focus-visible { background: var(--green-dark); border-color: var(--green-dark); }
 .button-outline { background: #fff; color: var(--green); border: 2px solid var(--green); }
 .button-outline:hover, .button-outline:focus-visible { background: var(--green-soft); }
-.button-primary:focus-visible, .button-outline:focus-visible, .sport-tile:focus-visible, .header-google:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.button-primary:focus-visible, .button-outline:focus-visible, .sport-tile:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
 
 .site-header {
   display: flex; align-items: center; gap: 1.5rem;
@@ -37,8 +37,6 @@ body { font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-ser
 .nav-status { font-size: .85rem; color: var(--muted-ink); }
 .nav-error { flex-basis: 100%; margin: 0; color: #b00020; }
 .nav-cta { padding: .5rem 1.1rem; font-size: .95rem; }
-.header-google { background: #fff; color: var(--ink); border: 1px solid #c9d1cd; padding: .45rem 1rem; font-weight: 500; }
-.header-google:hover { background: #f4f6f5; }
 
 .user-menu { position: relative; }
 .user-menu-button { display: inline-flex; align-items: center; gap: .55rem; padding: .3rem .7rem .3rem .35rem; border: 1px solid var(--line); border-radius: 2rem; background: #fff; color: var(--ink); font-weight: 500; }

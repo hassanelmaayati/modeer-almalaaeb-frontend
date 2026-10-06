@@ -15,9 +15,10 @@ export default function SettingsPage({ session }) {
   useEffect(() => startRequest(signal => userService.getMe({ signal }), setMe), [revision]);
 
   async function saveProfile(body) {
-    await userService.updateMe(body);
-    reload();
-    session.refreshUser();
+    // PUT returns the updated private user, so no refetch is needed.
+    setMe({ data: await userService.updateMe(body), loading: false, error: null });
+    // The save already succeeded; a failed NavBar refresh shouldn't turn it into an error.
+    try { await session.refreshUser(); } catch { /* NavBar keeps the old name until the next load */ }
   }
 
   async function linkGoogle(credential) {

@@ -26,7 +26,6 @@ const contracts = [
   ['logout', () => auth.logout(), 'POST', '/auth/logout', true],
   ['Google sign in', () => google.signIn({ credential: 'id-token' }), 'POST', '/auth/google', false, { credential: 'id-token' }],
   ['link Google', () => google.link({ credential: 'id-token' }), 'POST', '/auth/google/link', true, { credential: 'id-token' }],
-  ['users', () => users.list(), 'GET', '/users', false],
   ['user profile', () => users.get(2), 'GET', '/users/2', false],
   ['current user', () => users.getMe(), 'GET', '/users/me', true],
   ['update current user', () => users.updateMe({ user_name: 'Player' }), 'PUT', '/users/me', true, { user_name: 'Player' }],
@@ -64,6 +63,8 @@ const contracts = [
   ['read notification', () => notifications.markRead(3), 'PATCH', '/notifications/3', true, { read: true }],
   ['read all notifications', () => notifications.markAllRead(), 'PATCH', '/notifications', true, { read: true }],
   ['cups', () => cups.list({ status: 'published' }), 'GET', '/cups?status=published', true],
+  ['cup pages', () => cups.list({ status: 'registration', limit: 50, offset: 50 }), 'GET', '/cups?status=registration&limit=50&offset=50', true],
+  ['cup roster', () => cupRoster.list(1), 'GET', '/cups/1/roster', true],
   ['cup', () => cups.get(1), 'GET', '/cups/1', true],
   ['create cup', () => cups.create({ name: 'Cup' }), 'POST', '/cups', true, { name: 'Cup' }],
   ['edit cup', () => cups.update(1, { revision: 0 }), 'PATCH', '/cups/1', true, { revision: 0 }],
@@ -98,11 +99,21 @@ describe('backend service contracts', () => {
     }
   })
 
+  it('reads every page of the paged user list for search and name lookups', async () => {
+    const people = count => Array.from({ length: count }, (_, index) => ({ id: index + 1 }))
+    fetch.mockImplementationOnce(async () => jsonResponse(people(100))).mockImplementationOnce(async () => jsonResponse(people(3)))
+    expect(await users.list()).toHaveLength(103)
+    expect(fetch.mock.calls.map(([url]) => url)).toEqual(['/api/v1/users?limit=100&offset=0', '/api/v1/users?limit=100&offset=100'])
+    expect(fetch.mock.calls[0][1].headers.Authorization).toBeUndefined()
+  })
+
   it('allows public room and cup details when signed out', async () => {
     await rooms.get(1)
     await roomMembers.list(1)
     await cups.get(1)
     await cups.list()
+    await cupRoster.list(1)
+    expect(fetch).toHaveBeenCalledTimes(5)
     for (const [, options] of fetch.mock.calls) expect(options.headers.Authorization).toBeUndefined()
   })
 
@@ -153,6 +164,15 @@ describe('API response and failure handling', () => {
     fetch.mockResolvedValue(jsonResponse({ detail: 'Token has expired' }, 401))
     await expect(users.getMe()).rejects.toMatchObject({ status: 401, message: 'Token has expired' })
     expect(getToken()).toBeNull()
+  })
+
+  it('treats wrong login credentials (401) as a form error without touching any stored session', async () => {
+    const session = token()
+    setToken(session)
+    fetch.mockResolvedValue(jsonResponse({ detail: 'Invalid credentials' }, 401))
+    await expect(auth.signIn({ email: 'a@example.test', password: 'wrong' })).rejects.toMatchObject({ status: 401, message: 'Invalid credentials' })
+    expect(fetch.mock.calls[0][1].headers.Authorization).toBeUndefined()
+    expect(getToken()).toBe(session)
   })
 
   it('preserves AbortError rather than displaying a server failure', async () => {

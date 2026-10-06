@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../../src/App';
@@ -42,7 +42,12 @@ describe('application session and live notifications', () => {
     render(<MemoryRouter><App /></MemoryRouter>);
     expect(screen.getByRole('heading', { name: 'Your next game starts here' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'No upcoming games' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Sign in with Google' })).toHaveAttribute('href', '/sign-in');
+    // Guests get plain Sign in / Sign up links in the header; Google sign-in only lives on those pages.
+    const header = within(screen.getByRole('banner'));
+    expect(header.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in');
+    expect(header.getByRole('link', { name: 'Sign in' })).toHaveClass('nav-plain');
+    expect(header.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/sign-up');
+    expect(header.queryByText(/Google/)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Sign in to host a room' })).toHaveAttribute('href', '/sign-in');
     expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
     expect(notificationService.list).not.toHaveBeenCalled();
