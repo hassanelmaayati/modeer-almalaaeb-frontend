@@ -150,3 +150,32 @@ export function MessagesArt() {
     </g>
   </svg>;
 }
+
+// Notifications scene in the same grey line-art: a ringing bell with a trail of notice cards and a tick.
+export function NotificationsArt() {
+  return <svg className="banner-art banner-art-pitch" viewBox="0 0 1200 160" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <g transform="translate(60 0) scale(.92)">
+      <g transform="rotate(-10 600 96)">
+        <path d="M562 112V84a38 38 0 0 1 76 0v28l12 16H550Z" fill="#f3f5f4" />
+        <path d="M588 128a12 12 0 0 0 24 0M600 36v10" />
+        <path d="M575 84a25 25 0 0 1 12-22" strokeWidth="1.6" />
+      </g>
+      <path d="M520 60c-8 10-10 22-6 34M508 48c-14 16-18 38-10 58M684 56c8 10 10 22 6 34M696 44c14 16 18 38 10 58" strokeWidth="1.8" />
+      <g strokeWidth="1.8">
+        <rect x="740" y="32" width="150" height="40" rx="8" fill="#f3f5f4" />
+        <circle cx="764" cy="52" r="10" />
+        <path d="M784 46h86M784 58h54" strokeWidth="1.5" />
+        <rect x="770" y="86" width="150" height="40" rx="8" fill="#f3f5f4" />
+        <circle cx="794" cy="106" r="10" />
+        <path d="M814 100h86M814 112h40" strokeWidth="1.5" />
+        <path d="M758 106h-16M752 98l-10 8 10 8" strokeWidth="1.5" strokeDasharray="2 5" />
+      </g>
+      <g strokeWidth="1.8">
+        <circle cx="960" cy="80" r="22" fill="#f3f5f4" />
+        <path d="M950 80l8 8 14-16" />
+      </g>
+      <path d="M470 124h-30M450 140h-30" strokeWidth="1.5" strokeDasharray="3 7" />
+      <g strokeWidth="1.2"><path d="M1010 36l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /><path d="M470 36l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+    </g>
+  </svg>;
+}

@@ -522,3 +522,48 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
   content: "Your teammates are waiting"; margin-top: .8rem; padding: .35rem 1rem;
   border: 1px dashed #9fc0b2; border-radius: 2rem; background: #fff; color: var(--green); font-size: .85rem; font-weight: 600;
 }
+
+/* Notifications */
+.notifications-scope .notification-panel { padding: 1.4rem 1.6rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 3px; background: #f6f8f7; }
+.notifications-scope .notification-panel h2 { margin-bottom: .2rem; }
+.notifications-scope .notification-panel .button-primary { margin-top: .4rem; }
+.notifications-scope .sports-banner-actions button { cursor: pointer; }
+.notifications-scope .sports-banner-actions button:disabled { opacity: .55; cursor: not-allowed; }
+.notifications-scope [role="alert"] { margin: 1rem 0 0; padding: .6rem .9rem; border-left: 4px solid #b00020; border-radius: 3px; background: #fdecea; color: #7a1f1a; }
+.notification-demo { margin: 1rem 0 0; padding: .5rem .9rem; border: 1px dashed #c89b1c; border-radius: 3px; background: #fff6dd; color: #7a5a00; font-size: .9rem; }
+
+.notifications-scope .notification-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.notification-card { position: relative; display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: .4rem 1rem; padding: .95rem 1.1rem; border: 1px solid var(--line); border-left: 4px solid #c9d0cc; border-radius: 4px; background: #fff; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; animation: notice-in .3s ease both; }
+.notification-card:hover { transform: translateX(3px); box-shadow: 0 6px 18px rgba(20, 40, 32, .08); }
+.notification-card.is-unread { border-left-color: var(--green); background: linear-gradient(100deg, var(--green-soft), #fff 55%); }
+.notification-card.starts-day { margin-top: .9rem; }
+.notification-card.starts-day:first-child { margin-top: 0; }
+.notification-day { grid-column: 1 / -1; margin: -.2rem 0 .1rem; font-size: .75rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #8a948f; }
+.notification-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2.8rem; height: 2.8rem; border-radius: 50%; background: #f3f5f4; color: #46514c; }
+.notification-card.is-unread .notification-icon { background: var(--green); color: #fff; }
+.notification-kind-room .notification-icon { box-shadow: inset 0 0 0 1px #e6c66c; background: #fff6dd; color: #8a6410; }
+.notification-kind-room.is-unread .notification-icon { background: #c89b1c; color: #fff; box-shadow: none; }
+.notification-kind-friend.is-unread .notification-icon { background: #3b6ea8; }
+.notification-kind-cup .notification-icon { color: #8a6410; }
+.notification-body { min-width: 0; }
+.notification-text { margin: 0; font-weight: 600; color: var(--ink); line-height: 1.35; }
+.notification-card:not(.is-unread) .notification-text { font-weight: 500; color: #2a3430; }
+.notification-time { margin: .2rem 0 0; font-size: .85rem; color: #8a948f; }
+.notifications-scope .notification-unread { grid-column: 3; justify-self: end; padding: .1rem .65rem; border: 1px solid var(--green); border-radius: 1rem; background: #fff; color: var(--green); font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
+.notification-actions { grid-column: 4; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .6rem; }
+.notification-open { display: inline-flex; align-items: center; padding: .3rem .9rem; border: 1px solid var(--green); border-radius: 4px; background: #fff; color: var(--green); font-size: .88rem; font-weight: 600; text-decoration: none; }
+.notification-open:hover { background: var(--green-soft); }
+.notification-mark { padding: .3rem .4rem; border: 0; background: none; color: var(--muted-ink); font: inherit; font-size: .88rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.notification-mark:hover:not(:disabled) { color: var(--green); }
+.notification-mark:disabled { opacity: .5; cursor: not-allowed; }
+.notifications-scope a:focus-visible, .notifications-scope button:focus-visible { outline: 3px solid #7fb8a6; outline-offset: 2px; }
+.notification-paging { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1rem; }
+.notification-paging button { padding: .5rem 1.2rem; border: 2px solid var(--green); border-radius: 4px; background: #fff; color: var(--green); font: inherit; font-weight: 600; cursor: pointer; }
+.notification-paging button:hover:not(:disabled) { background: var(--green-soft); }
+@keyframes notice-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .notification-card { animation: none; transition: none; } .notification-card:hover { transform: none; } }
+@media (max-width: 52rem) { .notification-card { grid-template-columns: auto 1fr; } .notifications-scope .notification-unread { grid-column: 2; justify-self: start; } .notification-actions { grid-column: 1 / -1; justify-content: flex-start; } }
+.notifications-scope .empty-state { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 2.4rem 1rem; border: 2px dashed #c9d0cc; border-radius: 4px; background: #f6f8f7; text-align: center; }
+.notifications-scope .empty-state::before { content: ""; width: 84px; height: 84px; margin-bottom: .4rem; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84' fill='none' stroke='%239fc0b2' stroke-width='2.400' stroke-linecap='round' stroke-linejoin='round'><circle cx='42' cy='42' r='38' fill='%23e3efe9' stroke='none'/><path d='M26 52V40a16 16 0 0 1 32 0v12l4 5H22Z' fill='white'/><path d='M36 62a6 6 0 0 0 12 0M42 20v4'/><path d='M62 24l2 4 4 2-4 2-2 4-2-4-4-2 4-2z' stroke-width='1.300'/></svg>") center / contain no-repeat; }
+.notifications-scope .empty-state h3 { margin: 0; font-size: 1.2rem; }
+.notifications-scope .empty-state p { margin: 0; color: var(--muted-ink); }
