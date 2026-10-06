@@ -1,25 +1,8 @@
 import { Route, Routes, useNavigate } from 'react-router';
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import NavBar from './components/layout/NavBar';
-import SignInPage from './pages/SignInPage';
-import SignUpPage from './pages/SignUpPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-import CupsPage from './pages/CupsPage';
-import CreateCupPage from './pages/CreateCupPage';
-import CupPage from './pages/CupPage';
 import RequireAuth from './components/auth/RequireAuth';
 import HomePage from './pages/HomePage';
-import GroupsPage from './pages/GroupsPage';
-import SportsPage from './pages/SportsPage';
-import RoomPage from './pages/RoomPage';
-import CreateRoomPage from './pages/CreateRoomPage';
-import MyRoomsPage from './pages/MyRoomsPage';
-import JoinedRoomsPage from './pages/JoinedRoomsPage';
-import EditRoomPage from './pages/EditRoomPage';
-import FriendsPage from './pages/FriendsPage';
-import MessagesPage from './pages/MessagesPage';
-import NotificationsPage from './pages/NotificationsPage';
 import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
 import { emptyResource, startRequest } from './lib/helpers/request';
@@ -32,6 +15,25 @@ import './App.css';
 import './home.css';
 import './users.css';
 import './cups.css';
+
+// Route pages load on demand so the first visit doesn't download every page (and leaflet maps) up front.
+const SignInPage = lazy(() => import('./pages/SignInPage'));
+const SignUpPage = lazy(() => import('./pages/SignUpPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const CupsPage = lazy(() => import('./pages/CupsPage'));
+const CreateCupPage = lazy(() => import('./pages/CreateCupPage'));
+const CupPage = lazy(() => import('./pages/CupPage'));
+const GroupsPage = lazy(() => import('./pages/GroupsPage'));
+const SportsPage = lazy(() => import('./pages/SportsPage'));
+const RoomPage = lazy(() => import('./pages/RoomPage'));
+const CreateRoomPage = lazy(() => import('./pages/CreateRoomPage'));
+const MyRoomsPage = lazy(() => import('./pages/MyRoomsPage'));
+const JoinedRoomsPage = lazy(() => import('./pages/JoinedRoomsPage'));
+const EditRoomPage = lazy(() => import('./pages/EditRoomPage'));
+const FriendsPage = lazy(() => import('./pages/FriendsPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 
 export default function App() {
   const [account, setAccount] = useState(initialSession);
@@ -65,6 +67,7 @@ export default function App() {
   const accountKey = account.user?.id || 'guest';
   return <>
     <NavBar session={session} liveStatus={liveStatus} messageUnread={messageUnread.total} unreadCount={userId && notifications.data?.userId === userId ? notifications.data.unread_count : 0} />
+    <Suspense fallback={<main><p className="status-message" role="status">Loading…</p></main>}>
     <Routes>
       <Route path="/" element={<HomePage key={accountKey} session={session} />} />
 
@@ -95,5 +98,6 @@ export default function App() {
 
       <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
     </Routes>
+    </Suspense>
   </>;
 }
