@@ -24,3 +24,16 @@ export function CourtArt() {
     <path d="M118 22C70 30 38 62 38 100s32 70 80 78" strokeDasharray="3 4" />
   </svg>;
 }
+
+export function StadiumArt() {
+  return <svg className="stadium-art" viewBox="0 0 1200 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+    <rect x="-2" y="-2" width="1204" height="164" />
+    <path d="M600 -2V162" />
+    <circle cx="600" cy="80" r="46" />
+    <circle cx="600" cy="80" r="2" />
+    <rect x="-2" y="20" width="110" height="120" />
+    <rect x="-2" y="52" width="40" height="56" />
+    <rect x="1092" y="20" width="110" height="120" />
+    <rect x="1162" y="52" width="40" height="56" />
+  </svg>;
+}
