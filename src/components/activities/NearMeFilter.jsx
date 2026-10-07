@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Select from '../common/Select';
 
 const RADIUS_OPTIONS = [2, 5, 10, 20, 50];
 // Two decimals is about 1 km: enough to rank rooms by distance without sending an exact position.
@@ -28,9 +29,9 @@ export default function NearMeFilter({ near, radius, onNear, onRadius }) {
     {near
       ? <div className="button-row">
         <label className="form-field">Show activities within
-          <select value={radius} onChange={event => onRadius(Number(event.target.value))}>
+          <Select value={radius} onChange={event => onRadius(Number(event.target.value))}>
             {RADIUS_OPTIONS.map(km => <option key={km} value={km}>{km} km</option>)}
-          </select>
+          </Select>
         </label>
         <button type="button" className="button-secondary" onClick={() => onNear(null)}>Stop using my location</button>
       </div>
