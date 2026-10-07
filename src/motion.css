@@ -96,7 +96,7 @@
   .sports-banner.is-inview .room-banner-sport { animation: spin-in 1.1s var(--ease-spring) .1s backwards; }
   @supports (background-clip: text) or (-webkit-background-clip: text) {
     .sports-banner.is-inview h1, .home-hero.is-inview h1 {
-      background-image: linear-gradient(100deg, var(--heading) 0 42%, #14c46c 50%, var(--heading) 58% 100%);
+      background-image: linear-gradient(100deg, var(--heading) 0 42%, var(--green-light) 50%, var(--heading) 58% 100%);
       background-size: 320% 100%;
       background-position: 0% 0;
       -webkit-background-clip: text;
