@@ -1,5 +1,6 @@
 {
   "unit": [
+    "tests/unit/theme.test.jsx",
     "tests/unit/CancelRoomForm.test.jsx",
     "tests/unit/ChatCancelled.test.jsx",
     "tests/unit/ChatLive.test.jsx",

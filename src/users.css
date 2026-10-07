@@ -2,15 +2,15 @@
 .google-button { margin-block: 1rem; }
 .player-profile { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
 .player-profile h1 { margin-top: 0; }
-.avatar { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; background: #ddd; vertical-align: middle; }
+.avatar { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; background: var(--muted); vertical-align: middle; }
 .avatar-large { width: 6rem; height: 6rem; font-size: 2.5rem; }
-.muted { color: #555; }
+.muted { color: var(--muted-foreground); }
 .star-picker { border: 0; margin: 0 0 .5rem; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }
 .star-picker legend { float: left; margin-right: .75rem; padding: 0; font-weight: 600; }
-.star-option { display: inline-block; font-size: 1.75rem; line-height: 1; cursor: pointer; color: #555; }
-.star-option.is-on { color: #8a5a00; }
+.star-option { display: inline-block; font-size: 1.75rem; line-height: 1; cursor: pointer; color: var(--muted-foreground); }
+.star-option.is-on { color: var(--rating-color); }
 /* The radio is visually hidden, so show keyboard focus on its star. */
-.star-option:focus-within { outline: 3px solid #1a6b54; outline-offset: 2px; border-radius: 4px; }
+.star-option:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
 .star-picker:disabled .star-option { cursor: default; }
 .rate-players { list-style: none; padding: 0; display: grid; gap: 1rem; }
 .rating-summary h2 { margin-bottom: .25rem; }

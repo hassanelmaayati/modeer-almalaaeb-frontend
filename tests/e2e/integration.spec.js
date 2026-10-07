@@ -1,5 +1,8 @@
 import { test, expect } from '../helpers/offline.js'
 
+// Functional flows wait for data; smoke tests retain motion and verify animated styling.
+test.use({ reducedMotion: 'reduce' })
+
 const password = 'TestPass123!'
 const api = 'http://127.0.0.1:8001/api/v1'
 
@@ -21,11 +24,25 @@ async function authorization(page) {
   return { Authorization: `Bearer ${token}` }
 }
 
-async function openGroup(page, name, view = 'joined') {
+async function chooseOption(page, field, label) {
+  await field.focus()
+  await page.keyboard.press('Space')
+  await page.getByRole('listbox').getByRole('option', { name: label, exact: true }).click()
+}
+
+async function openGroup(page, name) {
   await page.goto('/groups')
-  await page.getByRole('combobox', { name: 'Group view', exact: true }).selectOption(view)
+  await chooseOption(page, page.getByRole('combobox', { name: 'Group view', exact: true }), 'Your groups')
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
   await card.getByRole('button', { name: 'Open group', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name, exact: true })
+  await expect(dialog).toBeVisible()
+  return dialog
+}
+
+async function openInvitation(page, groupId, name) {
+  // Group invitation notifications use this supported direct entry path.
+  await page.goto(`/groups?group_id=${groupId}`)
   const dialog = page.getByRole('dialog', { name, exact: true })
   await expect(dialog).toBeVisible()
   return dialog
@@ -49,12 +66,12 @@ test('public discovery filters real backend activities and preserves private ven
   await expect(homePreview.getByText('Private fixture meeting instructions', { exact: true })).toHaveCount(0)
   await homePreview.getByRole('button', { name: 'Close dialog', exact: true }).click()
   await page.goto('/sports')
-  await page.getByRole('combobox', { name: 'Activity', exact: true }).selectOption('2')
+  await chooseOption(page, page.getByRole('combobox', { name: 'Activity', exact: true }), 'Basketball')
   await page.getByRole('button', { name: 'Apply filters', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Friday Football Match', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Clear filters', exact: true }).click()
   const roomCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Friday Football Match', exact: true }) })
-  await roomCard.getByRole('button', { name: 'View activity', exact: true }).click()
+  await roomCard.getByRole('button', { name: 'View game: Friday Football Match', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Friday Football Match', exact: true })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText('Manama · Capital', { exact: true })).toBeVisible()
@@ -70,11 +87,16 @@ test('public discovery filters real backend activities and preserves private ven
 test('owner creates and edits a group and invites an existing registered player', async ({ page, request }) => {
   await signIn(page, 'owner')
   await page.goto('/groups')
+  const banner = page.getByRole('banner')
+  await expect(banner.getByRole('button', { name: 'Test Owner', exact: true })).toBeVisible()
+  await expect(banner.getByRole('status')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Weekend Football', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Create group', exact: true }).click()
   const form = page.getByRole('dialog')
+  await expect(form).toBeVisible()
   await form.getByLabel('Group name', { exact: true }).fill('E2E Evening Team')
   await form.getByRole('textbox', { name: 'Description', exact: true }).fill('Created through the real frontend and backend')
-  await form.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('1')
+  await chooseOption(page, form.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ }), 'Football')
   const createResponse = page.waitForResponse((result) => result.url().endsWith('/api/v1/groups') && result.request().method() === 'POST')
   await form.getByRole('button', { name: 'Create group', exact: true }).click()
   expect((await createResponse).status()).toBe(201)
@@ -89,16 +111,16 @@ test('owner creates and edits a group and invites an existing registered player'
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'E2E Edited Team', exact: true })).toBeVisible()
   const editedDialog = page.getByRole('dialog', { name: 'E2E Edited Team', exact: true })
-  await editedDialog.getByRole('combobox', { name: 'Player', exact: true }).selectOption('3')
-  await editedDialog.getByRole('button', { name: 'Invite', exact: true }).click()
+  await editedDialog.getByRole('searchbox', { name: 'Search people', exact: true }).fill('Test Outsider')
+  await editedDialog.getByRole('button', { name: 'Invite Test Outsider', exact: true }).click()
   await expect.poll(async () => (await groupMembership(request, page, created.id, 3))?.status).toBe('pending')
   const saved = await request.get(`${api}/groups/${created.id}`)
   expect(await saved.json()).toMatchObject({ name: 'E2E Edited Team', description: 'Edited description', owner_id: 1 })
 })
 
-test('an invited player accepts and then leaves a group with persisted membership state', async ({ page, request }) => {
+test('a group invitation link supports acceptance and leaving with persisted membership state', async ({ page, request }) => {
   await signIn(page, 'member')
-  const dialog = await openGroup(page, 'Weekend Football', 'invitations')
+  const dialog = await openInvitation(page, 1, 'Weekend Football')
   await dialog.getByRole('button', { name: 'Accept invitation', exact: true }).click()
   await expect.poll(async () => (await groupMembership(request, page, 1, 2))?.status).toBe('accepted')
   await expect(dialog.getByRole('button', { name: 'Leave group', exact: true })).toBeVisible()
@@ -107,14 +129,14 @@ test('an invited player accepts and then leaves a group with persisted membershi
   await expect(dialog.getByRole('button', { name: 'Accept invitation', exact: true })).toHaveCount(0)
 })
 
-test('an invitation can be declined and an activity request can be withdrawn', async ({ page, request }) => {
+test('a group invitation link supports declining and an activity request can be withdrawn', async ({ page, request }) => {
   await signIn(page, 'outsider')
-  const dialog = await openGroup(page, 'Basketball Friends', 'invitations')
+  const dialog = await openInvitation(page, 2, 'Basketball Friends')
   await dialog.getByRole('button', { name: 'Decline invitation', exact: true }).click()
   await expect.poll(async () => (await groupMembership(request, page, 2, 3))?.status).toBe('declined')
   await page.goto('/sports')
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Friday Football Match', exact: true }) })
-  await card.getByRole('button', { name: 'View activity', exact: true }).click()
+  await card.getByRole('button', { name: 'View game: Friday Football Match', exact: true }).click()
   const activity = page.getByRole('dialog', { name: 'Friday Football Match', exact: true })
   await activity.getByRole('button', { name: /Request (a place|to join)/ }).click()
   await expect(activity.getByText(/Request pending\. The host must approve/)).toBeVisible()
@@ -128,7 +150,8 @@ test('only the owner can edit or invite, and owner removal is persisted', async 
   await signIn(page, 'accepted')
   let dialog = await openGroup(page, 'Weekend Football')
   await expect(dialog.getByRole('button', { name: 'Edit group', exact: true })).toHaveCount(0)
-  await expect(dialog.getByRole('button', { name: 'Invite', exact: true })).toHaveCount(0)
+  await expect(dialog.getByRole('searchbox', { name: 'Search people', exact: true })).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: /^Invite / })).toHaveCount(0)
   const denied = await request.put(`${api}/groups/1`, { headers: await authorization(page), data: { name: 'Unauthorized edit' } })
   expect(denied.status()).toBe(403)
   await signIn(page, 'owner')
@@ -143,7 +166,7 @@ test('mobile activity discovery and dialogs fit a phone viewport', async ({ page
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/sports')
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Friday Football Match', exact: true }) })
-  await card.getByRole('button', { name: 'View activity', exact: true }).click()
+  await card.getByRole('button', { name: 'View game: Friday Football Match', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Friday Football Match', exact: true })
   await expect(dialog).toBeVisible()
   const bounds = await dialog.boundingBox()
@@ -152,7 +175,7 @@ test('mobile activity discovery and dialogs fit a phone viewport', async ({ page
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
-  await expect(card.getByRole('button', { name: 'View activity', exact: true })).toBeFocused()
+  await expect(card.getByRole('button', { name: 'View game: Friday Football Match', exact: true })).toBeFocused()
 })
 
 test('SPA account changes clear the previous account and owner controls without reloading', async ({ page }) => {
@@ -171,7 +194,7 @@ test('SPA account changes clear the previous account and owner controls without 
   await expect(page.getByRole('heading', { name: 'Your next game starts here', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Basketball Friends', exact: true })).toHaveCount(0)
 
-  await page.getByRole('banner').getByRole('link', { name: 'Sign in with Google', exact: true }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true }).click()
   await page.getByLabel('Email', { exact: true }).fill('accepted@example.test')
   await page.getByLabel('Password', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()

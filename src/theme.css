@@ -40,8 +40,8 @@
   --muted-foreground: oklch(0.46 0.032 165);
   --destructive: oklch(0.55 0.22 27);
   --border: oklch(0.91 0.008 220);
-  --input: oklch(0.85 0.008 220);
-  --ring: oklch(0.8254 0.2367 148.368);
+  --input: #7c8782;
+  --ring: var(--primary);
   --chart-1: oklch(0.8254 0.2367 148.368);
   --chart-2: oklch(0.55 0.22 295);
   --chart-3: oklch(0.7 0.18 50);
@@ -66,7 +66,49 @@
   --btn-outline: var(--heading);
   --btn-disabled-bg: #e1e5e8;
   --btn-disabled-fg: #a8b3bc;
-  --focus-ring: color-mix(in oklch, var(--ring) 60%, white);
+  --focus-ring: var(--ring);
+
+  /* Shared surfaces and paired status colours keep every page in the same theme. */
+  --surface-subtle: #f6f8f7;
+  --surface-raised: #f3f5f4;
+  --surface-hover: #f1f4f2;
+  --control-bg: #fbfcfb;
+  --control-hover: #fff;
+  --illustration-surface: #f3f5f4;
+  --empty-art-bg: #e3efe9;
+  --empty-art-surface: #fff;
+  --empty-art-line: #9fc0b2;
+  --on-primary: #fff;
+  --success-bg: var(--accent);
+  --success-fg: var(--green-dark);
+  --success-border: var(--primary);
+  --warning-bg: #fff6dd;
+  --warning-fg: #7a5a00;
+  --warning-border: #c89b1c;
+  --error-bg: #fdecea;
+  --error-fg: #7a1f1a;
+  --error-border: #b00020;
+  --info-bg: #e3ecf8;
+  --info-fg: #2a5384;
+  --info-border: #3b6ea8;
+  --chat-own-bg: #1d7a66;
+  --chat-own-end: var(--green-dark);
+  --chat-own-fg: #fff;
+  --chat-other-bg: var(--card);
+  --rating-color: #b08300;
+  --rating-fg: #a37a00;
+  --rating-off: #7c8f84;
+  --rating-disabled: #e3e8e5;
+  --page-bg: oklch(0.979 0.007 160);
+  --page-grid: oklch(0.6 0.03 165 / .22);
+  --secondary-hover: oklch(0.92 0.09 155);
+  --placeholder: #5d6e65;
+  --calendar-outside: #67766e;
+  --control-border-hover: #5f8675;
+  --control-border-valid: #598571;
+  --table-line: #eceff1;
+  --btn-active-fg: #000;
+  --destructive-fg: #fff;
 
   /* The app's older variables now come from the tokens above. */
   --green: var(--primary);
@@ -77,14 +119,14 @@
   --line: var(--border);
 }
 
-.dark {
+:root.dark {
   --primary: oklch(0.8254 0.2367 148.368);
   --primary-foreground: oklch(0.2201 0.044 230.173);
   --secondary: oklch(0.27 0.03 220);
   --secondary-foreground: oklch(1 0 0);
   --background: oklch(0.2201 0.044 230.173);
   --foreground: oklch(1 0 0);
-  --accent: oklch(0.4584 0.0963 165.087);
+  --accent: oklch(0.43 0.0963 165.087);
   --accent-foreground: oklch(1 0 0);
   --card: oklch(0.25 0.03 220);
   --card-foreground: oklch(1 0 0);
@@ -92,9 +134,9 @@
   --popover-foreground: oklch(1 0 0);
   --muted: oklch(0.27 0.03 220);
   --muted-foreground: oklch(0.7 0.02 220);
-  --destructive: oklch(0.6 0.22 27);
+  --destructive: oklch(0.58 0.22 27);
   --border: oklch(0.32 0.03 220);
-  --input: oklch(0.32 0.03 220);
+  --input: #718990;
   --ring: oklch(0.8254 0.2367 148.368);
   --chart-1: oklch(0.8254 0.2367 148.368);
   --chart-2: oklch(0.6 0.22 295);
@@ -109,12 +151,57 @@
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.3 0.03 220);
   --sidebar-ring: oklch(0.8254 0.2367 148.368);
+  --heading: oklch(0.88 0.08 165);
+  --green-light: oklch(0.79 0.13 163);
+  --btn-fg: oklch(0.2201 0.044 230.173);
+  --btn-outline: var(--primary);
+  --btn-disabled-bg: #30434a;
+  --btn-disabled-fg: #a1b5bb;
+  --surface-subtle: #142a33;
+  --surface-raised: #18313b;
+  --surface-hover: #21414b;
+  --control-bg: #132b35;
+  --control-hover: #1b3741;
+  --illustration-surface: #18313b;
+  --empty-art-bg: #173b35;
+  --empty-art-surface: #233d43;
+  --empty-art-line: #8fcbb5;
+  --on-primary: oklch(0.2201 0.044 230.173);
+  --success-bg: #143b30;
+  --success-fg: #a4ebc3;
+  --success-border: #3bbf82;
+  --warning-bg: #3b3018;
+  --warning-fg: #ffe1a3;
+  --warning-border: #b98b32;
+  --error-bg: #401f26;
+  --error-fg: #ffc0c7;
+  --error-border: #f27989;
+  --info-bg: #1b314d;
+  --info-fg: #bdd8ff;
+  --info-border: #6f9dd6;
+  --chat-own-bg: #1d7a66;
+  --chat-own-end: #105242;
+  --chat-own-fg: #fff;
+  --rating-color: #f3c452;
+  --rating-fg: #f3ca66;
+  --rating-off: #78928a;
+  --rating-disabled: #496159;
+  --page-bg: var(--background);
+  --page-grid: oklch(0.52 0.03 165 / .23);
+  --secondary-hover: var(--surface-hover);
+  --placeholder: #a3b8b0;
+  --calendar-outside: #78928a;
+  --control-border-hover: #699d8b;
+  --control-border-valid: #5ca386;
+  --table-line: var(--border);
 }
 
 /* Base */
 * { border-color: var(--border); outline-color: color-mix(in oklch, var(--ring) 50%, transparent); }
 body { background: var(--background); color: var(--foreground); font-family: var(--font-sans); line-height: var(--leading); }
 button, input, select, textarea { font-family: var(--font-sans); }
+input::placeholder, textarea::placeholder { color: var(--placeholder); opacity: 1; }
+select { background-color: var(--control-bg); color: var(--foreground); }
 
 /* Buttons: pill shaped, 14px / 600, bright green with dark text for the main action, outlined for the rest */
 button:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link),
@@ -128,11 +215,11 @@ a.button, a.button-secondary, .chat-destination, .chat-back, .notification-open,
   letter-spacing: normal;
   transition: background-color 200ms cubic-bezier(0, 0, .2, 1), border-color 200ms cubic-bezier(0, 0, .2, 1), box-shadow 200ms cubic-bezier(0, 0, .2, 1), color 200ms cubic-bezier(0, 0, .2, 1);
 }
-.button-primary:active:not(:disabled), a.button:active, .ui-picker button.ui-done:active:not(:disabled), .nav-cta:active { background: var(--btn-bg-active) !important; border-color: var(--btn-bg-active) !important; }
+.button-primary:active:not(:disabled), a.button:active, .ui-picker button.ui-done:active:not(:disabled), .nav-cta:active { background: var(--btn-bg-active) !important; border-color: var(--btn-bg-active) !important; color: var(--btn-active-fg) !important; }
 .button-primary:hover:not(:disabled), a.button:hover, .nav-cta:hover { box-shadow: var(--shadow-sm); }
 .button-secondary:hover:not(:disabled), .button-outline:hover:not(:disabled), a.button-secondary:hover { background: var(--muted) !important; color: var(--foreground) !important; }
 .button-primary:disabled, .button:disabled { background: var(--btn-disabled-bg) !important; border-color: var(--btn-disabled-bg) !important; color: var(--btn-disabled-fg) !important; opacity: 1; }
-.room-scope button.button-danger, .groups-scope button.button-danger { border-color: var(--destructive); background: var(--destructive); color: #fff; }
+.room-scope button.button-danger, .groups-scope button.button-danger { border-color: var(--destructive); background: var(--destructive); color: var(--destructive-fg); }
 .room-scope button.button-danger:hover:not(:disabled), .groups-scope button.button-danger:hover:not(:disabled) { border-color: color-mix(in oklch, var(--destructive) 85%, black); background: color-mix(in oklch, var(--destructive) 85%, black); }
 
 /* Tabs and chips: pill list, the current one filled with the foreground colour */
@@ -147,6 +234,8 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea {
   border-color: var(--input) !important;
   font-family: var(--font-sans);
   line-height: var(--leading);
+  background-color: var(--control-bg);
+  color: var(--foreground);
 }
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.ui-native) { min-height: 2.75rem; }
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible, textarea:focus, textarea:focus-visible {
@@ -166,7 +255,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, inpu
 .messages-layout, .cup-rules-card .cup-rules, .dialog-panel {
   border-radius: 12px !important;
 }
-.dialog-panel { box-shadow: rgba(0, 30, 43, .16) 0 16px 48px -8px; border-color: var(--border); }
+.dialog-panel { box-shadow: rgba(0, 30, 43, .16) 0 16px 48px -8px; border-color: var(--border); background: var(--popover); color: var(--popover-foreground); }
 .dialog-panel .dialog-header h2 { font-size: 1.75rem !important; font-weight: 500 !important; letter-spacing: -.5px !important; line-height: 1.25 !important; }
 .dialog-panel p { color: color-mix(in oklch, var(--foreground) 82%, white); }
 .ui-menu, .ui-picker { box-shadow: var(--shadow-lg); border-radius: 8px; border-color: var(--input); }
@@ -186,7 +275,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, inpu
 
 /* Table */
 .race-results { font-family: var(--font-sans); font-size: 14px; }
-.race-results th, .race-results td { border-bottom-color: #eceff1 !important; }
+.race-results th, .race-results td { border-bottom-color: var(--table-line) !important; }
 
 /* A disabled main action is light grey with grey text (submit buttons and buttons with no explicit type) */
 button[type="submit"]:disabled, form button:not([type]):disabled, .actions button:not([type]):disabled {
@@ -198,6 +287,16 @@ button[type="submit"]:disabled, form button:not([type]):disabled, .actions butto
 
 /* The map draws its own text (zoom buttons, scale, attribution); give it the app font too */
 .leaflet-container, .leaflet-container .leaflet-bar a, .leaflet-container .leaflet-control-attribution, .leaflet-container .leaflet-control-scale-line { font-family: var(--font-sans); }
+.leaflet-container { background-color: var(--surface-raised); }
+.leaflet-container .leaflet-bar a, .leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-popup-content-wrapper, .leaflet-container .leaflet-popup-tip {
+  background: var(--popover); color: var(--popover-foreground); border-color: var(--border);
+}
+.leaflet-container .leaflet-bar a:hover, .leaflet-container .leaflet-bar a:focus-visible { background: var(--surface-hover); color: var(--foreground); }
+.leaflet-container .leaflet-bar a.leaflet-disabled { background: var(--surface-raised); color: var(--muted-foreground); }
+.leaflet-container .leaflet-control-attribution a, .leaflet-container a.leaflet-popup-close-button { color: var(--primary); }
+.leaflet-container .leaflet-control-scale-line { background: var(--popover); color: var(--popover-foreground); border-color: var(--muted-foreground); }
+.leaflet-container .leaflet-bar a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
 /* Typography: Barlow for text and controls, Big Shoulders Display (a tall stadium-poster face) for headings,
    and Saira Stencil One, the stencilled numerals of jerseys and lockers, for numbers and the lettering inside the drawings. */
@@ -237,7 +336,7 @@ main.home:not([class*="scope"]) .home-section h2, .game-card h3 { color: var(--g
 .sport-tile:hover .sport-icon, .sport-tile:focus-visible .sport-icon, .sport-tile[aria-current="true"] .sport-icon { color: var(--green); }
 
 /* How it works: green number badges */
-.how-number { background: var(--btn-bg); color: var(--heading); }
+.how-number { background: var(--btn-bg); color: var(--btn-fg); }
 
 /* Secondary buttons keep the bright green as their border */
 .button-secondary, .button-outline, a.button-secondary,
@@ -251,13 +350,13 @@ main.home:not([class*="scope"]) .home-section h2, .game-card h3 { color: var(--g
 .button-secondary:hover:not(:disabled), .button-outline:hover:not(:disabled), a.button-secondary:hover,
 .cups-scope .form-stack .actions button[type="button"]:hover:not(:disabled), .groups-scope .form-stack .actions button[type="button"]:hover:not(:disabled),
 .host-scope button[type="button"]:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link):hover:not(:disabled) {
-  background: oklch(0.92 0.09 155) !important; color: var(--heading) !important;
+  background: var(--secondary-hover) !important; color: var(--heading) !important;
 }
 
 /* App background: clean off-white with a faint dot grid */
 body {
-  background-color: oklch(0.979 0.007 160);
-  background-image: radial-gradient(circle, oklch(0.6 0.03 165 / .22) 1px, transparent 1.4px);
+  background-color: var(--page-bg);
+  background-image: radial-gradient(circle, var(--page-grid) 1px, transparent 1.4px);
   background-size: 24px 24px;
   background-attachment: scroll;
 }
@@ -274,26 +373,26 @@ body {
 /* Ratings: gold stars, a card per player to rate, and the public rating summary */
 .star-picker { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem; margin: 0 0 .6rem; padding: 0; border: 0; }
 .star-picker legend { float: none; width: 100%; margin: 0 0 .15rem; padding: 0; font-size: .9rem; font-weight: 600; color: var(--foreground); }
-.star-option { font-size: 2rem; line-height: 1; color: #b4c1ba; cursor: pointer; transition: transform .12s ease, color .12s ease; }
-.star-option.is-on { color: #e0a800; }
-.star-picker:not(:disabled) .star-option:hover { transform: scale(1.18); color: #e0a800; }
+.star-option { font-size: 2rem; line-height: 1; color: var(--rating-off); cursor: pointer; transition: transform .12s ease, color .12s ease; }
+.star-option.is-on { color: var(--rating-color); }
+.star-picker:not(:disabled) .star-option:hover { transform: scale(1.18); color: var(--rating-color); }
 .star-option:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
 .star-picker:disabled .star-option { cursor: default; }
-.star-picker:disabled .star-option:not(.is-on) { color: #e3e8e5; }
+.star-picker:disabled .star-option:not(.is-on) { color: var(--rating-disabled); }
 .rate-players { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .8rem; }
-.rate-player { padding: .9rem 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fbfcfb; }
+.rate-player { padding: .9rem 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--control-bg); }
 .rate-player form { display: grid; justify-items: start; gap: .3rem; }
 .rate-player form > * { margin: 0; }
-.rating-summary { margin-top: 1rem; padding: 1.1rem 1.4rem; border: 1px solid var(--border); border-left: 4px solid #e0a800; border-radius: 12px; background: #fff; box-shadow: var(--shadow-sm); }
+.rating-summary { margin-top: 1rem; padding: 1.1rem 1.4rem; border: 1px solid var(--border); border-left: 4px solid var(--rating-color); border-radius: 12px; background: var(--card); box-shadow: var(--shadow-sm); }
 .rating-summary h2 { margin: 0 0 .3rem; font-size: 1.3rem; }
 .rating-summary p { margin: 0; color: var(--muted-foreground); }
-.rating-summary strong { font-family: var(--font-accent); font-size: 1.6rem; font-weight: 400; color: #a37a00; }
-.rating-summary strong [aria-hidden] { color: #e0a800; }
+.rating-summary strong { font-family: var(--font-accent); font-size: 1.6rem; font-weight: 400; color: var(--rating-fg); }
+.rating-summary strong [aria-hidden] { color: var(--rating-color); }
 
 /* People pickers inside rooms and host-style forms */
 .people-picker { margin: .8rem 0; }
 .people-picker .friend-list { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .5rem; }
-.room-scope .people-picker .friend-row, .host-scope .people-picker .friend-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.room-scope .people-picker .friend-row, .host-scope .people-picker .friend-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
 .room-scope .people-picker .friend-row button, .host-scope .people-picker .friend-row button { padding: .3rem .9rem; font-size: .88rem; }
 .room-scope .panel > .button-secondary { margin-bottom: .8rem; }
 
@@ -305,8 +404,8 @@ body {
 .messages-scope .message .message-actions { display: flex; gap: .4rem; margin-top: .25rem; }
 .messages-scope .message .message-actions button { padding: .1rem .7rem !important; border: 1px solid color-mix(in oklch, currentColor 45%, transparent) !important; background: transparent !important; color: inherit !important; font-size: .75rem !important; font-weight: 600 !important; text-decoration: none !important; }
 .messages-scope .message .message-actions button:hover:not(:disabled) { background: color-mix(in oklch, currentColor 18%, transparent) !important; }
-.messages-scope .message-edit textarea { width: 100%; min-height: 3.5rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--foreground); font: inherit; }
-.messages-scope .message.is-own .message-edit .button-secondary { border-color: rgba(255, 255, 255, .75) !important; background: transparent !important; color: #fff !important; }
+.messages-scope .message-edit textarea { width: 100%; min-height: 3.5rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--foreground); font: inherit; }
+.messages-scope .message.is-own .message-edit .button-secondary { border-color: color-mix(in oklch, var(--chat-own-fg) 75%, transparent) !important; background: transparent !important; color: var(--chat-own-fg) !important; }
 .messages-scope .message-edit button { padding: .25rem 1rem; font-size: .85rem; }
 
 /* Stars keep their size inside page-level label rules; the Near me bar matches the filter panel */
@@ -316,3 +415,18 @@ body {
 .near-me .button-row button { padding: .5rem 1.3rem; }
 .near-me .muted { font-size: .9rem; }
 .messages-scope .message-edit button:not(.button-secondary) { border-color: var(--btn-bg) !important; background: var(--btn-bg) !important; color: var(--btn-fg) !important; }
+
+/* The theme control is always available, including while a session restores. */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 44px; width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  padding: .6rem; border: 1px solid var(--border); background: var(--card); color: var(--foreground);
+}
+.theme-toggle:hover { background: var(--surface-hover); border-color: var(--btn-outline); }
+.theme-toggle:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.theme-toggle svg { width: 22px; height: 22px; flex-shrink: 0; }
+@media (max-width: 30rem) {
+  .site-header-account { gap: .4rem; }
+  .site-header .brand { min-width: 0; }
+  .site-header .brand .logo-name { font-size: 1.4rem !important; }
+}
