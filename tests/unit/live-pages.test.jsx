@@ -9,12 +9,13 @@ import roomMemberService from '../../src/services/roomMemberService';
 import userService from '../../src/services/userService';
 import notificationService from '../../src/services/notificationService';
 import sportService from '../../src/services/sportService';
+import { resetUserDirectory } from '../../src/lib/helpers/userDirectory';
 
 const live = vi.hoisted(() => ({ listeners: new Set() }));
 vi.mock('../../src/services/websocketService', () => ({ listen: callback => { live.listeners.add(callback); return () => live.listeners.delete(callback); } }));
-vi.mock('../../src/services/roomService', () => ({ default: { get: vi.fn(), cancel: vi.fn() } }));
+vi.mock('../../src/services/roomService', () => ({ default: { get: vi.fn(), cancel: vi.fn(), transferHost: vi.fn() } }));
 vi.mock('../../src/services/roomMemberService', () => ({ default: { list: vi.fn(), request: vi.fn(), update: vi.fn(), leave: vi.fn(), invite: vi.fn() } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: vi.fn() } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: vi.fn(), search: vi.fn() } }));
 vi.mock('../../src/services/notificationService', () => ({ default: { list: vi.fn(), markRead: vi.fn(), markAllRead: vi.fn() } }));
 vi.mock('../../src/services/sportService', () => ({ default: { list: vi.fn() } }));
 
@@ -38,7 +39,11 @@ beforeEach(() => {
   roomService.cancel.mockReset().mockResolvedValue({ ...room, status: 'cancelled' });
   roomMemberService.list.mockReset().mockResolvedValue([]);
   for (const method of ['request', 'update', 'leave', 'invite']) roomMemberService[method].mockReset().mockResolvedValue({});
-  userService.list.mockReset().mockResolvedValue(users);
+  resetUserDirectory();
+  userService.listByIds.mockReset().mockImplementation(async ids => users.filter(user => ids.includes(user.id)));
+  userService.search.mockReset().mockImplementation(async text => users.filter(user => user.user_name.toLowerCase().includes(text.toLowerCase())));
+  roomService.transferHost.mockReset().mockResolvedValue(room);
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
   notificationService.list.mockReset().mockResolvedValue({ items: [notification], unread_count: 1 });
   notificationService.markRead.mockReset().mockResolvedValue({ ...notification, read_at: '2026-10-04T13:00:00Z' });
   notificationService.markAllRead.mockReset().mockResolvedValue(null);
@@ -120,8 +125,9 @@ describe('room lobby access and admission', () => {
     expect(roomMemberService.update).toHaveBeenCalledWith('10', 2, { status: 'accepted' });
     await user.click(await screen.findByRole('button', { name: 'Remove Player' }));
     expect(roomMemberService.update).toHaveBeenCalledWith('10', 2, { status: 'removed' });
-    await user.selectOptions(await screen.findByRole('combobox', { name: 'Invite player', exact: true }), '4');
-    await user.click(screen.getByRole('button', { name: 'Invite player', exact: true }));
+    // Players are found by searching, not by choosing from everyone.
+    await user.type(await screen.findByLabelText('Invite player'), 'Invit');
+    await user.click(await screen.findByRole('button', { name: 'Invite Invitee' }));
     expect(roomMemberService.invite).toHaveBeenCalledWith('10', 4);
     await user.type(await screen.findByRole('textbox', { name: 'Cancellation reason' }), 'Bad weather');
     await user.click(screen.getByRole('button', { name: 'Cancel room' }));
@@ -130,15 +136,136 @@ describe('room lobby access and admission', () => {
     expect(roomService.cancel).toHaveBeenCalledWith('10', 'Bad weather');
   });
 
-  it.each(['started', 'completed'])('records attendance and a rating for a present player in a %s room', async status => {
+  it.each(['started', 'completed'])('records attendance for a player in a %s room', async status => {
     const user = userEvent.setup();
     roomService.get.mockResolvedValue({ ...room, status });
     roomMemberService.list.mockResolvedValue([{ id: 2, user_id: 2, status: 'accepted' }]);
     renderRoom(1);
     await user.selectOptions(await screen.findByRole('combobox', { name: 'Attendance for Player' }), 'present');
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rating for Player' }), '5');
     await user.click(screen.getByRole('button', { name: 'Save Player record' }));
-    expect(roomMemberService.update).toHaveBeenCalledWith('10', 2, { attendance: 'present', rating: 5 });
+    expect(roomMemberService.update).toHaveBeenCalledWith('10', 2, { attendance: 'present' });
+  });
+
+  describe('host rating', () => {
+    const completed = { ...room, status: 'completed' };
+    const present = (extra = {}) => [{ id: 2, user_id: 2, status: 'accepted', attendance: 'present', ...extra }];
+    const stars = (n) => screen.getByRole('radio', { name: `${n} ${n === 1 ? 'star' : 'stars'}` });
+
+    it('rates a present player of a completed room once the host confirms that ratings are final', async () => {
+      const user = userEvent.setup();
+      roomService.get.mockResolvedValue(completed);
+      roomMemberService.list.mockResolvedValue(present());
+      renderRoom(1);
+      await user.click(await screen.findByRole('radio', { name: '5 stars' }));
+      await user.click(screen.getByRole('button', { name: 'Submit rating for Player' }));
+      expect(window.confirm).toHaveBeenCalledWith('Ratings are final. Give Player 5 stars?');
+      await waitFor(() => expect(roomMemberService.update).toHaveBeenCalledWith('10', 2, { rating: 5 }));
+    });
+
+    it('locks a rating that was already saved', async () => {
+      roomService.get.mockResolvedValue(completed);
+      roomMemberService.list.mockResolvedValue(present({ rating: 4 }));
+      renderRoom(1);
+      expect(await screen.findByText('You rated Player 4 out of 5. Ratings are final.')).toBeVisible();
+      expect(stars(4)).toBeChecked();
+      expect(stars(2)).toBeDisabled();
+      expect(screen.queryByRole('button', { name: 'Submit rating for Player' })).not.toBeInTheDocument();
+    });
+
+    it('shows the backend detail when the player was already rated (409)', async () => {
+      const user = userEvent.setup();
+      roomService.get.mockResolvedValue(completed);
+      roomMemberService.list.mockResolvedValue(present());
+      roomMemberService.update.mockRejectedValue({ status: 409, message: 'This player was already rated' });
+      renderRoom(1);
+      await user.click(await screen.findByRole('radio', { name: '3 stars' }));
+      await user.click(screen.getByRole('button', { name: 'Submit rating for Player' }));
+      expect(await screen.findByText('This player was already rated')).toBeVisible();
+    });
+
+    it.each([
+      ['a started room', { ...room, status: 'started' }, present()],
+      ['a player who was not present', completed, present({ attendance: 'no_show' })],
+      ['a player with unknown attendance', completed, present({ attendance: 'unknown' })],
+    ])('does not offer a rating for %s', async (_name, roomData, members) => {
+      roomService.get.mockResolvedValue(roomData);
+      roomMemberService.list.mockResolvedValue(members);
+      renderRoom(1);
+      await screen.findByRole('heading', { name: 'Players' });
+      expect(screen.queryByRole('group', { name: 'Rating for Player' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('transferring the host role', () => {
+    const roster = [{ id: 2, user_id: 2, status: 'accepted' }, { id: 3, user_id: 3, status: 'accepted', attendance: 'no_show' }, { id: 4, user_id: 4, status: 'pending', requested: true }];
+
+    it('lets the host hand the room to an accepted player who did not no-show, after confirming', async () => {
+      const user = userEvent.setup();
+      roomMemberService.list.mockResolvedValue(roster);
+      renderRoom(1);
+      const choice = await screen.findByRole('combobox', { name: 'New host' });
+      expect([...choice.options].map(option => option.textContent)).toEqual(['Choose a player', 'Player']);
+      await user.selectOptions(choice, '2');
+      await user.click(screen.getByRole('button', { name: 'Transfer host' }));
+      expect(window.confirm).toHaveBeenCalledWith('Make Player the host? You will no longer be able to manage this room.');
+      await waitFor(() => expect(roomService.transferHost).toHaveBeenCalledWith('10', 2));
+    });
+
+    it('does nothing when the host declines the confirmation', async () => {
+      window.confirm.mockReturnValue(false);
+      const user = userEvent.setup();
+      roomMemberService.list.mockResolvedValue(roster);
+      renderRoom(1);
+      await user.selectOptions(await screen.findByRole('combobox', { name: 'New host' }), '2');
+      await user.click(screen.getByRole('button', { name: 'Transfer host' }));
+      expect(roomService.transferHost).not.toHaveBeenCalled();
+    });
+
+    it('is offered only to the host of an open or started room', async () => {
+      roomMemberService.list.mockResolvedValue(roster);
+      const first = renderRoom(2);
+      await screen.findByRole('heading', { name: 'Friday football' });
+      expect(screen.queryByRole('heading', { name: 'Transfer host' })).not.toBeInTheDocument();
+      first.unmount();
+      roomService.get.mockResolvedValue({ ...room, status: 'completed' });
+      renderRoom(1);
+      await screen.findByRole('heading', { name: 'Players' });
+      expect(screen.queryByRole('heading', { name: 'Transfer host' })).not.toBeInTheDocument();
+    });
+
+    it('announces who is the host now when a room.host_changed event reloads the room', async () => {
+      renderRoom(3);
+      await screen.findByRole('heading', { name: 'Friday football' });
+      roomService.get.mockResolvedValue({ ...room, host_id: 2 });
+      await event({ type: 'room.host_changed', room_id: 10 });
+      expect(await screen.findByText('Player is now the host.')).toBeVisible();
+    });
+  });
+
+  describe('joining', () => {
+    it('joins an open room straight away and says so', async () => {
+      const user = userEvent.setup();
+      roomService.get.mockResolvedValue({ ...room, admission_policy: 'open' });
+      roomMemberService.request.mockResolvedValue({ id: 5, user_id: 2, status: 'accepted' });
+      renderRoom(2);
+      await user.click(await screen.findByRole('button', { name: 'Join room' }));
+      expect(await screen.findByText('You joined this room.')).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Request to join' })).not.toBeInTheDocument();
+    });
+
+    it('still asks the host for approval in other rooms', async () => {
+      const user = userEvent.setup();
+      roomMemberService.request.mockResolvedValue({ id: 5, user_id: 2, status: 'pending' });
+      renderRoom(2);
+      await user.click(await screen.findByRole('button', { name: 'Request to join' }));
+      expect(await screen.findByText('Request sent. Waiting for host approval.')).toBeVisible();
+    });
+  });
+
+  it('explains a missing room clearly', async () => {
+    roomService.get.mockRejectedValue({ status: 404, message: 'Room not found' });
+    renderRoom(2);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Room not found. It may have been removed, or it is private.');
   });
 
   it.each(['open', 'cancelled', 'finished', 'unknown'])('does not offer attendance or rating controls for a %s room', async status => {

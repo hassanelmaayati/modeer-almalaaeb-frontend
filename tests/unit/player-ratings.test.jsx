@@ -16,7 +16,7 @@ let members = [];
 vi.mock('../../src/services/ratingService', () => ({ default: { give: vi.fn(), listMine: vi.fn(), getForUser: vi.fn() } }));
 vi.mock('../../src/services/roomService', () => ({ default: { get: async () => room, cancel: vi.fn() } }));
 vi.mock('../../src/services/roomMemberService', () => ({ default: { list: async () => members, request: vi.fn(), update: vi.fn(), invite: vi.fn(), leave: vi.fn() } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => users, get: async id => users.find(user => user.id === id) || { id: Number(id), user_name: 'Bob', created_at: '2030-01-01T00:00:00Z' } } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: async (ids) => users.filter((user) => ids.includes(user.id)), get: async id => users.find(user => user.id === id) || { id: Number(id), user_name: 'Bob', created_at: '2030-01-01T00:00:00Z' } } }));
 vi.mock('../../src/services/sportService', () => ({ default: { list: async () => [{ id: 1, name: 'Football' }] } }));
 vi.mock('../../src/services/websocketService', () => ({ listen: () => () => {} }));
 
@@ -213,7 +213,10 @@ describe('pages', () => {
     openRoom({ user: { id: 7 } });
     await screen.findByRole('heading', { name: 'Friday match' });
     expect(screen.queryByRole('heading', { name: 'Rate players' })).not.toBeInTheDocument();
-    expect(screen.getAllByLabelText(/Rating for/)[0]).toHaveValue('');
+    // The host rates only players who were present, with the same final, accessible star picker.
+    expect(screen.getByRole('group', { name: 'Rating for Alice' })).toBeVisible();
+    expect(screen.getByRole('group', { name: 'Rating for Bob' })).toBeVisible();
+    expect(screen.queryByRole('group', { name: 'Rating for Carl' })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('null');
   });
   it('shows the public rating summary on a profile', async () => {

@@ -26,7 +26,7 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
 
   useEffect(() => startRequest(async (signal) => {
     const [room, members] = await Promise.all([
-      roomService.get(roomId, { signal, auth: userId ? 'optional' : 'none' }),
+      roomService.get(roomId, { signal }),
       roomMemberService.list(roomId, { signal }),
     ]);
     return { room, members };
@@ -53,8 +53,9 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
       const current = getRoomAdmissionState(room, members, user);
       if (action === 'request') {
         if (!current.canRequest) throw new Error(current.message || 'This activity is unavailable for requests.');
-        await roomMemberService.request(room.id);
-        setActionMessage('Your request was sent. It is pending host approval.');
+        const joined = await roomMemberService.request(room.id);
+        // Open rooms admit instantly; the rest wait for the host.
+        setActionMessage(joined?.status === 'accepted' ? 'You joined this activity.' : 'Your request was sent. It is pending host approval.');
       } else {
         if (!current.canWithdraw) throw new Error('There is no pending request to withdraw.');
         await roomMemberService.leave(room.id);
@@ -70,11 +71,13 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
   }
 
   const room = preview.data?.room;
+  const instantJoin = room?.admission_policy === 'open';
+  const loadError = preview.error?.status === 404 ? new Error('Room not found. It may have been removed, or it is private.') : preview.error;
   const admission = room ? getRoomAdmissionState(room, preview.data.members, user, now) : null;
 
   return (
     <Dialog title={room?.title || selectedRoom.title} onClose={onClose}>
-      <AsyncState loading={preview.loading} error={preview.error} onRetry={reload}>
+      <AsyncState loading={preview.loading} error={loadError} onRetry={reload}>
         {room && <>
           <p className="eyebrow">{sportName || 'Activity'}</p>
           <p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain time)</p>
@@ -90,14 +93,14 @@ export default function RoomPreviewDialog({ room: selectedRoom, sportName, onClo
           {room.description && <p>{room.description}</p>}
           {room.notes && <p>Notes: {room.notes}</p>}
           {room.route_notes && <p>{room.route_notes}</p>}
-          <p className="muted">Requests are pending until the host approves them. New requests close 15 minutes before the start.</p>
+          <p className="muted">{instantJoin ? 'Anyone can join this activity; places go to whoever joins first. Joining closes 15 minutes before the start.' : 'Requests are pending until the host approves them. New requests close 15 minutes before the start.'}</p>
           {admission.message && <p className="status-message" role="status">{admission.message}</p>}
           {!user && !userLoading && !admission.message && <p>
             <Link className="button" to="/sign-in">Sign in to request a place</Link>
           </p>}
           <div className="button-row">
             <Link className="button-secondary" to={`/rooms/${room.id}`}>Open room lobby</Link>
-            {admission.canRequest && <button type="button" className="button" disabled={saving || userLoading} onClick={() => handleMembershipAction('request')}>{saving ? 'Sending request…' : 'Request to join'}</button>}
+            {admission.canRequest && <button type="button" className="button" disabled={saving || userLoading} onClick={() => handleMembershipAction('request')}>{saving ? (instantJoin ? 'Joining…' : 'Sending request…') : (instantJoin ? 'Join activity' : 'Request to join')}</button>}
             {admission.canWithdraw && <button type="button" className="button-secondary" disabled={saving || userLoading} onClick={() => handleMembershipAction('withdraw')}>{saving ? 'Withdrawing…' : 'Withdraw request'}</button>}
             <button type="button" className="button-secondary" disabled={saving} onClick={reload}>Refresh activity</button>
           </div>
