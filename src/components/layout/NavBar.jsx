@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router';
 import { formatUnreadCount } from '../../lib/helpers/messages';
 import Logo from '../common/Logo';
 import UserMenu from './UserMenu';
+import ThemeToggle from './ThemeToggle';
 
 function CountBadge({ count, label }) {
   if (count <= 0) return null;
@@ -43,6 +44,7 @@ export default function NavBar({ session, unreadCount = 0, messageUnread = 0, li
       </>}
     </nav>
     <div className="site-header-account">
+      <ThemeToggle />
       {['connecting', 'reconnecting', 'error'].includes(liveStatus) && <span className="nav-status" role="status">Reconnecting…</span>}
       {loading ? <span className="nav-status" role="status">Restoring session…</span> : user ? <SignedInAccount key={user.id} user={user} signOut={signOut} /> : <>
         <Link className="nav-plain" to="/sign-up">Sign up</Link>
