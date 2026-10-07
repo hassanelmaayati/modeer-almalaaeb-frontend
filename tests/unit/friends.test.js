@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addFriendCandidates,
   addFriendError,
   blockUpdate,
   CONFIRMED_FRIEND_ACTIONS,
@@ -13,7 +12,6 @@ import {
   isBlockedFlag,
   relatedUserIds,
   replaceFriendship,
-  searchPeople,
 } from '../../src/lib/helpers/friends';
 
 const ME = 1;
@@ -101,11 +99,6 @@ describe('looking people up', () => {
   it('knows everyone you already have a record with, including declined ones', () => {
     expect([...relatedUserIds(rows, ME)].sort()).toEqual([2, 3, 4]);
   });
-
-  it('offers only people without a record, and never yourself', () => {
-    const users = [1, 2, 3, 4, 5, 6].map((id) => ({ id, user_name: `User ${id}` }));
-    expect(addFriendCandidates(users, rows, ME).map((user) => user.id)).toEqual([5, 6]);
-  });
 });
 
 describe('updates', () => {
@@ -161,22 +154,6 @@ describe('row actions', () => {
 });
 
 describe('adding people', () => {
-  const people = ['Sara', 'Sarah Ali', 'Omar', 'Layla'].map((name, index) => ({ id: index + 2, user_name: name }));
-
-  it('searches names by any part, ignoring case and spaces around the text', () => {
-    expect(searchPeople(people, ' SARA ').map((user) => user.user_name)).toEqual(['Sara', 'Sarah Ali']);
-    expect(searchPeople(people, 'ali').map((user) => user.user_name)).toEqual(['Sarah Ali']);
-    expect(searchPeople(people, 'zzz')).toEqual([]);
-  });
-
-  it('returns nothing for an empty search and caps the results', () => {
-    expect(searchPeople(people, '')).toEqual([]);
-    expect(searchPeople(people, '   ')).toEqual([]);
-    const many = Array.from({ length: 20 }, (_, index) => ({ id: index, user_name: `Match${index}` }));
-    expect(searchPeople(many, 'match')).toHaveLength(8);
-    expect(searchPeople(many, 'match', 3)).toHaveLength(3);
-  });
-
   it('explains the refusal for an existing record and passes other errors through', () => {
     expect(addFriendError({ status: 409, message: 'Friendship already exists' })).toMatch(/already have a friend record/);
     expect(addFriendError({ status: 500, message: 'Request failed (500).' })).toBe('Request failed (500).');

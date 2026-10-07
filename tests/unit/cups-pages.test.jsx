@@ -20,9 +20,9 @@ import userService from '../../src/services/userService';
 
 vi.mock('../../src/services/cupService', () => ({ default: { list: vi.fn(), get: vi.fn(), update: vi.fn(), remove: vi.fn(), createEntry: vi.fn(), updateEntry: vi.fn() } }));
 vi.mock('../../src/services/cupRosterService', () => ({ default: { list: vi.fn() } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: vi.fn() } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: vi.fn() } }));
 vi.mock('../../src/services/sportService', () => ({ default: { list: vi.fn() } }));
-vi.mock('../../src/services/groupService', () => ({ default: { list: vi.fn() } }));
+vi.mock('../../src/services/groupService', () => ({ default: { mine: vi.fn() } }));
 const now = Date.parse('2030-01-01T12:00:00Z');
 const sports = [{ id: 1, name: 'Football', cup_format: 'knockout' }, { id: 2, name: 'Running', cup_format: 'race' }, { id: 3, name: 'Walking', cup_format: null }];
 const entries = [1, 2, 3, 4].map(group_id => ({ group_id, group_name: 'Team ' + group_id, owner_user_id: group_id + 1, status: 'accepted', entered_at: '2030-01-01T11:00:00Z' }));
@@ -47,9 +47,9 @@ beforeEach(() => {
   cupService.createEntry.mockReset().mockResolvedValue(cup);
   cupService.updateEntry.mockReset().mockResolvedValue(cup);
   sportService.list.mockReset().mockResolvedValue(sports);
-  groupService.list.mockReset().mockResolvedValue([]);
+  groupService.mine.mockReset().mockResolvedValue([]);
   cupRosterService.list.mockReset().mockResolvedValue([]);
-  userService.list.mockReset().mockResolvedValue([]);
+  userService.listByIds.mockReset().mockResolvedValue([]);
   cupService.list.mockReset().mockResolvedValue([]);
 });
 function show(data = cup, user = { id: 1 }) {
@@ -225,7 +225,7 @@ describe('cup page role controls and stale revision recovery', () => {
   it('does not load private group choices for guests and offers sign-in for registration', async () => {
     show(cup, null);
     expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in');
-    expect(groupService.list).not.toHaveBeenCalled();
+    expect(groupService.mine).not.toHaveBeenCalled();
   });
   it('reloads a conflicting revision before allowing another publish attempt', async () => {
     cupService.update.mockRejectedValueOnce({ status: 409 });
@@ -265,7 +265,7 @@ describe('backend audit contract on cup pages', () => {
       { id: 1, user_id: 20, group_id: 1, cup_id: 1, status: 'accepted' },
       { id: 2, user_id: 21, group_id: 1, cup_id: 1, status: 'pending' },
     ]);
-    userService.list.mockResolvedValue([{ id: 20, user_name: 'Sara' }, { id: 21, user_name: 'Invited only' }]);
+    userService.listByIds.mockResolvedValue([{ id: 20, user_name: 'Sara' }]);
     show();
     const roster = await screen.findByRole('list', { name: 'Roster' });
     expect(within(roster).getByRole('link', { name: 'Sara' })).toHaveAttribute('href', '/users/20');

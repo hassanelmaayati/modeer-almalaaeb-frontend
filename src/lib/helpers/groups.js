@@ -1,35 +1,45 @@
-import { findOwnMembership } from './memberships';
 import groupService from '../../services/groupService';
-import groupMemberService from '../../services/groupMemberService';
 import sportService from '../../services/sportService';
-import userService from '../../services/userService';
 
-export async function loadGroups(signal) {
-  const [groups, sports, users] = await Promise.all([
-    groupService.list({ signal }), sportService.list({ signal }), userService.list({ signal }),
-  ]);
-  const memberships = await Promise.allSettled(groups.map(group => groupMemberService.list(group.id, { signal })));
-  return { sports, users, groups: groups.map((group, index) => ({
-    ...group, sportName: sports.find(sport => sport.id === group.sports_id)?.name || 'Activity',
-    members: memberships[index].status === 'fulfilled' ? memberships[index].value : null,
-    membershipError: memberships[index].status === 'rejected' ? memberships[index].reason : null,
-  })) };
+export const GROUPS_PAGE_SIZE = 20;
+
+/**
+ * The role GET /groups/mine reports: 'owner', 'member', or 'invited' for a pending invitation.
+ * The API describes role as a free string, so anything that looks like an invitation counts as one.
+ */
+export function groupRole(group) {
+  const role = String(group.role || '').toLowerCase();
+  if (role === 'owner') return 'owner';
+  if (/invit|pending/.test(role)) return 'invited';
+  return 'member';
 }
 
-export function filterGroups(groups, userId, { view = 'joined', search = '', sportId = '' } = {}) {
+const withSportName = (group, sports) => ({ ...group, sportName: sports.find(sport => sport.id === group.sports_id)?.name || 'Activity' });
+
+/** One page of the user's groups (with member_count and role) plus the sports list. No per-group requests. */
+export async function loadGroups(signal) {
+  const [{ items, total }, sports] = await Promise.all([
+    groupService.minePage({ limit: GROUPS_PAGE_SIZE, offset: 0 }, { signal }),
+    sportService.list({ signal }),
+  ]);
+  return { sports, total, groups: items.map(group => withSportName(group, sports)) };
+}
+
+/** The next page, appended to what is already loaded. */
+export async function loadMoreGroups(current) {
+  const { items, total } = await groupService.minePage({ limit: GROUPS_PAGE_SIZE, offset: current.groups.length });
+  const known = new Set(current.groups.map(group => group.id));
+  return { ...current, total: total ?? current.total, groups: [...current.groups, ...items.filter(group => !known.has(group.id)).map(group => withSportName(group, current.sports))] };
+}
+
+export function filterGroups(groups, { view = 'joined', search = '', sportId = '' } = {}) {
   const needle = search.trim().toLowerCase();
   return groups.filter((group) => {
-    const membership = findOwnMembership(group.members || [], userId);
-    const belongs = view === 'invitations' ? membership?.status === 'pending' :
-      group.owner_id === userId || membership?.status === 'accepted';
+    const role = groupRole(group);
+    const belongs = view === 'invitations' ? role === 'invited' : role !== 'invited';
     return belongs && (!sportId || String(group.sports_id) === sportId) &&
       (!needle || `${group.name} ${group.sportName}`.toLowerCase().includes(needle));
   });
-}
-
-export function inviteCandidates(users, ownerId, members = []) {
-  const existing = new Set(members.map((member) => member.user_id));
-  return users.filter((user) => user.id !== ownerId && !existing.has(user.id));
 }
 
 export function playerName(users, userId) {

@@ -104,7 +104,7 @@ export function start() {
 
 // Public discovery has a separate, compatible lobby connection for guests too.
 export function startLobby(district) {
-  let stopped = false, socket, timer, heartbeat, attempts = 0, generation = 0;
+  let stopped = false, socket, timer, heartbeat, attempts = 0, generation = 0, connectedBefore = false;
   function reconnect() {
     clearInterval(heartbeat);
     if (!stopped) timer = setTimeout(connect, Math.min(1000 * 2 ** attempts++, 30_000));
@@ -124,7 +124,8 @@ export function startLobby(district) {
         if (stopped || current !== generation) return;
         try {
           const event = JSON.parse(data);
-          if (event?.type === 'subscribed') { attempts = 0; emit({ type: 'lobby.ready' }); }
+          // Pages already fetched when they mounted, so the first connection has nothing to catch up on; only a reconnect does.
+          if (event?.type === 'subscribed') { attempts = 0; if (connectedBefore) emit({ type: 'lobby.ready' }); connectedBefore = true; }
           if (event && typeof event.type === 'string') emit(event);
         } catch { /* Ignore malformed transport frames. */ }
       };

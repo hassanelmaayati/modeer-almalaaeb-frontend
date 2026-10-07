@@ -24,7 +24,7 @@ vi.mock('../../src/services/messageService', () => ({
   },
 }));
 vi.mock('../../src/services/roomService', () => ({ default: { get: (...args) => getRoom(...args) } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => [{ id: 1, user_name: 'Me' }, { id: 7, user_name: 'Layla' }] } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: async (ids) => [{ id: 1, user_name: 'Me' }, { id: 7, user_name: 'Layla' }].filter((user) => ids.includes(user.id)) } }));
 vi.mock('../../src/services/websocketService', () => ({
   listen: (listener) => { listeners.add(listener); return () => listeners.delete(listener); },
   recoverMessages: async (target, existing) => existing,

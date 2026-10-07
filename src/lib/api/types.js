@@ -7,16 +7,17 @@
 /** @typedef {{ user_name: string, photo_url?: string|null, bio?: string|null, district?: string|null }} UserUpdate */
 /** @typedef {{ key: string, capacity: number }} SportFormat */
 /** formats are room size presets; cup_format is the cup type (null: no cups). @typedef {{ id: number, name: string, formats: SportFormat[]|null, cup_format: 'knockout'|'race'|null }} Sport */
-/** @typedef {{ id: number, owner_id: number, name: string, sports_id: number, description: string|null, photo_url: string|null }} Group */
+/** @typedef {{ id: number, owner_id: number, name: string, sports_id: number, description: string|null, photo_url: string|null, member_count?: number }} Group */
+/** Your groups from GET /groups/mine; role is a free string (owner, member, or an invitation). @typedef {Group & { member_count: number, role: string }} MyGroup */
 /** @typedef {{ name: string, sports_id: number, description?: string|null, photo_url?: string|null }} GroupInput */
 /** @typedef {{ name: string, description?: string|null, photo_url?: string|null }} GroupUpdate */
 /** @typedef {'pending'|'accepted'|'declined'|'left'|'removed'} MembershipStatus */
 /** @typedef {{ id: number, user_id: number, status: MembershipStatus, room_id?: number|null, group_id?: number|null, cup_id?: number|null, other_user_id?: number|null, requested?: boolean|null, accepted?: boolean|null, position?: string|null, attendance?: string|null, rating?: number|null, user_blocked_other?: string|null, other_blocked_user?: string|null }} Membership */
 /** @typedef {{ status: MembershipStatus }} MembershipUpdate */
-/** @typedef {{ sport_id?: number, difficulty?: string, district?: string, starts_from?: string|Date, starts_to?: string|Date }} RoomQuery */
+/** @typedef {{ sport_id?: number, difficulty?: string, district?: string, starts_from?: string|Date, starts_to?: string|Date, group_id?: number, near_lat?: number, near_lng?: number, radius_km?: number, limit?: number, offset?: number }} RoomQuery */
 /** @typedef {{ status?: string|string[], sport_id?: number, visibility?: string, difficulty?: string, starts_from?: string|Date, starts_to?: string|Date, order?: 'asc'|'desc', limit?: number, offset?: number }} MyRoomsQuery */
 /** @typedef {{ latitude: number, longitude: number }} VenueLocation */
-/** @typedef {{ id: number, host_id: number, sport_id: number, group_id: number|null, title: string, description: string|null, notes: string|null, difficulty: string, starts_at: string, ends_at: string, capacity: number, slots_left: number, slot_layout: object, status: string, visibility: string, admission_policy: string, cancellation_reason: string|null, cancelled_at: string|null, district: string, area: string, distance_km: number|null, pace_notes: string|null, route_notes: string|null, host_generation: number, revision: number, venue_notes?: string|null, venue_location?: VenueLocation|null }} Room */
+/** @typedef {{ id: number, host_id: number, sport_id: number, group_id: number|null, title: string, description: string|null, notes: string|null, difficulty: string, starts_at: string, ends_at: string, capacity: number, slots_left: number, km_away: number|null, slot_layout: object, status: string, visibility: string, admission_policy: string, cancellation_reason: string|null, cancelled_at: string|null, district: string, area: string, distance_km: number|null, pace_notes: string|null, route_notes: string|null, host_generation: number, revision: number, venue_notes?: string|null, venue_location?: VenueLocation|null }} Room */
 /** @typedef {{ sport_id: number, title: string, starts_at: string, ends_at: string, capacity: number, district: string, area: string, group_id?: number|null, description?: string|null, notes?: string|null, difficulty?: string, slot_layout?: object, visibility?: string, admission_policy?: string, venue_notes?: string|null, venue_location?: VenueLocation|null, distance_km?: number|null, pace_notes?: string|null, route_notes?: string|null }} RoomInput */
 /** @typedef {Partial<RoomInput> & { revision: number }} RoomUpdate */
 /** @typedef {{ items: Room[], total: number, limit: number, offset: number, has_more: boolean }} MyRoomsPage */
@@ -28,7 +29,7 @@
 /** @typedef {{ user_id: number, average_rating: number|null, rating_count: number }} UserRating average has one decimal */
 /** @typedef {{ status?: MembershipStatus, position?: string|null, attendance?: 'unknown'|'present'|'no_show'|'excused', rating?: number }} RoomMemberUpdate */
 /** @typedef {{ status?: string, user_blocked_other?: string|null, other_blocked_user?: string|null }} FriendUpdate */
-/** @typedef {{ id: number, sender_id: number|null, recipient_id: number|null, room_id: number|null, group_id: number|null, type: string, body: string, client_request_id: string|null, created_at: string|null }} Message */
+/** @typedef {{ id: number, sender_id: number|null, recipient_id: number|null, room_id: number|null, group_id: number|null, type: string, body: string, client_request_id: string|null, created_at: string|null, edited_at: string|null, deleted: boolean }} Message */
 /** @typedef {{ type: 'room'|'group'|'direct', room_id?: number|null, group_id?: number|null, user_id?: number|null, title: string, last_message: Message|null }} Conversation */
 /** @typedef {{ room_id?: number, user_id?: number, group_id?: number, before?: number, limit?: number }} MessageQuery */
 /** @typedef {{ room_id?: number, group_id?: number, recipient_id?: number, body: string, client_request_id: string }} MessageInput */

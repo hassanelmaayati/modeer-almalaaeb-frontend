@@ -12,6 +12,7 @@ export default function HomeGameCard({ room, sportName, onPreview }) {
       <ul>
         <li><Icon name="pin" />{room.area}</li>
         <li><Icon name="calendar" />{room.starts_at ? `${formatActivityDate(room.starts_at)} · ${formatActivityTime(room.starts_at)}` : 'Time shared after joining'}</li>
+        {room.km_away != null && <li><Icon name="pin" />{room.km_away < 1 ? 'less than 1 km away' : `about ${room.km_away} km away`}</li>}
         <li><Icon name="people" />{playersNeeded(room)}</li>
         <li><Icon name={instant ? 'bolt' : 'lock'} />{instant ? 'Instant join' : 'Host approval'}</li>
       </ul>
