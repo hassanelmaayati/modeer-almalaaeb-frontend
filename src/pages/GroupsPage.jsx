@@ -10,6 +10,7 @@ import { GroupsArt } from '../components/home/HeroArt';
 import { filterGroups, groupRole, loadGroups, loadMoreGroups } from '../lib/helpers/groups';
 import useAction from '../lib/helpers/useAction';
 import { listen } from '../services/websocketService';
+import Select from '../components/common/Select';
 
 const VIEWS = [{ value: 'joined', label: 'Your groups' }, { value: 'invitations', label: 'Invitations' }];
 
@@ -52,7 +53,7 @@ export default function GroupsPage({ session }) {
   function openCreated(id) { setCreating(false); setSelectedGroupId(id); }
   function previewRoom(room) { setSelectedGroupId(null); setSelectedRoom(room); }
 
-  if (loading) return <main className="home groups-scope"><div className="home-content"><p role="status">Restoring session…</p></div></main>;
+  if (loading) return <main className="home groups-scope"><div className="home-content"><p className="status-message" role="status">Restoring session…</p></div></main>;
   if (!user) return <main className="home groups-scope"><div className="home-content">
     <GroupsBanner />
     <section className="home-section group-panel">
@@ -80,9 +81,9 @@ export default function GroupsPage({ session }) {
         </div>
         <AsyncState loading={resource.loading} error={resource.error} onRetry={reload}>
           <div className="filters group-filters">
-            <div><label htmlFor="group-view">Group view</label><select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}>{VIEWS.map(view => <option key={view.value} value={view.value}>{view.label}</option>)}</select></div>
+            <div><label htmlFor="group-view">Group view</label><Select id="group-view" value={filters.view} onChange={(event) => setFilters({ ...filters, view: event.target.value })}>{VIEWS.map(view => <option key={view.value} value={view.value}>{view.label}</option>)}</Select></div>
             <div><label htmlFor="group-search">Search my groups</label><input id="group-search" type="search" placeholder="Name or activity" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></div>
-            <div><label htmlFor="group-activity">Activity</label><select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></div>
+            <div><label htmlFor="group-activity">Activity</label><Select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</Select></div>
           </div>
           <AsyncState isEmpty={!visible.length} emptyTitle={invitations ? 'No invitations found' : 'No groups found'} emptyDescription="Try another filter, or create a group.">
             <div className="card-grid">{visible.map((group) => <GroupCard key={group.id} group={group} invitation={invitations} owned={!invitations && groupRole(group) === 'owner'} onOpen={setSelectedGroupId} />)}</div>

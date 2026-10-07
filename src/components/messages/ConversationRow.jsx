@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import Icon from '../common/Icon';
 import {
   CONVERSATION_TYPE_BADGES,
   conversationPath,
@@ -13,7 +14,9 @@ export default function ConversationRow({ conversation, active, viewerId, nameOf
 
   return <li>
     <Link className={[active && 'is-active', unread > 0 && 'has-unread', 'conversation-row'].filter(Boolean).join(' ')} to={conversationPath(conversation)} aria-current={active ? 'page' : undefined}>
-      <span className="avatar" aria-hidden="true">{conversation.title.charAt(0).toUpperCase()}</span>
+      <span className={`avatar conversation-avatar conversation-avatar-${conversation.type}`} aria-hidden="true">
+        {conversation.type === 'group' ? <Icon name="people" size={20} /> : conversation.type === 'room' ? <Icon name="bolt" size={20} /> : conversation.title.charAt(0).toUpperCase()}
+      </span>
       <span className="conversation-main">
         <span className="conversation-top">
           <span className="conversation-title">{conversation.title}</span>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Field from '../common/Field';
 import { DISTRICTS } from '../../lib/helpers/filters';
 import { photoUrlError } from '../../lib/helpers/photoUrl';
+import Select from '../common/Select';
 
 export default function ProfileForm({ user, onSubmit }) {
   const [pending, setPending] = useState(false);
@@ -28,18 +29,18 @@ export default function ProfileForm({ user, onSubmit }) {
     finally { setPending(false); }
   }
 
-  return <form className="form-stack" onSubmit={submit}>
+  return <div className="host-scope"><form className="form-stack room-form" onSubmit={submit}>
     {error && <p role="alert">{error}</p>}
     {saved && <p role="status">Profile saved.</p>}
     <Field label="User name"><input name="user_name" defaultValue={user.user_name} autoComplete="username" minLength={3} maxLength={60} required /></Field>
-    <Field label="Photo URL"><input name="photo_url" type="url" defaultValue={user.photo_url || ''} /></Field>
     <Field label="Governorate">
-      <select name="district" defaultValue={user.district || ''}>
+      <Select name="district" defaultValue={user.district || ''}>
         <option value="">No preference (show all governorates)</option>
         {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-      </select>
+      </Select>
     </Field>
+    <Field label="Photo URL"><input name="photo_url" type="url" defaultValue={user.photo_url || ''} /></Field>
     <Field label="Bio"><textarea name="bio" defaultValue={user.bio || ''} /></Field>
     <div className="actions"><button disabled={pending}>{pending ? 'Saving…' : 'Save profile'}</button></div>
-  </form>;
+  </form></div>;
 }

@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RoomForm from '../../src/components/activities/RoomForm';
 import CancelRoomForm from '../../src/components/activities/CancelRoomForm';
@@ -260,5 +261,23 @@ describe('room cancellation review', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }));
     expect(screen.getByRole('dialog')).toBeVisible();
     expect(onConfirm).toHaveBeenCalledOnce();
+  });
+});
+
+describe('choosing from the dropdowns', () => {
+  it('keeps what the user picks and shows it on the live game card', async () => {
+    render(<RoomForm sports={sports} groups={[]} onSubmit={vi.fn()} onCancel={vi.fn()} />);
+    // userEvent fires the same input and change events as a real click or key press on a select.
+    await userEvent.selectOptions(screen.getByLabelText('Sport'), 'Football');
+    expect(screen.getByLabelText('Sport')).toHaveValue('1');
+    expect(screen.getByLabelText('Format')).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Governorate'), 'Capital');
+    expect(screen.getByLabelText('Governorate')).toHaveValue('capital');
+    await userEvent.selectOptions(screen.getByLabelText('Difficulty'), 'Medium');
+    expect(screen.getByLabelText('Difficulty')).toHaveValue('medium');
+    await userEvent.type(screen.getByLabelText('Title'), 'Friday game');
+    const card = screen.getByRole('complementary', { name: 'Game preview' });
+    expect(card).toHaveTextContent('Football');
+    expect(card).toHaveTextContent('Friday game');
   });
 });

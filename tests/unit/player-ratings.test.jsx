@@ -221,7 +221,7 @@ describe('pages', () => {
   });
   it('shows the public rating summary on a profile', async () => {
     ratingService.getForUser.mockResolvedValue({ user_id: 2, average_rating: 4.3, rating_count: 12 });
-    render(<MemoryRouter initialEntries={['/users/2']}><Routes><Route path="/users/:userId" element={<ProfilePage session={{ user: { id: 2 } }} />} /></Routes></MemoryRouter>);
+    render(<MemoryRouter initialEntries={['/users/2']}><Routes><Route path="/users/:userId" element={<ProfilePage session={{ user: { id: 1 } }} />} /></Routes></MemoryRouter>);
     expect(await screen.findByText('12 ratings', { exact: false })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Player rating' })).toBeVisible();
     expect(ratingService.getForUser).toHaveBeenCalledWith(2, expect.anything());

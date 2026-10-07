@@ -52,7 +52,7 @@ describe('account menu keyboard and session boundaries', () => {
     const { user } = menu({ pending: true });
     screen.getByRole('button', { name: 'Alice' }).focus();
     await user.keyboard('{ArrowUp}');
-    expect(screen.getByRole('menuitem', { name: 'Settings' })).toHaveFocus();
+    expect(screen.getByRole('menuitem', { name: 'Profile' })).toHaveFocus();
     expect(screen.getByRole('menuitem', { name: 'Signing out…' })).toBeDisabled();
     await user.keyboard('{ArrowDown}');
     expect(screen.getByRole('menuitem', { name: 'My rooms' })).toHaveFocus();
@@ -81,7 +81,7 @@ describe('account menu keyboard and session boundaries', () => {
       <Route path="*" element={null} />
     </Routes></MemoryRouter>);
     await user.click(screen.getByRole('button', { name: 'Alice' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Settings' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Profile' }));
     expect(screen.getByText('Account settings destination')).toBeInTheDocument();
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });

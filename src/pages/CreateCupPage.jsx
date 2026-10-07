@@ -20,23 +20,19 @@ export default function CreateCupPage() {
     navigate('/cups');
   }
 
-  return <main className="home cups-scope">
+  return <main className="home host-scope">
     <div className="home-content">
-      <section className="sports-banner cups-banner" aria-labelledby="create-cup-title">
+      <section className="sports-banner host-banner" aria-labelledby="create-cup-title">
         <BracketArt />
-        <div className="cups-banner-title">
-          <div>
-            <p className="sports-banner-eyebrow">Be the organizer</p>
-            <h1 id="create-cup-title">Create a cup</h1>
-            <p>Pick a sport, set the rules and open the draw to teams.</p>
-          </div>
+        <div>
+          <p className="sports-banner-eyebrow">Be the organizer</p>
+          <h1 id="create-cup-title">Create a cup</h1>
+          <p>Pick a sport, set the rules and open the draw to teams.</p>
         </div>
       </section>
-      <section className="home-section cup-panel">
-        <AsyncState loading={sports.loading} error={sports.error} onRetry={() => setRetry(count => count + 1)}>
-          <CupForm sports={sports.data || []} onSubmit={create} onCancel={() => navigate('/cups')} />
-        </AsyncState>
-      </section>
+      <AsyncState loading={sports.loading} error={sports.error} onRetry={() => setRetry(count => count + 1)}>
+        <CupForm sports={sports.data || []} onSubmit={create} onCancel={() => navigate('/cups')} />
+      </AsyncState>
     </div>
   </main>;
 }

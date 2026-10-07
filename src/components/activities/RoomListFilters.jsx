@@ -7,6 +7,8 @@ import {
   ROOM_STATUS_OPTIONS,
   VISIBILITY_OPTIONS,
 } from '../../lib/helpers/filters';
+import Select from '../common/Select';
+import DateTimeInput from '../common/DateTimeInput';
 
 function CheckboxGroup({ name, legend, options, selected }) {
   return (
@@ -26,10 +28,10 @@ function CheckboxGroup({ name, legend, options, selected }) {
 function SelectField({ name, label, anyLabel, options, value }) {
   return (
     <label className="form-field">{label}
-      <select name={name} defaultValue={value || ''}>
+      <Select name={name} defaultValue={value || ''}>
         {anyLabel !== undefined && <option value="">{anyLabel}</option>}
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -68,10 +70,10 @@ export default function RoomListFilters({ filterSet, filters, sports = [], field
         {has('dates') && (
           <>
             <label className="form-field">From
-              <input type="datetime-local" name="starts_from" defaultValue={toBahrainDateTimeInput(filters.starts_from)} />
+              <DateTimeInput  name="starts_from" defaultValue={toBahrainDateTimeInput(filters.starts_from)} />
             </label>
             <label className="form-field">Until
-              <input type="datetime-local" name="starts_to" defaultValue={toBahrainDateTimeInput(filters.starts_to)} />
+              <DateTimeInput  name="starts_to" defaultValue={toBahrainDateTimeInput(filters.starts_to)} />
             </label>
           </>
         )}

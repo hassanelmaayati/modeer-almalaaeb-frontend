@@ -4,6 +4,7 @@ import JoinedRoomCard from '../components/activities/JoinedRoomCard';
 import RoomList from '../components/activities/RoomList';
 import RoomListFilters from '../components/activities/RoomListFilters';
 import RoomViewTabs from '../components/activities/RoomViewTabs';
+import { JoinedRoomsArt } from '../components/home/HeroArt';
 import { joinedRoomFilters, joinedRoomsEmptyState } from '../lib/helpers/filters';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import usePagedRooms from '../lib/helpers/usePagedRooms';
@@ -26,12 +27,17 @@ export default function JoinedRoomsPage() {
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), []);
 
-  return <main>
-    <header className="page-header">
-      <h1>Joined rooms</h1>
-      <p>Rooms hosted by other people that you have joined, asked to join or been invited to.</p>
-      <Link className="button" to="/sports">Browse activities</Link>
-    </header>
+  return <main className="home rooms-scope">
+    <div className="home-content">
+    <section className="sports-banner rooms-banner" aria-labelledby="joined-rooms-title">
+      <JoinedRoomsArt />
+      <div>
+        <p className="sports-banner-eyebrow">Join. Show up. Enjoy.</p>
+        <h1 id="joined-rooms-title">Joined rooms</h1>
+        <p>Rooms hosted by other people that you have joined, asked to join or been invited to.</p>
+      </div>
+      <div className="sports-banner-actions"><Link className="button-primary" to="/sports">Browse activities</Link></div>
+    </section>
     <RoomViewTabs filterSet={joinedRoomFilters} filters={filters} />
     <RoomListFilters
       key={searchKey}
@@ -62,5 +68,6 @@ export default function JoinedRoomsPage() {
       {rooms.more.pending ? 'Loading…' : 'Load more'}
     </button>}
     {rooms.more.error && <p role="alert" className="error-message">{rooms.more.error}</p>}
+    </div>
   </main>;
 }

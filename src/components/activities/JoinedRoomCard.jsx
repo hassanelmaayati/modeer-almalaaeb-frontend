@@ -1,4 +1,7 @@
 import { Link } from 'react-router';
+import Icon from '../common/Icon';
+import SportIcon from '../common/SportIcon';
+import RoomPlaces from './RoomPlaces';
 import { formatActivitySchedule } from '../../lib/helpers/date';
 import { DIFFICULTIES, DISTRICTS, optionLabel, ROOM_STATUS_OPTIONS } from '../../lib/helpers/filters';
 import { joinedMembershipLabel } from '../../lib/helpers/rooms';
@@ -9,27 +12,28 @@ const INACTIVE_MEMBERSHIP = ['declined', 'removed', 'left'];
 export default function JoinedRoomCard({ room, sportName }) {
   const { membership } = room;
   const muted = ENDED_ROOM.includes(room.status) || INACTIVE_MEMBERSHIP.includes(membership.status);
-  // slots_left is optional in the API, so only quote it when it is there.
-  const places = room.status === 'open' && room.slots_left != null
-    ? `${room.slots_left} of ${room.capacity} places left`
-    : `${room.capacity} places`;
 
   return (
-    <article className={muted ? 'room-card is-muted' : 'room-card'}>
-      <span className="eyebrow">{sportName || 'Activity'}</span>
+    <article className={`${muted ? 'room-card is-muted' : 'room-card'} room-card-membership-${membership.status}`}>
+      <header className="room-card-top">
+        <span className="room-card-sport"><SportIcon name={sportName} size={30} /></span>
+        <span className="eyebrow room-card-kicker">{sportName || 'Activity'}</span>
+      </header>
       <h3>{room.title}</h3>
-      <p>{formatActivitySchedule(room.starts_at, room.ends_at)} <span className="muted">(Bahrain)</span></p>
-      <p>{room.area} · {optionLabel(DISTRICTS, room.district)}</p>
+      <p className="room-row"><Icon name="calendar" /><span>{formatActivitySchedule(room.starts_at, room.ends_at)} <span className="muted">(Bahrain)</span></span></p>
+      <p className="room-row"><Icon name="pin" /><span>{room.area} · {optionLabel(DISTRICTS, room.district)}</span></p>
       <div className="card-meta">
         <span className="status-badge">{joinedMembershipLabel(membership)}</span>
         <span className="status-badge">{optionLabel(ROOM_STATUS_OPTIONS, room.status)}</span>
         <span className="status-badge">{optionLabel(DIFFICULTIES, room.difficulty)}</span>
-        <span>{places}</span>
       </div>
-      {membership.position && <p>Your position: {membership.position}</p>}
+      <RoomPlaces room={room} />
+      {membership.position && <p className="room-note">Your position: {membership.position}</p>}
       {room.description && <p className="card-description">{room.description}</p>}
-      {room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
-      <Link className="button-secondary" to={`/rooms/${room.id}`}>View room</Link>
+      {room.venue_notes && <p className="room-note">Meeting details: {room.venue_notes}</p>}
+      <div className="button-row room-card-actions">
+        <Link className="button-secondary" to={`/rooms/${room.id}`}>View room</Link>
+      </div>
     </article>
   );
 }

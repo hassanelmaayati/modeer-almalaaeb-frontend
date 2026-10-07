@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Field from '../common/Field';
 import PeoplePicker from '../common/PeoplePicker';
 import { photoUrlError } from '../../lib/helpers/photoUrl';
+import Select from '../common/Select';
 
 export default function GroupForm({ group, sports, ownerId, onSubmit, onCancel }) {
   const [pending, setPending] = useState(false);
@@ -25,11 +26,11 @@ export default function GroupForm({ group, sports, ownerId, onSubmit, onCancel }
     finally { setPending(false); }
   }
 
-  return <form className="form-stack" onSubmit={submit}>
+  return <div className="host-scope"><form className="form-stack room-form" onSubmit={submit}>
     {error && <p role="alert">{error}</p>}
     <Field label="Group name"><input name="name" defaultValue={group?.name || ''} required /></Field>
+    {!group ? <Field label="Sport"><Select name="sports_id" defaultValue="" required><option value="" disabled>Select an activity</option>{sports.map(sport => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</Select></Field> : <p>Sport: {sports.find(sport => sport.id === group.sports_id)?.name || 'Activity'} (cannot be changed)</p>}
     <Field label="Description"><textarea name="description" defaultValue={group?.description || ''} /></Field>
-    {!group ? <Field label="Sport"><select name="sports_id" defaultValue="" required><option value="" disabled>Select an activity</option>{sports.map(sport => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></Field> : <p>Sport: {sports.find(sport => sport.id === group.sports_id)?.name || 'Activity'} (cannot be changed)</p>}
     <Field label="Photo URL"><input name="photo_url" type="url" defaultValue={group?.photo_url || ''} /></Field>
     {!group && <fieldset className="group-invites">
       <legend>Invite players (optional)</legend>
@@ -43,5 +44,5 @@ export default function GroupForm({ group, sports, ownerId, onSubmit, onCancel }
     </fieldset>}
     {!group && sports.length === 0 && <p role="alert">No activities are available for creating a group.</p>}
     <div className="actions"><button disabled={pending || (!group && !sports.length)}>{pending ? 'Saving…' : group ? 'Save changes' : 'Create group'}</button><button type="button" disabled={pending} onClick={onCancel}>Cancel</button></div>
-  </form>;
+  </form></div>;
 }

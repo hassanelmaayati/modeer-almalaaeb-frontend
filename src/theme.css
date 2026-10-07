@@ -1,0 +1,272 @@
+/* Design system theme: tokens (colour, radius, shadow, font) and the component rules, applied to this app's own classes.
+   Loaded last so it can map the app's older variables (--green, --ink, --line ...) onto the tokens. */
+
+:root {
+  --radius: 0.75rem;
+  --spacing: 0.25rem;
+  --leading: 1.55;
+  --font-sans: "Barlow", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-accent: "Saira Stencil One", "Big Shoulders Display", sans-serif;
+  --font-serif: "Barlow", serif;
+  --font-mono: "Source Code Pro", monospace;
+  --shadow-color: #001e2b;
+  --shadow-x: 0px;
+  --shadow-y: 4px;
+  --shadow-blur: 12px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.08;
+  --shadow-2xs: color-mix(in oklch, oklch(0.2201 0.044 230.173) 4%, transparent) 0px 4px 12px 0px;
+  --shadow-xs: color-mix(in oklch, oklch(0.2201 0.044 230.173) 4%, transparent) 0px 4px 12px 0px;
+  --shadow-sm: color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 12px 0px, color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 8px -1px;
+  --shadow: color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 12px 0px, color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 8px -1px;
+  --shadow-md: color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 12px 0px, color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 8px 16px -1px;
+  --shadow-lg: color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 12px 0px, color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 16px 24px -1px;
+  --shadow-xl: color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 4px 12px 0px, color-mix(in oklch, oklch(0.2201 0.044 230.173) 8%, transparent) 0px 32px 40px -1px;
+  --shadow-2xl: color-mix(in oklch, oklch(0.2201 0.044 230.173) 20%, transparent) 0px 4px 12px 0px;
+  --primary: oklch(0.4584 0.0963 165.087);
+  --primary-foreground: oklch(0.27 0.052 168);
+  --secondary: oklch(0.98 0.005 180);
+  --secondary-foreground: oklch(0.27 0.052 168);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.27 0.052 168);
+  --accent: oklch(0.93 0.07 152);
+  --accent-foreground: oklch(0.4584 0.0963 165.087);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.27 0.052 168);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.27 0.052 168);
+  --muted: oklch(0.97 0.005 180);
+  --muted-foreground: oklch(0.46 0.032 165);
+  --destructive: oklch(0.55 0.22 27);
+  --border: oklch(0.91 0.008 220);
+  --input: oklch(0.85 0.008 220);
+  --ring: oklch(0.8254 0.2367 148.368);
+  --chart-1: oklch(0.8254 0.2367 148.368);
+  --chart-2: oklch(0.55 0.22 295);
+  --chart-3: oklch(0.7 0.18 50);
+  --chart-4: oklch(0.7 0.17 340);
+  --chart-5: oklch(0.45 0.13 270);
+  --sidebar: oklch(0.2201 0.044 230.173);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.8254 0.2367 148.368);
+  --sidebar-primary-foreground: oklch(0.2201 0.044 230.173);
+  --sidebar-accent: oklch(0.25 0.03 220);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3 0.03 220);
+  --sidebar-ring: oklch(0.8254 0.2367 148.368);
+
+  /* Button colours from the component rules: bright green with dark text, darker when pressed. */
+  /* Text: a deep forest green instead of near-black; headings get a richer green. */
+  --heading: oklch(0.36 0.085 165);
+  --btn-bg: #00ed64;
+  --btn-fg: var(--foreground);
+  --btn-bg-hover: #00ed64;
+  --btn-bg-active: #008c34;
+  --btn-outline: var(--heading);
+  --btn-disabled-bg: #e1e5e8;
+  --btn-disabled-fg: #a8b3bc;
+  --focus-ring: color-mix(in oklch, var(--ring) 60%, white);
+
+  /* The app's older variables now come from the tokens above. */
+  --green: var(--primary);
+  --green-dark: color-mix(in oklch, var(--primary) 80%, black);
+  --green-soft: var(--accent);
+  --ink: var(--foreground);
+  --muted-ink: var(--muted-foreground);
+  --line: var(--border);
+}
+
+.dark {
+  --primary: oklch(0.8254 0.2367 148.368);
+  --primary-foreground: oklch(0.2201 0.044 230.173);
+  --secondary: oklch(0.27 0.03 220);
+  --secondary-foreground: oklch(1 0 0);
+  --background: oklch(0.2201 0.044 230.173);
+  --foreground: oklch(1 0 0);
+  --accent: oklch(0.4584 0.0963 165.087);
+  --accent-foreground: oklch(1 0 0);
+  --card: oklch(0.25 0.03 220);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.25 0.03 220);
+  --popover-foreground: oklch(1 0 0);
+  --muted: oklch(0.27 0.03 220);
+  --muted-foreground: oklch(0.7 0.02 220);
+  --destructive: oklch(0.6 0.22 27);
+  --border: oklch(0.32 0.03 220);
+  --input: oklch(0.32 0.03 220);
+  --ring: oklch(0.8254 0.2367 148.368);
+  --chart-1: oklch(0.8254 0.2367 148.368);
+  --chart-2: oklch(0.6 0.22 295);
+  --chart-3: oklch(0.75 0.18 50);
+  --chart-4: oklch(0.75 0.17 340);
+  --chart-5: oklch(0.55 0.13 270);
+  --sidebar: oklch(0.18 0.03 220);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.8254 0.2367 148.368);
+  --sidebar-primary-foreground: oklch(0.2201 0.044 230.173);
+  --sidebar-accent: oklch(0.25 0.03 220);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3 0.03 220);
+  --sidebar-ring: oklch(0.8254 0.2367 148.368);
+}
+
+/* Base */
+* { border-color: var(--border); outline-color: color-mix(in oklch, var(--ring) 50%, transparent); }
+body { background: var(--background); color: var(--foreground); font-family: var(--font-sans); line-height: var(--leading); }
+button, input, select, textarea { font-family: var(--font-sans); }
+
+/* Buttons: pill shaped, 14px / 600, bright green with dark text for the main action, outlined for the rest */
+button:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link),
+.button, .button-primary, .button-outline, .button-secondary, .button-danger,
+a.button, a.button-secondary, .chat-destination, .chat-back, .notification-open, .nav-cta {
+  border-radius: 9999px !important;
+  font-family: var(--font-sans);
+  font-size: .875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: normal;
+  transition: background-color 200ms cubic-bezier(0, 0, .2, 1), border-color 200ms cubic-bezier(0, 0, .2, 1), box-shadow 200ms cubic-bezier(0, 0, .2, 1), color 200ms cubic-bezier(0, 0, .2, 1);
+}
+.button-primary:active:not(:disabled), a.button:active, .ui-picker button.ui-done:active:not(:disabled), .nav-cta:active { background: var(--btn-bg-active) !important; border-color: var(--btn-bg-active) !important; }
+.button-primary:hover:not(:disabled), a.button:hover, .nav-cta:hover { box-shadow: var(--shadow-sm); }
+.button-secondary:hover:not(:disabled), .button-outline:hover:not(:disabled), a.button-secondary:hover { background: var(--muted) !important; color: var(--foreground) !important; }
+.button-primary:disabled, .button:disabled { background: var(--btn-disabled-bg) !important; border-color: var(--btn-disabled-bg) !important; color: var(--btn-disabled-fg) !important; opacity: 1; }
+.room-scope button.button-danger, .groups-scope button.button-danger { border-color: var(--destructive); background: var(--destructive); color: #fff; }
+.room-scope button.button-danger:hover:not(:disabled), .groups-scope button.button-danger:hover:not(:disabled) { border-color: color-mix(in oklch, var(--destructive) 85%, black); background: color-mix(in oklch, var(--destructive) 85%, black); }
+
+/* Tabs and chips: pill list, the current one filled with the foreground colour */
+.status-chip, .status-chips .status-chip, nav[aria-label] a { border-color: var(--border); }
+nav[aria-label="Room views"], nav[aria-label="Friend lists"] { border-radius: 9999px !important; }
+nav[aria-label="Room views"] a, nav[aria-label="Friend lists"] a { border-radius: 9999px !important; font-weight: 600; }
+
+/* Inputs, textareas and select buttons: 8px, 1px border, a 2px green border when focused */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea {
+  border-radius: 8px !important;
+  border-width: 1px !important;
+  border-color: var(--input) !important;
+  font-family: var(--font-sans);
+  line-height: var(--leading);
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.ui-native) { min-height: 2.75rem; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible, textarea:focus, textarea:focus-visible {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary) !important;
+  outline: none !important;
+}
+.ui-select:focus-within > .ui-trigger.ui-trigger, .ui-datetime:focus-within > .ui-trigger.ui-trigger, .ui-select.is-open > .ui-trigger.ui-trigger, .ui-datetime.is-open > .ui-trigger.ui-trigger {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary) !important;
+}
+
+/* Cards, panels and dialogs: 12px corners and the soft shadow */
+.panel, .cup-card, .group-card, .room-card, .game-card, .notification-card, .friend-row, .account-card, .host-card, .host-progress,
+.room-step, .entry-card, .member-row, .empty-state, .status-message.error-message, .auth-page, .cup-panel, .group-panel, .notification-panel,
+.room-filters, .group-filters, .sports-banner, .location-view, .location-picker, .fixture, .champion-card, .activity-details > div,
+.messages-layout, .cup-rules-card .cup-rules, .dialog-panel {
+  border-radius: 12px !important;
+}
+.dialog-panel { box-shadow: rgba(0, 30, 43, .16) 0 16px 48px -8px; border-color: var(--border); }
+.dialog-panel .dialog-header h2 { font-size: 1.75rem !important; font-weight: 500 !important; letter-spacing: -.5px !important; line-height: 1.25 !important; }
+.dialog-panel p { color: color-mix(in oklch, var(--foreground) 82%, white); }
+.ui-menu, .ui-picker { box-shadow: var(--shadow-lg); border-radius: 8px; border-color: var(--input); }
+
+/* Badges: 6px corners, 13px / 600 */
+.status-badge, .room-status, .notification-unread, .cup-countdown, .host-card-pills span, .chats-unread {
+  border-radius: 6px !important;
+  font-family: var(--font-sans);
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  padding: 2px 10px !important;
+}
+
+/* Alerts: 8px corners */
+[role="alert"], [role="status"] { border-radius: 8px !important; }
+
+/* Table */
+.race-results { font-family: var(--font-sans); font-size: 14px; }
+.race-results th, .race-results td { border-bottom-color: #eceff1 !important; }
+
+/* A disabled main action is light grey with grey text (submit buttons and buttons with no explicit type) */
+button[type="submit"]:disabled, form button:not([type]):disabled, .actions button:not([type]):disabled {
+  background: var(--btn-disabled-bg) !important;
+  border-color: var(--btn-disabled-bg) !important;
+  color: var(--btn-disabled-fg) !important;
+  opacity: 1 !important;
+}
+
+/* The map draws its own text (zoom buttons, scale, attribution); give it the app font too */
+.leaflet-container, .leaflet-container .leaflet-bar a, .leaflet-container .leaflet-control-attribution, .leaflet-container .leaflet-control-scale-line { font-family: var(--font-sans); }
+
+/* Typography: Barlow for text and controls, Big Shoulders Display (a tall stadium-poster face) for headings,
+   and Saira Stencil One, the stencilled numerals of jerseys and lockers, for numbers and the lettering inside the drawings. */
+h1, h2, h3, .logo-name {
+  font-family: var(--font-display);
+  letter-spacing: .01em !important;
+}
+.sports-banner h1, .home-hero h1, .auth-main h1 {
+  text-transform: uppercase;
+  font-weight: 800 !important;
+  letter-spacing: .015em !important;
+}
+.sports-banner h1, .auth-main h1 { font-size: clamp(2.3rem, 4.8vw, 3.4rem) !important; line-height: 1; }
+.home-hero h1 { font-size: clamp(2.75rem, 6.7vw, 4.7rem) !important; line-height: .95; font-weight: 900 !important; }
+.auth-aside .auth-intro h2 { font-size: clamp(2.2rem, 4vw, 3rem) !important; text-transform: uppercase; line-height: 1; font-weight: 800; }
+h2, h3 { zoom: 1.15; font-weight: 800; }
+.logo-name { font-size: 1.75rem !important; font-weight: 800 !important; letter-spacing: .02em !important; text-transform: uppercase; }
+.sports-banner-eyebrow, .host-preview-kicker, .cup-card-kicker, .room-card-kicker { font-weight: 700; }
+.room-step-num, .how-number, .cup-deadline-tile strong, .place, .host-progress-head span, .cup-countdown, .chats-unread, .unread-badge, .nav-badge { font-family: var(--font-accent); font-weight: 400 !important; letter-spacing: .02em; }
+.banner-art text, .auth-art text { font-family: var(--font-accent) !important; font-weight: 400 !important; }
+
+/* Barlow runs a little small at the same size, so text and button labels get a small bump */
+body { font-size: 1.0625rem; }
+button:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link), .button, .button-primary, .button-outline, .button-secondary, .button-danger,
+a.button, a.button-secondary, .chat-destination, .chat-back, .notification-open, .nav-cta { font-size: .95rem !important; }
+
+/* Headings in the richer green (links inside headings too) */
+h1, h2, h3, .cup-card h3 a, .room-card h3, .game-card h3 { color: var(--heading); }
+.home-hero h1, .sports-banner h1, .auth-main h1 { color: var(--heading); }
+
+/* Home page: lighter green for section titles, game titles and sport icons; rounder sport tiles */
+:root { --green-light: oklch(0.46 0.1 163); }
+main.home:not([class*="scope"]) .home-section h2, .game-card h3 { color: var(--green-light); }
+.sport-icon { color: var(--green-light); }
+.sport-tile { border-radius: 20px; }
+.sport-tile .sport-icon, .game-card .sport-icon { color: var(--green-light); }
+.sport-tile:hover .sport-icon, .sport-tile:focus-visible .sport-icon, .sport-tile[aria-current="true"] .sport-icon { color: var(--green); }
+
+/* How it works: green number badges */
+.how-number { background: var(--btn-bg); color: var(--heading); }
+
+/* Secondary buttons keep the bright green as their border */
+.button-secondary, .button-outline, a.button-secondary,
+.cups-scope .form-stack .actions button[type="button"], .groups-scope .form-stack .actions button[type="button"],
+.host-scope button[type="button"]:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link) { border-color: var(--btn-outline) !important; }
+
+/* Navbar links: rounded hover and current state */
+.site-header nav a, .nav-plain { border-radius: 9999px; }
+
+/* Secondary buttons: a clear light-green fill on hover */
+.button-secondary:hover:not(:disabled), .button-outline:hover:not(:disabled), a.button-secondary:hover,
+.cups-scope .form-stack .actions button[type="button"]:hover:not(:disabled), .groups-scope .form-stack .actions button[type="button"]:hover:not(:disabled),
+.host-scope button[type="button"]:not(.ui-trigger):not(.ui-day):not(.ui-nav):not(.ui-link):hover:not(:disabled) {
+  background: oklch(0.92 0.09 155) !important; color: var(--heading) !important;
+}
+
+/* App background: clean off-white with a faint dot grid */
+body {
+  background-color: oklch(0.979 0.007 160);
+  background-image: radial-gradient(circle, oklch(0.6 0.03 165 / .22) 1px, transparent 1.4px);
+  background-size: 24px 24px;
+  background-attachment: scroll;
+}
+
+/* Chosen filter / tab: same colours as the selected sport tile */
+.status-chip[aria-pressed="true"], .messages-scope .conversation-list .button-row button[aria-pressed="true"],
+.rooms-scope nav[aria-label="Room views"] a[aria-current="page"], .friends-scope nav[aria-label="Friend lists"] a[aria-current="page"] {
+  background: var(--green-soft) !important; border-color: var(--green) !important; color: var(--green) !important;
+}
+
+/* Chosen sport tile: no thicker bottom edge */
+.sport-tile[aria-current="true"] { box-shadow: none; }

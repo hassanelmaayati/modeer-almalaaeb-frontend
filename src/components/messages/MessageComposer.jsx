@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MAX_MESSAGE_LENGTH, messageBodyLength, validateMessageBody } from '../../lib/helpers/messages';
 
+const QUICK_REPLIES = ["I'm in!", 'See you there', 'Running late', 'Thanks!'];
+
 export default function MessageComposer({ disabledReason, onSend }) {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
@@ -32,7 +34,12 @@ export default function MessageComposer({ disabledReason, onSend }) {
   const length = messageBodyLength(text);
   const tooLong = length > MAX_MESSAGE_LENGTH;
 
+  const addQuickReply = (reply) => { setText((current) => current ? `${current} ${reply}` : reply); setError(''); };
+
   return <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); submit(); }} noValidate>
+    {text === '' && <div className="quick-replies" role="group" aria-label="Quick replies">
+      {QUICK_REPLIES.map((reply) => <button key={reply} type="button" className="quick-reply" onClick={() => addQuickReply(reply)}>{reply}</button>)}
+    </div>}
     <label className="chat-compose-field">
       <span className="visually-hidden">Message</span>
       <textarea

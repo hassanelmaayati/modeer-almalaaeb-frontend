@@ -94,7 +94,6 @@ describe('settings account persistence', () => {
     expect(userService.updateMe.mock.calls[0][0].user_name).toBe('Alice updated');
     // The PUT response is the saved user, so /users/me is not fetched again.
     expect(userService.getMe).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('link', { name: 'View my profile' })).toHaveAttribute('href', '/users/1');
   });
   it('keeps a successful save when the account chrome refresh fails', async () => {
     const refreshUser = vi.fn().mockRejectedValue(new Error('offline'));
@@ -142,7 +141,7 @@ describe('Google configuration and provider failure boundaries', () => {
   it('explains how to recover a sign-in conflict and permits another provider attempt', async () => {
     render(<GoogleSignInButton onCredential={vi.fn().mockRejectedValue({ status: 409 })} />);
     fireEvent.click(screen.getByRole('button', { name: 'Google sign in' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Sign in with your password, then link Google in Settings.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sign in with your password, then link Google from your Profile.');
     expect(screen.getByRole('button', { name: 'Google sign in' })).toBeEnabled();
   });
   it('shows a pending status without duplicate provider controls until the exchange finishes', async () => {

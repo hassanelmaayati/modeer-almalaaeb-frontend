@@ -164,7 +164,7 @@ test('phone navigation and activity dialogs remain usable without horizontal ove
   const menu = page.getByRole('menu', { name: 'Account', exact: true });
   await expect(menu).toBeVisible();
   await expect(account).toHaveAttribute('aria-expanded', 'true');
-  await expect(menu.getByRole('menuitem')).toHaveText(['My rooms', 'Joined rooms', 'Friends', 'Settings', 'Sign out']);
+  await expect(menu.getByRole('menuitem')).toHaveText(['My rooms', 'Joined rooms', 'Friends', 'Profile', 'Sign out']);
   const menuBounds = await menu.boundingBox();
   expect(menuBounds.x).toBeGreaterThanOrEqual(0);
   expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(width + 1);
@@ -185,7 +185,7 @@ test('phone navigation and activity dialogs remain usable without horizontal ove
   await page.keyboard.press('ArrowDown');
   await expect(menu.getByRole('menuitem', { name: 'My rooms', exact: true })).toBeFocused();
   for (let step = 0; step < 3; step += 1) await page.keyboard.press('ArrowDown');
-  await expect(menu.getByRole('menuitem', { name: 'Settings', exact: true })).toBeFocused();
+  await expect(menu.getByRole('menuitem', { name: 'Profile', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/settings$/);
   await expect(menu).toHaveCount(0);

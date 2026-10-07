@@ -5,6 +5,7 @@ import MyRoomCard from '../components/activities/MyRoomCard';
 import RoomList from '../components/activities/RoomList';
 import RoomListFilters from '../components/activities/RoomListFilters';
 import RoomViewTabs from '../components/activities/RoomViewTabs';
+import { MyRoomsArt } from '../components/home/HeroArt';
 import { myRoomFilters, myRoomsEmptyState } from '../lib/helpers/filters';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import usePagedRooms from '../lib/helpers/usePagedRooms';
@@ -27,12 +28,17 @@ export default function MyRoomsPage({ session }) {
 
   useEffect(() => startRequest((signal) => sportService.list({ signal }), setSports), []);
 
-  return <main>
-    <header className="page-header">
-      <h1>My rooms</h1>
-      <p>Rooms you host. Use History to look back at rooms that have ended.</p>
-      <CreateRoomAction session={session} className="button" />
-    </header>
+  return <main className="home rooms-scope">
+    <div className="home-content">
+    <section className="sports-banner rooms-banner" aria-labelledby="my-rooms-title">
+      <MyRoomsArt />
+      <div>
+        <p className="sports-banner-eyebrow">Host. Organize. Play.</p>
+        <h1 id="my-rooms-title">My rooms</h1>
+        <p>Rooms you host. Use History to look back at rooms that have ended.</p>
+      </div>
+      <div className="sports-banner-actions"><CreateRoomAction session={session} className="button-primary" /></div>
+    </section>
     <RoomViewTabs filterSet={myRoomFilters} filters={filters} />
     <RoomListFilters
       key={searchKey}
@@ -63,5 +69,6 @@ export default function MyRoomsPage({ session }) {
       {rooms.more.pending ? 'Loading…' : 'Load more'}
     </button>}
     {rooms.more.error && <p role="alert" className="error-message">{rooms.more.error}</p>}
+    </div>
   </main>;
 }

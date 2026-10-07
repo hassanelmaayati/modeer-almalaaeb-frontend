@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { toBahrainDateTimeInput } from '../../lib/helpers/date';
 import { ALL_GOVERNORATES, DIFFICULTIES, DISTRICTS, filtersFromForm, validateRoomFilters } from '../../lib/helpers/filters';
+import Select from '../common/Select';
+import DateTimeInput from '../common/DateTimeInput';
 
 export default function RoomFilters({ filters, sports = [], onApply, onClear }) {
   const [error, setError] = useState('');
@@ -17,28 +19,28 @@ export default function RoomFilters({ filters, sports = [], onApply, onClear }) 
     <form className="room-filters panel" onSubmit={handleSubmit}>
       <div className="filter-fields">
         <label className="form-field">Activity
-          <select name="sport_id" defaultValue={filters.sport_id || ''}>
+          <Select name="sport_id" defaultValue={filters.sport_id || ''}>
             <option value="">All activities</option>
             {sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="form-field">Difficulty
-          <select name="difficulty" defaultValue={filters.difficulty || ''}>
+          <Select name="difficulty" defaultValue={filters.difficulty || ''}>
             <option value="">All levels</option>
             {DIFFICULTIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="form-field">Governorate
-          <select name="district" defaultValue={filters.district || ''}>
+          <Select name="district" defaultValue={filters.district || ''}>
             <option value={ALL_GOVERNORATES}>All governorates</option>
             {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="form-field">From
-          <input type="datetime-local" name="starts_from" defaultValue={toBahrainDateTimeInput(filters.starts_from)} />
+          <DateTimeInput  name="starts_from" defaultValue={toBahrainDateTimeInput(filters.starts_from)} />
         </label>
         <label className="form-field">Until
-          <input type="datetime-local" name="starts_to" defaultValue={toBahrainDateTimeInput(filters.starts_to)} />
+          <DateTimeInput  name="starts_to" defaultValue={toBahrainDateTimeInput(filters.starts_to)} />
         </label>
       </div>
       <p className="muted">Dates and times are shown in Bahrain time.</p>

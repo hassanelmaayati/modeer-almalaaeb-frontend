@@ -32,12 +32,16 @@ export default function CupOrganizerActions({ cup, sports, onUpdate, onDelete })
   }
 
   if (cup.status === 'published' || cup.status === 'completed') return null;
+  // Editing gets the same stepped form and live card as creating a cup.
+  if (mode === 'edit') return <section className="home-section host-scope" aria-label="Edit cup">
+    {error && <p role="alert">{error}</p>}
+    <CupForm cup={cup} sports={sports} onCancel={() => setMode(null)}
+      onSubmit={async body => { await onUpdate(body); setMode(null); }} />
+  </section>;
   return <section className="home-section cup-panel" aria-label="Organizer actions">
     <h2>Organizer</h2>
     {error && <p role="alert">{error}</p>}
-    {mode === 'edit' ? <CupForm cup={cup} sports={sports} onCancel={() => setMode(null)}
-      onSubmit={async body => { await onUpdate(body); setMode(null); }} />
-    : mode === 'open' ? <form className="form-stack" onSubmit={openRegistration}>
+    {mode === 'open' ? <form className="form-stack" onSubmit={openRegistration}>
       <RegistrationDeadline defaultValue={cup.registration_closes_at} />
       <div className="actions">
         <button disabled={pending}>{pending ? 'Opening…' : 'Open registration'}</button>

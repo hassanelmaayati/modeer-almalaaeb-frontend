@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import useAction from '../../lib/helpers/useAction';
 import Field from '../common/Field';
 import { registrationClosed } from '../../lib/helpers/cups';
+import Select from '../common/Select';
 
 /** Group-owner controls during registration: enter an owned group, or withdraw one already entered. */
 export default function EntryRosterControls({ cup, user, groups, ownEntries, onEnter, onWithdraw }) {
@@ -29,10 +30,10 @@ export default function EntryRosterControls({ cup, user, groups, ownEntries, onE
       : groups.error ? <p role="alert">Your groups could not be loaded.</p>
       : groups.data.length ? <form className="actions" onSubmit={enter}>
         <Field label="Enter one of your groups">
-          <select name="group_id" defaultValue="" required>
+          <Select name="group_id" defaultValue="" required>
             <option value="" disabled>Select a group</option>
             {groups.data.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
-          </select>
+          </Select>
         </Field>
         <button disabled={pending}>{pending ? 'Entering…' : 'Enter cup'}</button>
       </form>

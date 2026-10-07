@@ -7,6 +7,7 @@ export default function FriendConfirmDialog({ request, name, pending, onConfirm,
 
   return <Dialog
     title={title}
+    className="groups-scope friends-dialog"
     onClose={close}
     actions={<>
       <button type="button" disabled={pending} onClick={onConfirm}>{pending ? 'Saving…' : confirm}</button>

@@ -38,6 +38,7 @@ export default function MessageBubble({ message, own, senderName, onEdit, onDele
   // Deleted and system messages returned above, so a visible own message can always be changed.
   const canChange = own && onEdit && onDelete;
   return <li className={own ? 'message is-own' : 'message'}>
+    {senderName && <span className="message-avatar" aria-hidden="true">{senderName.charAt(0).toUpperCase()}</span>}
     {senderName && <span className="message-sender">{senderName}</span>}
     {editing
       ? <form className="message-edit" onSubmit={save}>

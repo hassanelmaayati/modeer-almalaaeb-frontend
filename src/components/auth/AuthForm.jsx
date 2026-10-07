@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import Field from '../common/Field';
 import { DISTRICTS } from '../../lib/helpers/filters';
+import Select from '../common/Select';
 
 export default function AuthForm({ session, signup = false }) {
   const navigate = useNavigate();
@@ -32,10 +33,11 @@ export default function AuthForm({ session, signup = false }) {
     finally { setPending(false); }
   }
 
-  if (session.loading) return <main><p role="status">Restoring session…</p></main>;
+  if (session.loading) return <main className="auth-main"><p className="status-message" role="status">Restoring session…</p></main>;
   if (session.user) return <Navigate to={destination} replace />;
-  return <main>
+  return <main className="auth-main">
     <h1>{title}</h1>
+    <p className="auth-sub">{signup ? 'It only takes a minute.' : 'Good to see you again.'}</p>
     <form className="form-stack" onSubmit={submit}>
       {error && <p role="alert">{error}</p>}
       {signup && <Field label="User name"><input name="user_name" autoComplete="username" minLength={3} maxLength={60} required /></Field>}
@@ -43,13 +45,13 @@ export default function AuthForm({ session, signup = false }) {
       <Field label="Password"><input name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : undefined} required /></Field>
       {signup && <Field label="Confirm password"><input name="confirmation" type="password" autoComplete="new-password" minLength={8} required /></Field>}
       {signup && <Field label="Governorate">
-        <select name="district" defaultValue="" required>
+        <Select name="district" defaultValue="" required>
           <option value="" disabled>Select your governorate</option>
           {DISTRICTS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        </Select>
       </Field>}
-      <div className="actions"><button disabled={pending}>{pending ? signup ? 'Creating account…' : 'Signing in…' : title}</button><Link to={destination}>Cancel</Link></div>
+      <div className="actions"><button disabled={pending}>{pending ? signup ? 'Creating account…' : 'Signing in…' : title}</button><Link className="auth-cancel" to={destination}>Cancel</Link></div>
     </form>
-    <p>{signup ? 'Already registered? ' : 'Need an account? '}<Link to={signup ? '/sign-in' : '/sign-up'}>{signup ? 'Sign in' : 'Sign up'}</Link></p>
+    <p className="auth-switch">{signup ? 'Already registered? ' : 'Need an account? '}<Link to={signup ? '/sign-in' : '/sign-up'}>{signup ? 'Sign in' : 'Sign up'}</Link></p>
   </main>;
 }

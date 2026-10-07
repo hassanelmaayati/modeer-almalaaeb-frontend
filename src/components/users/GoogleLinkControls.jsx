@@ -7,8 +7,8 @@ const linkError = error => error?.message || 'Linking Google failed.';
 
 /** @param {{ me: { email: string, google_linked: boolean }, onLink: (credential: string) => Promise<void> }} props */
 export default function GoogleLinkControls({ me, onLink }) {
-  return <section className="page-section">
-    <h2>Google account</h2>
+  return <section className="account-card" aria-labelledby="settings-google-title">
+    <h3 id="settings-google-title">Google account</h3>
     <p>Email: {me.email}</p>
     {me.google_linked ? <p>Google is linked. You can sign in with Google.</p> : <>
       <p>Link Google to sign in without your password.</p>

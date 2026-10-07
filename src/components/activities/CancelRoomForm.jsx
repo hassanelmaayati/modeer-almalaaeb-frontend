@@ -27,13 +27,13 @@ export default function CancelRoomForm({ title, pending, onConfirm }) {
         <input name="reason" value={reason} onChange={(event) => { setReason(event.target.value); setError(''); }} aria-invalid={error ? 'true' : undefined} />
       </label>
       {error && <p role="alert" className="error-message">{error}</p>}
-      <button disabled={pending}>Cancel room</button>
+      <button className="button-danger" disabled={pending}>Cancel room</button>
     </form>
     {confirming && <Dialog
       title={`Cancel "${title}"?`}
       onClose={keepRoom}
       actions={<>
-        <button type="button" disabled={pending} onClick={() => onConfirm(trimmed)}>{pending ? 'Cancelling…' : 'Yes, cancel room'}</button>
+        <button type="button" className="button-danger" disabled={pending} onClick={() => onConfirm(trimmed)}>{pending ? 'Cancelling…' : 'Yes, cancel room'}</button>
         <button type="button" className="button-secondary" disabled={pending} onClick={keepRoom}>Keep the room</button>
       </>}
     >

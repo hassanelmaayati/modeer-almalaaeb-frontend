@@ -12,10 +12,14 @@ import { playerName } from '../lib/helpers/groups';
 import useUsers from '../lib/helpers/userDirectory';
 import { chatPath } from '../lib/helpers/messages';
 import { formatActivityDate, formatActivitySchedule, formatActivityTime, parseDate } from '../lib/helpers/date';
-import { DISTRICTS, optionLabel } from '../lib/helpers/filters';
+import { DISTRICTS, ROOM_STATUS_OPTIONS, optionLabel } from '../lib/helpers/filters';
 import AsyncState from '../components/common/AsyncState';
 import CancelRoomForm from '../components/activities/CancelRoomForm';
 import LocationView from '../components/activities/LocationView';
+import Select from '../components/common/Select';
+import Icon from '../components/common/Icon';
+import SportIcon from '../components/common/SportIcon';
+import { RoomArt } from '../components/home/HeroArt';
 import RatePlayers, { PlayerRatingRow } from '../components/ratings/RatePlayers';
 import PeoplePicker from '../components/common/PeoplePicker';
 import TransferHost from '../components/activities/TransferHost';
@@ -78,72 +82,96 @@ export default function RoomPage({ session }) {
   const joinMessage = result => result?.status === 'accepted' ? 'You joined this room.' : 'Request sent. Waiting for host approval.';
   const loadError = resource.error?.status === 404 ? new Error('Room not found. It may have been removed, or it is private.') : resource.error;
 
-  return <main>
-    <AsyncState loading={resource.loading || session.loading} error={loadError} onRetry={reload}>
-      {room && <>
-        <header className="page-header"><h1>{room.title}</h1><p>{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p><p>{room.area} · {optionLabel(DISTRICTS, room.district)}</p></header>
-        {room.status === 'cancelled' && <section className="panel" aria-label="Cancellation"><h2>Room cancelled</h2>
-          <p>{room.cancelled_at ? `The host cancelled this room on ${formatActivityDate(room.cancelled_at)} at ${formatActivityTime(room.cancelled_at)} (Bahrain time).` : 'The host cancelled this room.'}</p>
-          {room.cancellation_reason && <p>Reason: {room.cancellation_reason}</p>}
-        </section>}
-        {canSeeRoster && <p><Link className="button" to={chatPath('room', room.id)}>{room.status === 'cancelled' ? 'View room chat' : 'Open room chat'}</Link></p>}
-        <section className="panel"><h2>Details</h2><dl className="activity-details">
-          {roomDetailItems(room, { sportName: sports.find(sport => sport.id === room.sport_id)?.name, hostName: playerName(users, room.host_id) }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-        </dl></section>
-        <section className="panel"><h2>Room lobby</h2><p>Status: {room.status}</p><p>{room.slots_left} available places of {room.capacity}; the host has a place.</p>
-          {room.description && <p>{room.description}</p>}{room.notes && <p>Notes: {room.notes}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
-          {room.venue_location && <><h3>Venue location</h3><LocationView location={room.venue_location} /></>}
-          {admission.message && <p role="status">{admission.message}</p>}
-          {!user && <Link to="/sign-in">Sign in to request a place</Link>}
-          {admission.canRequest && <button type="button" disabled={pending} onClick={() => run(requestPlace, joinMessage)}>{instantJoin ? 'Join room' : 'Request to join'}</button>}
-          {own?.status === 'pending' && own.requested === false && <div className="button-row">
-            <button type="button" disabled={pending || room.status !== 'open' || admission.atCutoff || admission.full} onClick={() => run(() => roomMemberService.update(roomId, userId, { status: 'accepted' }), 'Invitation accepted.')}>Accept invitation</button>
-            <button type="button" disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, userId, { status: 'declined' }), 'Invitation declined.')}>Decline invitation</button>
-          </div>}
-          {own && ['pending', 'accepted'].includes(own.status) && !admission.isHost && <button type="button" disabled={pending} onClick={() => run(() => roomMemberService.leave(roomId), 'You left the activity.')}>{own.status === 'pending' ? 'Withdraw request' : 'Leave room'}</button>}
-        </section>
-        {canSeeRoster && <section className="panel"><h2>Players</h2><ul className="member-list">
-          <li>{playerName(users, room.host_id)} — Host</li>
-          {members.filter(member => member.user_id !== room.host_id).map(member => <li key={member.id}>
-            {playerName(users, member.user_id)} — {member.status}{member.position && ` · Place ${member.position}`}
-            {admission.isHost && member.status === 'pending' && member.requested && <div className="button-row">
-              <button disabled={pending || room.status !== 'open' || admission.atCutoff || admission.full} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'accepted' }), 'Player approved.')}>Approve {playerName(users, member.user_id)}</button>
-              <button disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'declined' }), 'Request declined.')}>Decline {playerName(users, member.user_id)}</button>
-            </div>}
-            {admission.isHost && ['pending', 'accepted'].includes(member.status) && ['open', 'started'].includes(room.status) && <button disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'removed' }), 'Player removed.')}>Remove {playerName(users, member.user_id)}</button>}
-            {admission.isHost && member.status === 'accepted' && ['started', 'completed'].includes(room.status) && <form className="form-stack" onSubmit={event => {
-              event.preventDefault();
-              run(() => roomMemberService.update(roomId, member.user_id, { attendance: new FormData(event.currentTarget).get('attendance') }), 'Player record updated.');
-            }}>
-              <label>Attendance for {playerName(users, member.user_id)}<select name="attendance" defaultValue={member.attendance || 'unknown'}><option value="unknown">Unknown</option><option value="present">Present</option><option value="no_show">No show</option><option value="excused">Excused</option></select></label>
-              <button disabled={pending}>Save {playerName(users, member.user_id)} record</button>
-            </form>}
-            {/* The host can rate only players who were present, once the room is completed. Ratings are final, so a saved one is locked. */}
-            {admission.isHost && room.status === 'completed' && member.status === 'accepted' && member.attendance === 'present' &&
-              <PlayerRatingRow userId={member.user_id} name={playerName(users, member.user_id)} given={member.rating}
-                onRate={(id, rating) => roomMemberService.update(roomId, id, { rating }).then(reload)} />}
-          </li>)}
-        </ul></section>}
-        <RatePlayers room={room} members={members} users={users} user={user} />
-        {canChoose && <section className="panel"><h2>Your place</h2><form className="form-stack" onSubmit={event => {
-          event.preventDefault();
-          const position = new FormData(event.currentTarget).get('position') || null;
-          run(() => roomMemberService.update(roomId, userId, { position }), 'Place updated.');
-        }}><label>Place<select key={own.position || 'unset'} name="position" defaultValue={own.position || ''}>
-          <option value="">No assigned place</option>{positions.map(position => <option key={position.value} value={position.value} disabled={occupied.has(position.value)}>{position.label}{occupied.has(position.value) ? ' — taken' : ''}</option>)}
-          {own.position && !positions.some(position => position.value === own.position) && <option value={own.position}>{own.position}</option>}
-        </select></label><button disabled={pending}>Save place</button></form></section>}
-        {admission.isHost && room.status === 'open' && <section className="panel"><h2>Host controls</h2>
-          <Link className="button-secondary" to={`/rooms/${roomId}/edit`}>Edit room</Link>
-          <PeoplePicker label="Invite player" actionLabel="Invite" exclude={[room.host_id, ...members.map(member => member.user_id)]}
-            disabled={pending || admission.atCutoff || admission.full} onPick={player => run(() => roomMemberService.invite(roomId, player.id), 'Invitation sent.')} />
-          <CancelRoomForm title={room.title} pending={pending} onConfirm={reason => run(() => roomService.cancel(roomId, reason), 'Room cancelled.')} />
-        </section>}
-        {admission.isHost && ['open', 'started'].includes(room.status) && <TransferHost candidates={transferCandidates} pending={pending}
-          onTransfer={id => run(() => roomService.transferHost(roomId, id), '')} />}
-      </>}
-    </AsyncState>
-    {newHostId != null && <p role="status">{playerName(users, newHostId)} is now the host.</p>}
-    {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
+  const sportName = room ? sports.find(sport => sport.id === room.sport_id)?.name : undefined;
+  const taken = room && room.slots_left != null && room.capacity > 0 ? Math.min(100, Math.max(0, Math.round(((room.capacity - room.slots_left) / room.capacity) * 100))) : null;
+
+  return <main className="home room-scope">
+    <div className="home-content">
+      <AsyncState loading={resource.loading || session.loading} error={loadError} onRetry={reload}>
+        {room && <>
+          <section className={`sports-banner room-banner room-banner-${room.status}`} aria-label="Room overview">
+            <RoomArt />
+            <div className="room-banner-main">
+              <span className="room-banner-sport"><SportIcon name={sportName} size={46} /></span>
+              <div>
+                <p className="sports-banner-eyebrow">{sportName || 'Activity'}<span className={`room-status room-status-${room.status}`}>{optionLabel(ROOM_STATUS_OPTIONS, room.status)}</span></p>
+                <h1>{room.title}</h1>
+                <p className="room-banner-line"><Icon name="calendar" />{formatActivitySchedule(room.starts_at, room.ends_at)} (Bahrain)</p>
+                <p className="room-banner-line"><Icon name="pin" />{room.area} · {optionLabel(DISTRICTS, room.district)}</p>
+              </div>
+            </div>
+            {canSeeRoster && <div className="sports-banner-actions"><Link className="button-primary" to={chatPath('room', room.id)}>{room.status === 'cancelled' ? 'View room chat' : 'Open room chat'}</Link></div>}
+          </section>
+          <div className="room-layout">
+            <div className="room-main">
+              {room.status === 'cancelled' && <section className="panel room-cancelled" aria-label="Cancellation"><h2>Room cancelled</h2>
+                <p>{room.cancelled_at ? `The host cancelled this room on ${formatActivityDate(room.cancelled_at)} at ${formatActivityTime(room.cancelled_at)} (Bahrain time).` : 'The host cancelled this room.'}</p>
+                {room.cancellation_reason && <p>Reason: {room.cancellation_reason}</p>}
+              </section>}
+              <section className="panel"><h2>Details</h2><dl className="activity-details">
+                {roomDetailItems(room, { sportName, hostName: playerName(users, room.host_id) }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+              </dl></section>
+              {canSeeRoster && <section className="panel"><h2>Players</h2><ul className="member-list">
+                <li className="member-row"><span className="member-initial" aria-hidden="true">{playerName(users, room.host_id).charAt(0).toUpperCase()}</span>{playerName(users, room.host_id)} — Host</li>
+                {members.filter(member => member.user_id !== room.host_id).map(member => <li key={member.id} className="member-row">
+                  <span className="member-initial" aria-hidden="true">{playerName(users, member.user_id).charAt(0).toUpperCase()}</span>
+                  {playerName(users, member.user_id)} — {member.status}{member.position && ` · Place ${member.position}`}
+                  {admission.isHost && member.status === 'pending' && member.requested && <div className="button-row">
+                    <button disabled={pending || room.status !== 'open' || admission.atCutoff || admission.full} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'accepted' }), 'Player approved.')}>Approve {playerName(users, member.user_id)}</button>
+                    <button className="button-secondary" disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'declined' }), 'Request declined.')}>Decline {playerName(users, member.user_id)}</button>
+                  </div>}
+                  {admission.isHost && ['pending', 'accepted'].includes(member.status) && ['open', 'started'].includes(room.status) && <button className="button-secondary" disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, member.user_id, { status: 'removed' }), 'Player removed.')}>Remove {playerName(users, member.user_id)}</button>}
+                  {admission.isHost && member.status === 'accepted' && ['started', 'completed'].includes(room.status) && <form className="form-stack" onSubmit={event => {
+                    event.preventDefault();
+                    run(() => roomMemberService.update(roomId, member.user_id, { attendance: new FormData(event.currentTarget).get('attendance') }), 'Player record updated.');
+                  }}>
+                    <label>Attendance for {playerName(users, member.user_id)}<Select name="attendance" defaultValue={member.attendance || 'unknown'}><option value="unknown">Unknown</option><option value="present">Present</option><option value="no_show">No show</option><option value="excused">Excused</option></Select></label>
+                    <button disabled={pending}>Save {playerName(users, member.user_id)} record</button>
+                  </form>}
+                  {/* The host can rate only players who were present, once the room is completed. Ratings are final, so a saved one is locked. */}
+                  {admission.isHost && room.status === 'completed' && member.status === 'accepted' && member.attendance === 'present' &&
+                    <PlayerRatingRow userId={member.user_id} name={playerName(users, member.user_id)} given={member.rating}
+                      onRate={(id, rating) => roomMemberService.update(roomId, id, { rating }).then(reload)} />}
+                </li>)}
+              </ul></section>}
+              <RatePlayers room={room} members={members} users={users} user={user} />
+            </div>
+            <aside className="room-side">
+              <section className="panel room-lobby"><h2>Room lobby</h2><p>Status: {room.status}</p><p>{room.slots_left} available places of {room.capacity}; the host has a place.</p>
+                {taken !== null && <div className={`room-places-bar${taken >= 100 ? ' is-full' : ''}`} aria-hidden="true"><span style={{ width: `${taken}%` }} /></div>}
+                {room.description && <p>{room.description}</p>}{room.notes && <p>Notes: {room.notes}</p>}{room.venue_notes && <p>Meeting details: {room.venue_notes}</p>}
+                {room.venue_location && <><h3>Venue location</h3><LocationView location={room.venue_location} /></>}
+                {admission.message && <p role="status">{admission.message}</p>}
+                {!user && <Link to="/sign-in">Sign in to request a place</Link>}
+                {admission.canRequest && <button type="button" disabled={pending} onClick={() => run(requestPlace, joinMessage)}>{instantJoin ? 'Join room' : 'Request to join'}</button>}
+                {own?.status === 'pending' && own.requested === false && <div className="button-row">
+                  <button type="button" disabled={pending || room.status !== 'open' || admission.atCutoff || admission.full} onClick={() => run(() => roomMemberService.update(roomId, userId, { status: 'accepted' }), 'Invitation accepted.')}>Accept invitation</button>
+                  <button type="button" className="button-secondary" disabled={pending} onClick={() => run(() => roomMemberService.update(roomId, userId, { status: 'declined' }), 'Invitation declined.')}>Decline invitation</button>
+                </div>}
+                {own && ['pending', 'accepted'].includes(own.status) && !admission.isHost && <button type="button" className="button-secondary" disabled={pending} onClick={() => run(() => roomMemberService.leave(roomId), 'You left the activity.')}>{own.status === 'pending' ? 'Withdraw request' : 'Leave room'}</button>}
+              </section>
+              {canChoose && <section className="panel"><h2>Your place</h2><form className="form-stack" onSubmit={event => {
+                event.preventDefault();
+                const position = new FormData(event.currentTarget).get('position') || null;
+                run(() => roomMemberService.update(roomId, userId, { position }), 'Place updated.');
+              }}><label>Place<Select key={own.position || 'unset'} name="position" defaultValue={own.position || ''}>
+                <option value="">No assigned place</option>{positions.map(position => <option key={position.value} value={position.value} disabled={occupied.has(position.value)}>{position.label}{occupied.has(position.value) ? ' — taken' : ''}</option>)}
+                {own.position && !positions.some(position => position.value === own.position) && <option value={own.position}>{own.position}</option>}
+              </Select></label><button disabled={pending}>Save place</button></form></section>}
+              {admission.isHost && room.status === 'open' && <section className="panel"><h2>Host controls</h2>
+                <Link className="button-secondary" to={`/rooms/${roomId}/edit`}>Edit room</Link>
+                <PeoplePicker label="Invite player" actionLabel="Invite" exclude={[room.host_id, ...members.map(member => member.user_id)]}
+                  disabled={pending || admission.atCutoff || admission.full} onPick={player => run(() => roomMemberService.invite(roomId, player.id), 'Invitation sent.')} />
+                <CancelRoomForm title={room.title} pending={pending} onConfirm={reason => run(() => roomService.cancel(roomId, reason), 'Room cancelled.')} />
+              </section>}
+              {admission.isHost && ['open', 'started'].includes(room.status) && <TransferHost candidates={transferCandidates} pending={pending}
+                onTransfer={id => run(() => roomService.transferHost(roomId, id), '')} />}
+            </aside>
+          </div>
+        </>}
+      </AsyncState>
+      {newHostId != null && <p role="status">{playerName(users, newHostId)} is now the host.</p>}
+      {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
+    </div>
   </main>;
 }

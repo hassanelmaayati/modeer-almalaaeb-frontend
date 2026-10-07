@@ -6,6 +6,7 @@ export default function ChatHeader({ target, title }) {
 
   return <header className="chat-header">
     <Link className="chat-back" to="/messages">Back to chats</Link>
+    <span className="avatar chat-avatar" aria-hidden="true">{title.charAt(0).toUpperCase()}</span>
     <div className="chat-heading">
       <h2>{title}</h2>
       <span className="muted">{CHAT_TYPE_LABELS[target.type]}</span>
