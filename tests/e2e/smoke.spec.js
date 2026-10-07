@@ -37,14 +37,21 @@ async function renderedColours(locator, property = 'color') {
       context.fillRect(0, 0, 1, 1);
       return Array.from(context.getImageData(0, 0, 1, 1).data);
     };
-    const composite = (front, back) => front.slice(0, 3).map((channel, index) => channel * front[3] / 255 + back[index] * (1 - front[3] / 255));
-    let backgrounds = [[255, 255, 255]];
+    const composite = (front, back) => {
+      const frontAlpha = front[3] / 255;
+      const backAlpha = back[3] / 255;
+      const alpha = frontAlpha + backAlpha * (1 - frontAlpha);
+      return [...front.slice(0, 3).map((channel, index) => alpha
+        ? (channel * frontAlpha + back[index] * backAlpha * (1 - frontAlpha)) / alpha
+        : 0), alpha * 255];
+    };
     let textColours;
+    const ancestors = [];
     const layers = [];
-    for (let ancestor = element; ancestor; ancestor = ancestor.parentElement) layers.unshift(ancestor);
-    for (const ancestor of layers) {
+    for (let ancestor = element; ancestor; ancestor = ancestor.parentElement) ancestors.unshift(ancestor);
+    for (const ancestor of ancestors) {
       const style = getComputedStyle(ancestor);
-      backgrounds = backgrounds.map(background => composite(rgb(style.backgroundColor), background));
+      let backgrounds = [rgb(style.backgroundColor)];
       // Check all gradient stops, including chat surfaces and the animated heading text.
       const gradient = style.backgroundImage.match(/^linear-gradient\((.*)\)$/);
       if (gradient) {
@@ -65,26 +72,43 @@ async function renderedColours(locator, property = 'color') {
         if (style.backgroundClip === 'text' || style.webkitBackgroundClip === 'text') textColours = colours;
         else backgrounds = backgrounds.flatMap(background => colours.map(colour => composite(colour, background)));
       }
+      layers.push({ backgrounds, opacity: Number(style.opacity) });
     }
     const luminance = colour => colour.map(channel => {
       const value = channel / 255;
       return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
     }).reduce((sum, channel, index) => sum + channel * [.2126, .7152, .0722][index], 0);
     const foregrounds = (property === 'color' && textColours) || [rgb(getComputedStyle(element)[property])];
-    return backgrounds.flatMap(background => foregrounds.map(colour => {
-      const foreground = composite(colour, background);
+    let samples = foregrounds.map(foreground => ({ foreground, background: [0, 0, 0, 0] }));
+    // Opacity composites the entire subtree, including its background, onto its
+    // parent. Work outwards so muted cards and pending bubbles cannot hide fades.
+    for (const { backgrounds, opacity } of layers.reverse()) {
+      samples = samples.flatMap(sample => backgrounds.map(background => {
+        const result = {
+          foreground: composite(sample.foreground, background),
+          background: composite(sample.background, background),
+        };
+        result.foreground[3] *= opacity;
+        result.background[3] *= opacity;
+        return result;
+      }));
+    }
+    return samples.map(sample => {
+      const foreground = composite(sample.foreground, [255, 255, 255, 255]).slice(0, 3);
+      const background = composite(sample.background, [255, 255, 255, 255]).slice(0, 3);
       const foregroundLuminance = luminance(foreground);
       const backgroundLuminance = luminance(background);
       return {
         foreground, background, backgroundLuminance,
         contrast: (Math.max(foregroundLuminance, backgroundLuminance) + .05) / (Math.min(foregroundLuminance, backgroundLuminance) + .05),
       };
-    })).sort((left, right) => left.contrast - right.contrast)[0];
+    }).sort((left, right) => left.contrast - right.contrast)[0];
   }, property);
 }
 
 async function expectReadable(locator, minimum = 4.5) {
   await expect(locator).toBeVisible();
+  await locator.scrollIntoViewIfNeeded();
   await expect.poll(async () => (await renderedColours(locator)).contrast, `Rendered text contrast must reach ${minimum}:1`).toBeGreaterThanOrEqual(minimum);
 }
 
@@ -250,7 +274,7 @@ test('theme preferences synchronize between tabs and resume device defaults when
   await expectTheme(page, 'dark');
 });
 
-test('both palettes render readable public cards, controls, popovers, dialogs, forms and errors', async ({ page }) => {
+test('both palettes render readable public and inactive cards, controls, popovers, dialogs, forms and errors', async ({ page, request }) => {
   test.setTimeout(60_000);
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/sports');
@@ -316,9 +340,29 @@ test('both palettes render readable public cards, controls, popovers, dialogs, f
     await page.reload();
     await expect(roomCard(page)).toBeVisible();
   }
+  await page.goto('/sign-in');
+  const login = await request.post(`${api}/auth/login`, { data: { email: 'owner@example.test', password: 'TestPass123!' } });
+  expect(login.status()).toBe(200);
+  const { token } = await login.json();
+  const cancelled = await request.post(`${api}/rooms/1/cancel`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { reason: 'Inactive card contrast fixture' },
+  });
+  expect(cancelled.status()).toBe(200);
+  await page.evaluate(token => localStorage.setItem('token', token), token);
+  await page.goto('/my-rooms?view=history');
+  await page.mouse.move(0, 0);
+  for (const theme of ['dark', 'light']) {
+    if (theme === 'light') await themeToggle(page).click();
+    await expectTheme(page, theme);
+    await expect(roomCard(page).getByText('Cancelled', { exact: true })).toBeVisible();
+    await expectReadable(roomCard(page).getByText('Manama · Capital', { exact: true }));
+    await expectReadable(roomCard(page).getByText('A friendly fixture for all levels', { exact: true }));
+    await expectReadable(roomCard(page).getByRole('link', { name: 'Manage', exact: true }));
+  }
 });
 
-test('authenticated chat bubbles and editing controls stay readable in both themes', async ({ page, request }) => {
+test('authenticated chat bubbles, pending sends and editing controls stay readable in both themes', async ({ page, request }) => {
   test.setTimeout(60_000);
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/sign-in');
@@ -348,24 +392,44 @@ test('authenticated chat bubbles and editing controls stay readable in both them
   const own = log.locator('.message').filter({ hasText: 'Own theme fixture' });
   const received = log.locator('.message').filter({ hasText: 'Incoming theme fixture' });
   await expect(own.getByRole('button', { name: 'Edit message', exact: true })).toBeVisible();
-  for (const theme of ['light', 'dark']) {
-    if (theme === 'dark') await themeToggle(page).click();
-    await expectTheme(page, theme);
-    await expectSurface(log, theme);
-    await expectReadable(own.getByText('Own theme fixture', { exact: true }));
-    await expectReadable(own.locator('.message-time'));
-    await expectReadable(received.getByText('Incoming theme fixture', { exact: true }));
-    await expectReadable(received.locator('.message-time'));
-    await own.getByRole('button', { name: 'Edit message', exact: true }).click();
-    await expectSurface(page.getByRole('textbox', { name: 'Edit your message', exact: true }), theme);
-    await expectReadable(page.getByRole('textbox', { name: 'Edit your message', exact: true }));
-    await own.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await composer.fill('A readable action');
-    await expectReadable(page.getByRole('button', { name: 'Send', exact: true }));
-    await composer.fill('x'.repeat(2001));
-    await expectReadable(page.getByRole('alert').filter({ hasText: 'Messages can be up to 2000 characters.' }));
-    await composer.fill('');
+  let releaseSend;
+  const heldSend = new Promise(resolve => { releaseSend = resolve; });
+  const holdPendingSend = async route => {
+    if (route.request().method() === 'POST' && route.request().postDataJSON()?.body === 'Pending theme fixture') await heldSend;
+    await route.continue();
+  };
+  await page.route('**/api/v1/messages', holdPendingSend);
+  const pending = log.getByRole('list', { name: 'Sending', exact: true }).getByRole('listitem');
+  try {
+    await composer.fill('Pending theme fixture');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(pending.getByText('Sending…', { exact: true })).toBeVisible();
+    for (const theme of ['light', 'dark']) {
+      if (theme === 'dark') await themeToggle(page).click();
+      await expectTheme(page, theme);
+      await expectSurface(log, theme);
+      await expectReadable(own.getByText('Own theme fixture', { exact: true }));
+      await expectReadable(own.locator('.message-time'));
+      await expectReadable(received.getByText('Incoming theme fixture', { exact: true }));
+      await expectReadable(received.locator('.message-time'));
+      await expectReadable(pending.getByText('Pending theme fixture', { exact: true }));
+      await expectReadable(pending.getByText('Sending…', { exact: true }));
+      await own.getByRole('button', { name: 'Edit message', exact: true }).click();
+      await expectSurface(page.getByRole('textbox', { name: 'Edit your message', exact: true }), theme);
+      await expectReadable(page.getByRole('textbox', { name: 'Edit your message', exact: true }));
+      await own.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await composer.fill('A readable action');
+      await expectReadable(page.getByRole('button', { name: 'Send', exact: true }));
+      await composer.fill('x'.repeat(2001));
+      await expectReadable(page.getByRole('alert').filter({ hasText: 'Messages can be up to 2000 characters.' }));
+      await composer.fill('');
+    }
+  } finally {
+    releaseSend();
   }
+  await expect(pending).toHaveCount(0);
+  await expect(log.getByText('Pending theme fixture', { exact: true })).toBeVisible();
+  await page.unroute('**/api/v1/messages', holdPendingSend);
 });
 
 test('production nested room URLs survive direct navigation and refresh without exposing private details', async ({ page }) => {
