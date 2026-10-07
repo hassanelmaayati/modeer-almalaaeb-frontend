@@ -8,7 +8,7 @@ import sportService from '../../src/services/sportService';
 import roomService from '../../src/services/roomService';
 
 vi.mock('../../src/services/sportService', () => ({ default: { list: vi.fn() } }));
-vi.mock('../../src/services/roomService', () => ({ default: { list: vi.fn(), get: vi.fn() } }));
+vi.mock('../../src/services/roomService', () => ({ default: { list: vi.fn(), listPage: vi.fn(), get: vi.fn() } }));
 const live = vi.hoisted(() => ({ listeners: new Set() }));
 vi.mock('../../src/services/websocketService', () => ({ listen: callback => { live.listeners.add(callback); return () => live.listeners.delete(callback); } }));
 
@@ -36,6 +36,7 @@ beforeEach(() => {
   live.listeners.clear();
   sportService.list.mockReset().mockResolvedValue(sports);
   roomService.list.mockReset().mockResolvedValue(rooms);
+  roomService.listPage.mockReset().mockImplementation(async () => ({ items: rooms, total: rooms.length }));
 });
 
 describe('Home activity discovery', () => {
@@ -53,7 +54,8 @@ describe('Home activity discovery', () => {
     expect(screen.getByRole('heading', { name: 'Evening basketball' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Weekend football' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Later basketball' })).not.toBeInTheDocument();
-    expect(roomService.list).toHaveBeenCalledWith({}, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    // The home page shows three games, so it only asks for three.
+    expect(roomService.list).toHaveBeenCalledWith({ limit: 3 }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 
   it('announces loading and then presents useful empty states', async () => {
@@ -104,15 +106,15 @@ describe('Sports filters and discovery', () => {
     expect(await screen.findByRole('heading', { name: 'Soccer activities' })).toBeInTheDocument();
     expect(within(picker).getByRole('link', { name: 'Soccer', exact: true })).toHaveAttribute('aria-current', 'true');
     expect(screen.getByLabelText('Current route')).toHaveTextContent('/sports?sport_id=1');
-    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({ sport_id: '1' }, expect.any(Object)));
+    await waitFor(() => expect(roomService.listPage).toHaveBeenLastCalledWith({ sport_id: '1', limit: 20, offset: 0 }, expect.any(Object)));
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'smooth', block: 'start' });
     expect(Element.prototype.scrollIntoView.mock.instances[0]).toBe(screen.getByRole('region', { name: 'Soccer activities' }));
 
     await user.click(screen.getByRole('button', { name: 'Refresh activities' }));
-    await waitFor(() => expect(roomService.list).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(roomService.listPage).toHaveBeenCalledTimes(3));
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
     await user.click(screen.getByRole('button', { name: 'Clear filters' }));
-    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({}, expect.any(Object)));
+    await waitFor(() => expect(roomService.listPage).toHaveBeenLastCalledWith({ limit: 20, offset: 0 }, expect.any(Object)));
     expect(screen.getByRole('heading', { name: 'Browse activities' })).toBeInTheDocument();
     expect(within(picker).getByRole('link', { name: 'Soccer', exact: true })).not.toHaveAttribute('aria-current');
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
@@ -126,9 +128,9 @@ describe('Sports filters and discovery', () => {
     expect(screen.getByLabelText('Governorate')).toHaveValue('southern');
     expect(screen.getByLabelText('From')).toHaveValue('2030-10-10T18:00');
     expect(screen.getByLabelText('Until')).toHaveValue('2030-10-11T18:00');
-    expect(roomService.list).toHaveBeenCalledWith({
+    expect(roomService.listPage).toHaveBeenCalledWith({
       sport_id: '2', difficulty: 'advanced', district: 'southern',
-      starts_from: '2030-10-10T15:00:00Z', starts_to: '2030-10-11T15:00:00Z',
+      starts_from: '2030-10-10T15:00:00Z', starts_to: '2030-10-11T15:00:00Z', limit: 20, offset: 0,
     }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'smooth', block: 'start' });
     expect(screen.getByRole('heading', { name: 'Basketball activities' })).toBeInTheDocument();
@@ -144,15 +146,15 @@ describe('Sports filters and discovery', () => {
     fireEvent.change(screen.getByLabelText('From'), { target: { value: '2030-10-10T18:00' } });
     fireEvent.change(screen.getByLabelText('Until'), { target: { value: '2030-10-11T19:00' } });
     await user.click(screen.getByRole('button', { name: 'Apply filters' }));
-    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({
+    await waitFor(() => expect(roomService.listPage).toHaveBeenLastCalledWith({
       sport_id: '2', difficulty: 'medium', district: 'muharraq',
-      starts_from: '2030-10-10T15:00:00.000Z', starts_to: '2030-10-11T16:00:00.000Z',
+      starts_from: '2030-10-10T15:00:00.000Z', starts_to: '2030-10-11T16:00:00.000Z', limit: 20, offset: 0,
     }, expect.any(Object)));
     const route = new URL(screen.getByLabelText('Current route').textContent, 'http://localhost');
     expect(route.searchParams.get('district')).toBe('muharraq');
     expect(route.searchParams.get('starts_from')).toBe('2030-10-10T15:00:00.000Z');
     await user.click(screen.getByRole('button', { name: 'Clear filters' }));
-    await waitFor(() => expect(roomService.list).toHaveBeenLastCalledWith({}, expect.any(Object)));
+    await waitFor(() => expect(roomService.listPage).toHaveBeenLastCalledWith({ limit: 20, offset: 0 }, expect.any(Object)));
     expect(screen.getByLabelText('Current route')).toHaveTextContent('/sports');
     expect(screen.getByLabelText('Activity')).toHaveValue('');
     expect(screen.getByLabelText('From')).toHaveValue('');
@@ -166,18 +168,18 @@ describe('Sports filters and discovery', () => {
     fireEvent.change(screen.getByLabelText('Until'), { target: { value: '2030-10-10T18:00' } });
     await user.click(screen.getByRole('button', { name: 'Apply filters' }));
     expect(screen.getByRole('alert')).toHaveTextContent('The From date must be before or equal to the Until date.');
-    expect(roomService.list).toHaveBeenCalledTimes(1);
+    expect(roomService.listPage).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText('Current route').textContent).toBe('/sports');
   });
 
   it('reports malformed URL filters without calling the backend', async () => {
     renderPage(SportsPage, '/sports?district=unknown');
     expect(await screen.findByRole('alert')).toHaveTextContent('Choose a valid governorate.');
-    expect(roomService.list).not.toHaveBeenCalled();
+    expect(roomService.listPage).not.toHaveBeenCalled();
   });
 
   it('provides empty results and preserves filters when no rooms match', async () => {
-    roomService.list.mockResolvedValue([]);
+    roomService.listPage.mockResolvedValue({ items: [], total: 0 });
     renderPage(SportsPage, '/sports?difficulty=advanced');
     expect(await screen.findByRole('heading', { name: 'No upcoming activities' })).toBeInTheDocument();
     expect(screen.getByLabelText('Difficulty')).toHaveValue('advanced');
@@ -188,8 +190,8 @@ describe('Sports filters and discovery', () => {
     renderPage(SportsPage, '/sports?district=capital');
     await screen.findByRole('heading', { name: 'Friday football' });
     await act(async () => { for (const callback of live.listeners) callback({ type: 'room_updated', room: { id: 11 } }); });
-    await waitFor(() => expect(roomService.list).toHaveBeenCalledTimes(2));
-    expect(roomService.list).toHaveBeenLastCalledWith({ district: 'capital' }, expect.any(Object));
+    await waitFor(() => expect(roomService.listPage).toHaveBeenCalledTimes(2));
+    expect(roomService.listPage).toHaveBeenLastCalledWith({ district: 'capital', limit: 20, offset: 0 }, expect.any(Object));
     expect(screen.getByLabelText('Current route')).toHaveTextContent('/sports?district=capital');
   });
 });

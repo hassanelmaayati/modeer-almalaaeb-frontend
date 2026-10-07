@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const environment = vi.hoisted(() => ({ file: {} }));
@@ -169,3 +172,48 @@ describe('actual services with an external HTTPS backend', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('Vercel security headers', () => {
+  const read = file => readFileSync(path.resolve(process.cwd(), file), 'utf8');
+  const config = JSON.parse(read('vercel.json'));
+  const headers = Object.fromEntries(config.headers.find(entry => entry.source === '/(.*)').headers.map(({ key, value }) => [key, value]));
+  const directives = Object.fromEntries(headers['Content-Security-Policy'].split(';').map(part => part.trim().split(/\s+/)).map(([name, ...values]) => [name, values]));
+  const production = new URL(read('.github/scripts/deploy_frontend.py').match(/PRODUCTION_API = "([^"]+)"/)[1]);
+
+  it('applies to every page and keeps the single-page-app fallback', () => {
+    expect(config.headers.map(entry => entry.source)).toEqual(['/(.*)']);
+    expect(config.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }]);
+  });
+
+  it('lets the page talk to the production API over HTTPS and websockets, and nothing else but Google', () => {
+    expect(directives['connect-src']).toEqual(expect.arrayContaining(["'self'", `https://${production.host}`, `wss://${production.host}`, 'https://accounts.google.com/gsi/']));
+    expect(directives['connect-src'].filter(value => /^(https?|wss?):/.test(value))).toHaveLength(3);
+  });
+
+  it('allows Google sign-in (script, button frame, styles), OpenStreetMap tiles and https photos', () => {
+    expect(directives['script-src']).toEqual(["'self'", 'https://accounts.google.com/gsi/client']);
+    expect(directives['frame-src']).toEqual(['https://accounts.google.com/gsi/']);
+    // Google's sign-in script injects an inline <style>, which a strict style-src blocks on every page; scripts stay strict.
+    expect(directives['style-src']).toEqual(["'self'", "'unsafe-inline'", 'https://accounts.google.com/gsi/style']);
+    expect(directives['img-src']).toEqual(expect.arrayContaining(["'self'", 'https:']));
+    expect(directives['img-src']).not.toContain('http:');
+  });
+
+  it('forbids plugins, framing, base-tag tricks and inline or remote scripts', () => {
+    expect(directives['default-src']).toEqual(["'self'"]);
+    expect(directives['object-src']).toEqual(["'none'"]);
+    expect(directives['frame-ancestors']).toEqual(["'none'"]);
+    expect(directives['base-uri']).toEqual(["'self'"]);
+    expect(directives['script-src']).not.toContain("'unsafe-inline'");
+    expect(directives['script-src']).not.toContain("'unsafe-eval'");
+  });
+
+  it('sets the other protective headers, keeping geolocation for Near me and a Referer for map tiles', () => {
+    expect(headers['X-Content-Type-Options']).toBe('nosniff');
+    expect(headers['X-Frame-Options']).toBe('DENY');
+    expect(headers['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['Permissions-Policy']).toContain('geolocation=(self)');
+    expect(headers['Permissions-Policy']).toContain('camera=()');
+  });
+});
+

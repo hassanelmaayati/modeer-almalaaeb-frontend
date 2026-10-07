@@ -35,7 +35,8 @@ export default function CupCard({ cup, sportName }) {
       <li><Icon name="people" />{cup.team_count} teams</li>
       <li><Icon name="people" />{cup.roster_limit} {cup.roster_limit === 1 ? 'player' : 'players'} per team</li>
     </ul>
-    <CupDeadline closesAt={cup.registration_closes_at}>
+    {/* The deadline only matters while people can still enter. */}
+    <CupDeadline closesAt={['draft', 'registration'].includes(cup.status) ? cup.registration_closes_at : null}>
       {timer && <strong className={`cup-countdown${timer.urgent ? ' is-urgent' : ''}`}>{timer.text}</strong>}
     </CupDeadline>
     <footer className="cup-card-foot">

@@ -37,13 +37,14 @@ function RatePlayersList({ roomId, hostId, ids, users }) {
     {/* Only block on the first load: a reload after a 409 must not unmount rows and lose their error message. */}
     <AsyncState loading={mine.loading && !mine.data} error={mine.data ? null : mine.error} onRetry={() => setRetry(value => value + 1)}>
       <ul className="rate-players">
-        {ids.map(id => <PlayerRatingRow key={id} name={playerName(users, id)} isHost={id === hostId} userId={id} given={given.get(id)} onRate={rate} />)}
+        {ids.map(id => <li key={id}><PlayerRatingRow name={playerName(users, id)} isHost={id === hostId} userId={id} given={given.get(id)} onRate={rate} /></li>)}
       </ul>
     </AsyncState>
   </section>;
 }
 
-function PlayerRatingRow({ userId, name, isHost, given, onRate }) {
+/** One person's 1-5 star picker. `given` locks it (ratings are final); the backend's message shows on any failure, e.g. 409 already rated. */
+export function PlayerRatingRow({ userId, name, isHost = false, given, onRate }) {
   const [stars, setStars] = useState(0);
   const { pending, error, run } = useAction();
   const locked = given != null;
@@ -55,7 +56,7 @@ function PlayerRatingRow({ userId, name, isHost, given, onRate }) {
     run(() => onRate(userId, stars));
   }
 
-  return <li className="rate-player">
+  return <div className="rate-player">
     <form onSubmit={submit}>
       <StarPicker name={`rating-${userId}`} label={`Rating for ${name}${isHost ? ' (host)' : ''}`} value={locked ? given : stars} onChange={setStars} disabled={locked || pending} />
       {locked
@@ -63,5 +64,5 @@ function PlayerRatingRow({ userId, name, isHost, given, onRate }) {
         : <button disabled={pending || !stars}>{pending ? 'Saving…' : `Submit rating for ${name}`}</button>}
       {error && <p role="alert">{error}</p>}
     </form>
-  </li>;
+  </div>;
 }

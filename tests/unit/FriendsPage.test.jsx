@@ -23,12 +23,17 @@ const users = [
 ];
 
 const list = vi.fn();
+const listByIds = vi.fn(async (ids) => users.filter((user) => ids.includes(user.id)));
 const update = vi.fn();
 const create = vi.fn();
 vi.mock('../../src/services/friendService', () => ({
   default: { list: (...args) => list(...args), update: (...args) => update(...args), create: (...args) => create(...args) },
 }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => users } }));
+vi.mock('../../src/services/userService', () => ({ default: {
+  listByIds: (...args) => listByIds(...args),
+  // The server filters by name; the picker double-checks, so the mock does the same.
+  search: async (text) => users.filter((user) => user.user_name.toLowerCase().includes(String(text).trim().toLowerCase())),
+} }));
 let socketHandler = null;
 vi.mock('../../src/services/websocketService', () => ({
   listen: (callback) => {
@@ -37,6 +42,7 @@ vi.mock('../../src/services/websocketService', () => ({
   },
 }));
 const { default: FriendsPage } = await import('../../src/pages/FriendsPage');
+const { resetUserDirectory } = await import('../../src/lib/helpers/userDirectory');
 
 function Where() {
   const location = useLocation();
@@ -62,6 +68,8 @@ const rowFor = (name) => screen.getByRole('link', { name }).closest('li');
 const inRow = (name, button) => rowFor(name).querySelectorAll('button, a').values().find((control) => control.textContent === button);
 
 beforeEach(() => {
+  resetUserDirectory();
+  listByIds.mockClear();
   list.mockReset();
   update.mockReset();
   create.mockReset();
@@ -274,8 +282,13 @@ describe('Friends page actions', () => {
 describe('Adding a friend', () => {
   const search = () => screen.getByLabelText('Search people');
   const section = () => screen.getByRole('region', { name: 'Add a friend' });
-  const resultNames = () => [...section().querySelectorAll('li span')].map((span) => span.textContent);
-  const type = async (text) => { await userEvent.clear(search()); await userEvent.type(search(), text); };
+  const resultNames = () => [...section().querySelectorAll('li > span')].map((span) => span.textContent);
+  // The search waits for a pause in typing (300 ms) and then asks the server, so give it time to settle.
+  const type = async (text) => {
+    await userEvent.clear(search());
+    await userEvent.type(search(), text);
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 450)); });
+  };
 
   it('lists nobody until the user types', async () => {
     mount();
@@ -317,7 +330,7 @@ describe('Adding a friend', () => {
     mount();
     await screen.findByText('Player2');
     await type('sara');
-    await userEvent.click(within(section()).getAllByRole('button', { name: 'Add friend' })[0]);
+    await userEvent.click(within(section()).getAllByRole('button', { name: /^Add friend/ })[0]);
     expect(create).toHaveBeenCalledWith({ other_user_id: 9 });
     expect(await screen.findByRole('status')).toHaveTextContent('Friend request sent to Sara.');
     expect(tabLinks()).toEqual(['Friends (2)', 'Requests (2)', 'Sent (2)', 'Blocked (1)']);
@@ -334,7 +347,7 @@ describe('Adding a friend', () => {
     await screen.findByText('Player2');
     await type('omar');
     const lists = list.mock.calls.length;
-    await userEvent.click(within(section()).getByRole('button', { name: 'Add friend' }));
+    await userEvent.click(within(section()).getByRole('button', { name: /^Add friend/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent("You already have a friend record with this person. A new request can't be sent after one was declined, cancelled or the friendship ended.");
     await screen.findByText('Player2');
     expect(list.mock.calls.length).toBe(lists + 1);
@@ -345,7 +358,7 @@ describe('Adding a friend', () => {
     mount();
     await screen.findByText('Player2');
     await type('omar');
-    await userEvent.click(within(section()).getByRole('button', { name: 'Add friend' }));
+    await userEvent.click(within(section()).getByRole('button', { name: /^Add friend/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Unable to reach the server. Please try again.');
     expect(search()).toHaveValue('omar');
     expect(resultNames()).toEqual(['Omar']);
@@ -429,15 +442,22 @@ describe('Friends page empty states', () => {
     }
   });
 
-  it('says nobody is left to add and disables the search when there is nobody to offer', async () => {
-    const everyone = users.splice(8, 3);
+  it('keeps the search open on an empty list and says when nobody matches', async () => {
     list.mockResolvedValue([]);
-    users.splice(1, users.length - 1);
     mount();
     await screen.findByRole('heading', { name: 'No friends yet' });
-    expect(screen.getByRole('region', { name: 'Add a friend' })).toHaveTextContent('There is nobody left to add.');
-    expect(screen.getByLabelText('Search people')).toBeDisabled();
-    expect(screen.queryByRole('button', { name: 'Find people to add' })).not.toBeInTheDocument();
-    users.splice(0, users.length, ...[1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ id, user_name: `Player${id}` })), ...everyone);
+    const search = screen.getByLabelText('Search people');
+    expect(search).toBeEnabled();
+    await userEvent.type(search, 'zzzz');
+    expect(await screen.findByText(/No people found/)).toBeVisible();
+  });
+
+  it('looks up only the people in the friend rows, by id, never the whole user list', async () => {
+    mount();
+    await screen.findByText('Player2');
+    const asked = listByIds.mock.calls.flatMap(([ids]) => ids);
+    expect(new Set(asked)).toEqual(new Set([2, 3, 4, 5, 6, 7, 8]));
+    expect(asked).not.toContain(ME);
+    expect(asked).not.toContain(9);
   });
 });

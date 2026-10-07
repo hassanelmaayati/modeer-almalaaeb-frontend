@@ -46,10 +46,14 @@ describe('roomService.listJoined', () => {
 });
 
 describe('roomService.list', () => {
-  it('stays public and sends no token', async () => {
-    setToken(token());
+  it('stays public for guests but sends the token when signed in, so group-only rooms of your groups appear', async () => {
     await roomService.list({ district: 'capital' });
     expect(calls[0].url).toBe('/api/v1/rooms?district=capital');
     expect(calls[0].authorization).toBeUndefined();
+    const session = token();
+    setToken(session);
+    await roomService.list({ group_id: 3, limit: 100 });
+    expect(calls[1].url).toBe('/api/v1/rooms?group_id=3&limit=100');
+    expect(calls[1].authorization).toBe(`Bearer ${session}`);
   });
 });

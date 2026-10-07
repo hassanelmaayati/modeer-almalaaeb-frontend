@@ -12,12 +12,14 @@ import { emptyResource, startRequest } from '../../lib/helpers/request';
 import groupService from '../../services/groupService';
 import groupMemberService from '../../services/groupMemberService';
 import roomService from '../../services/roomService';
-import { inviteCandidates, playerName } from '../../lib/helpers/groups';
+import { playerName } from '../../lib/helpers/groups';
+import useUsers from '../../lib/helpers/userDirectory';
+import PeoplePicker from '../common/PeoplePicker';
 import { findOwnMembership } from '../../lib/helpers/memberships';
 import { listen } from '../../services/websocketService';
 import { roomEvent } from '../../lib/helpers/live';
 
-export default function GroupDialog({ user, groupId, sports, users, onClose, onChanged, onPreviewRoom }) {
+export default function GroupDialog({ user, groupId, sports, onClose, onChanged, onPreviewRoom }) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -27,9 +29,9 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
   const reload = () => setRevision(value => value + 1);
   useEffect(() => startRequest(async signal => {
     const [group, members, rooms] = await Promise.all([
-      groupService.get(groupId, { signal }), groupMemberService.list(groupId, { signal }), roomService.list({}, { signal }),
+      groupService.get(groupId, { signal }), groupMemberService.list(groupId, { signal }), roomService.list({ group_id: groupId, limit: 100 }, { signal }),
     ]);
-    return { group, members, rooms: rooms.filter((room) => room.group_id === groupId) };
+    return { group, members, rooms };
   }, setResource), [groupId, revision]);
   useEffect(() => listen(event => {
     if (editing) return;
@@ -39,7 +41,8 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
   const owner = group?.owner_id === user?.id;
   const ownMembership = findOwnMembership(members, user?.id);
   const sportName = group ? sports.find((sport) => sport.id === group.sports_id)?.name || 'Activity' : '';
-  const candidates = group ? inviteCandidates(users, group.owner_id, members) : [];
+  // Only the owner and the members are looked up (by id) for their names.
+  const users = useUsers(group ? [group.owner_id, ...members.map(member => member.user_id)] : []);
 
   async function runAction(action, success) {
     if (pending) return;
@@ -61,12 +64,6 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
     setMessage('Group updated.');
     reload();
     onChanged();
-  }
-
-  function invite(event) {
-    event.preventDefault();
-    const target = Number(new FormData(event.currentTarget).get('player'));
-    runAction(() => groupMemberService.invite(groupId, target), 'Invitation sent.');
   }
 
   function changeMember(targetId, status, success) {
@@ -110,15 +107,13 @@ export default function GroupDialog({ user, groupId, sports, users, onClose, onC
         </section>
         {owner && <section className="group-section">
           <h3>Invite registered player</h3>
-          {candidates.length > 0 ? <form onSubmit={invite} className="form-stack">
-            <label htmlFor="invite-player">Player</label><select id="invite-player" name="player" defaultValue="" required><option value="" disabled>Choose a player</option>{candidates.map((player) => <option key={player.id} value={player.id}>{player.user_name}</option>)}</select>
-            <button disabled={pending}>{pending ? 'Sending…' : 'Invite'}</button>
-          </form> : <p>No other players are available to invite.</p>}
+          <PeoplePicker label="Search people" actionLabel="Invite" exclude={[group.owner_id, ...members.map(member => member.user_id)]} disabled={pending}
+            onPick={player => runAction(() => groupMemberService.invite(groupId, player.id), 'Invitation sent.')} />
         </section>}
         <section className="group-section">
-          <h3>Public activities</h3>
-          <p className="muted">This list includes discoverable public activities. Private group activities are unavailable here.</p>
-          <RoomList Card={HomeGameCard} rooms={rooms} sports={sports} onPreview={onPreviewRoom} emptyTitle="No upcoming public group activities" />
+          <h3>Activities</h3>
+          <p className="muted">Public activities for this group, plus group-only activities if you are a member.</p>
+          <RoomList Card={HomeGameCard} rooms={rooms} sports={sports} onPreview={onPreviewRoom} emptyTitle="No upcoming group activities" />
         </section>
       </>}
     </AsyncState>

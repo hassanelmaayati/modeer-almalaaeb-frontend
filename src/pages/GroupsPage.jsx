@@ -7,9 +7,9 @@ import GroupDialog from '../components/groups/GroupDialog';
 import CreateGroupDialog from '../components/groups/CreateGroupDialog';
 import RoomPreviewDialog from '../components/activities/RoomPreviewDialog';
 import { GroupsArt } from '../components/home/HeroArt';
-import { filterGroups, loadGroups } from '../lib/helpers/groups';
+import { filterGroups, groupRole, loadGroups, loadMoreGroups } from '../lib/helpers/groups';
+import useAction from '../lib/helpers/useAction';
 import { listen } from '../services/websocketService';
-import { roomEvent } from '../lib/helpers/live';
 
 const VIEWS = [{ value: 'joined', label: 'Your groups' }, { value: 'invitations', label: 'Invitations' }];
 
@@ -39,11 +39,14 @@ export default function GroupsPage({ session }) {
   const selectedGroupId = Number.isInteger(groupId) && groupId > 0 ? groupId : null;
   const setSelectedGroupId = id => setSearchParams(id ? { group_id: id } : {});
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const { groups = [], sports = [], users = [] } = resource.data || {};
-  const visible = user ? filterGroups(groups, user.id, filters) : [];
-  const failedMemberships = groups.some((group) => group.membershipError);
+  const { groups = [], sports = [], total = null } = resource.data || {};
+  const visible = user ? filterGroups(groups, filters) : [];
+  const more = useAction();
+  const hasMore = total != null ? groups.length < total : groups.length > 0 && groups.length % 20 === 0;
+  const loadMore = () => more.run(async () => { const next = await loadMoreGroups(resource.data); setResource(previous => ({ ...previous, data: next })); });
+  // Only group events reload the list (not every room or friend event); a membership event counts when it names a group.
   useEffect(() => listen(event => {
-    if (event.type === 'connection.ready' || ['group.updated', 'membership.updated', 'friend.updated'].includes(event.type) || roomEvent(event)) setRevision(value => value + 1);
+    if (event.type === 'connection.ready' || event.type === 'group.updated' || (event.type === 'membership.updated' && event.group_id != null)) setRevision(value => value + 1);
   }), []);
 
   function openCreated(id) { setCreating(false); setSelectedGroupId(id); }
@@ -81,15 +84,16 @@ export default function GroupsPage({ session }) {
             <div><label htmlFor="group-search">Search my groups</label><input id="group-search" type="search" placeholder="Name or activity" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></div>
             <div><label htmlFor="group-activity">Activity</label><select id="group-activity" value={filters.sportId} onChange={(event) => setFilters({ ...filters, sportId: event.target.value })}><option value="">All activities</option>{sports.map((sport) => <option key={sport.id} value={sport.id}>{sport.name}</option>)}</select></div>
           </div>
-          {failedMemberships && <div role="alert"><p>Some memberships could not be loaded. Your groups or invitations may be incomplete.</p><button type="button" onClick={reload}>Try again</button></div>}
           <AsyncState isEmpty={!visible.length} emptyTitle={invitations ? 'No invitations found' : 'No groups found'} emptyDescription="Try another filter, or create a group.">
-            <div className="card-grid">{visible.map((group) => <GroupCard key={group.id} group={group} invitation={invitations} owned={!invitations && group.owner_id === user.id} onOpen={setSelectedGroupId} />)}</div>
+            <div className="card-grid">{visible.map((group) => <GroupCard key={group.id} group={group} invitation={invitations} owned={!invitations && groupRole(group) === 'owner'} onOpen={setSelectedGroupId} />)}</div>
           </AsyncState>
+          {more.error && <p role="alert" className="error-message">{more.error}</p>}
+          {hasMore && <div className="actions"><button type="button" className="button-secondary" disabled={more.pending} onClick={loadMore}>{more.pending ? 'Loading…' : 'Load more groups'}</button></div>}
         </AsyncState>
       </section>
     </div>
-    {creating && <CreateGroupDialog sports={sports} users={users} userId={user.id} onClose={() => setCreating(false)} onCreated={reload} onOpenGroup={openCreated} />}
-    {selectedGroupId && <GroupDialog key={selectedGroupId} user={user} groupId={selectedGroupId} sports={sports} users={users} onClose={() => setSelectedGroupId(null)} onChanged={reload} onPreviewRoom={previewRoom} />}
+    {creating && <CreateGroupDialog sports={sports} userId={user.id} onClose={() => setCreating(false)} onCreated={reload} onOpenGroup={openCreated} />}
+    {selectedGroupId && <GroupDialog key={selectedGroupId} user={user} groupId={selectedGroupId} sports={sports} onClose={() => setSelectedGroupId(null)} onChanged={reload} onPreviewRoom={previewRoom} />}
     {selectedRoom && <RoomPreviewDialog session={session} room={selectedRoom} sportName={sports.find((sport) => sport.id === selectedRoom.sport_id)?.name} onClose={() => setSelectedRoom(null)} onUpdated={reload} />}
   </main>;
 }

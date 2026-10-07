@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import FriendsPage from '../../src/pages/FriendsPage';
 import friendService from '../../src/services/friendService';
 import userService from '../../src/services/userService';
-import { addFriendCandidates, addFriendError, describeFriendship, friendUpdateFor, groupFriendships, isBlockedFlag, searchPeople } from '../../src/lib/helpers/friends';
+import { addFriendError, describeFriendship, friendUpdateFor, groupFriendships, isBlockedFlag } from '../../src/lib/helpers/friends';
+import { resetUserDirectory } from '../../src/lib/helpers/userDirectory';
 
 const live = vi.hoisted(() => ({ listeners: new Set() }));
 vi.mock('../../src/services/websocketService', () => ({ listen: callback => { live.listeners.add(callback); return () => live.listeners.delete(callback); } }));
 vi.mock('../../src/services/friendService', () => ({ default: { list: vi.fn(), create: vi.fn(), update: vi.fn() } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: vi.fn() } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: vi.fn(), search: vi.fn() } }));
 const users = [1, 2, 3, 4, 5, 6, 7].map((id, index) => ({ id, user_name: ['Alice', 'Bob', 'Carol', 'Dan', 'Eve', 'Finn', 'Grace'][index] }));
 const rows = [
   { id: 10, user_id: 1, other_user_id: 2, status: 'accepted' },
@@ -23,7 +24,9 @@ beforeEach(() => {
   friendService.list.mockReset().mockResolvedValue(rows);
   friendService.update.mockReset().mockImplementation(async (otherId, changes) => ({ ...rows.find(row => describeFriendship(row, 1).otherUserId === otherId), ...changes }));
   friendService.create.mockReset().mockImplementation(async body => ({ id: 15, user_id: 1, ...body, status: 'pending' }));
-  userService.list.mockReset().mockResolvedValue(users);
+  resetUserDirectory();
+  userService.listByIds.mockReset().mockImplementation(async ids => users.filter(user => ids.includes(user.id)));
+  userService.search.mockReset().mockImplementation(async text => users.filter(user => user.user_name.toLowerCase().includes(text.trim().toLowerCase())));
 });
 function show(tab = 'friends') { return render(<MemoryRouter initialEntries={['/friends?tab=' + tab]}><FriendsPage session={{ user: users[0] }} /></MemoryRouter>); }
 
@@ -38,16 +41,9 @@ describe('friendship direction, terminal states and candidate rules', () => {
     expect(friendUpdateFor('block', received)).toEqual({ other_blocked_user: 'true' });
     expect(friendUpdateFor('unblock', received)).toEqual({ other_blocked_user: 'false' });
   });
-  it('groups blocked accepted friends separately and excludes terminal records from new requests', () => {
+  it('groups blocked accepted friends separately', () => {
     const grouped = groupFriendships(rows, 1);
     expect(Object.fromEntries(Object.entries(grouped).map(([key, value]) => [key, value.map(item => item.otherUserId)]))).toEqual({ friends: [2], received: [3], sent: [4], blocked: [5] });
-    expect(addFriendCandidates(users, rows, 1).map(user => user.id)).toEqual([7]);
-  });
-  it('limits case-insensitive name searches and provides no results for an empty query', () => {
-    const candidates = Array.from({ length: 10 }, (_, id) => ({ id, user_name: 'Player ' + id }));
-    expect(searchPeople(candidates, ' PLAYER ')).toHaveLength(8);
-    expect(searchPeople(candidates, 'player 9').map(user => user.id)).toEqual([9]);
-    expect(searchPeople(candidates, ' ')).toEqual([]);
   });
   it.each([['accept', 'accepted'], ['decline', 'declined'], ['unfriend', 'left'], ['cancel', 'left']])('maps %s to the server transition %s', (kind, status) => {
     expect(friendUpdateFor(kind, describeFriendship(rows[0], 1))).toEqual({ status });
@@ -63,8 +59,8 @@ describe('friend UI actions and failure recovery', () => {
     await screen.findByText('Bob');
     expect(screen.getByRole('link', { name: 'Message' })).toHaveAttribute('href', '/messages/direct/2');
     fireEvent.change(screen.getByLabelText('Search people'), { target: { value: 'Finn' } });
-    expect(screen.getByText(/No people found/)).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Add friend' })).not.toBeInTheDocument();
+    expect(await screen.findByText(/No people found/)).toBeVisible();
+    expect(screen.queryByRole('button', { name: /^Add friend/ })).not.toBeInTheDocument();
   });
   it('accepts a received request and removes it from the request tab', async () => {
     show('requests');
@@ -97,24 +93,23 @@ describe('friend UI actions and failure recovery', () => {
     show();
     await screen.findByText('Bob');
     fireEvent.change(screen.getByLabelText('Search people'), { target: { value: 'Grace' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add friend' }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Add friend/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Request unavailable');
     expect(screen.getByLabelText('Search people')).toHaveValue('Grace');
-    fireEvent.click(screen.getByRole('button', { name: 'Add friend' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Add friend/ }));
     expect(await screen.findByRole('status')).toHaveTextContent('Friend request sent to Grace.');
     expect(screen.getByLabelText('Search people')).toHaveValue('');
     expect(friendService.create).toHaveBeenLastCalledWith({ other_user_id: 7 });
   });
-  it('reloads memberships after a conflict so stale candidates disappear', async () => {
+  it('reloads memberships after a conflict so the person is no longer offered', async () => {
     friendService.create.mockRejectedValueOnce({ status: 409 });
     show();
     await screen.findByText('Bob');
     friendService.list.mockResolvedValue([...rows, { id: 15, user_id: 1, other_user_id: 7, status: 'pending' }]);
     fireEvent.change(screen.getByLabelText('Search people'), { target: { value: 'Grace' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add friend' }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Add friend/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/already have a friend record/);
-    await waitFor(() => expect(screen.getByLabelText('Search people')).toBeDisabled());
-    expect(screen.queryByRole('button', { name: 'Add friend' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('button', { name: /^Add friend/ })).not.toBeInTheDocument());
   });
   it('refreshes after friend events and removes the listener on unmount', async () => {
     const { unmount } = show('requests');

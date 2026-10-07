@@ -20,7 +20,7 @@ vi.mock('../../src/services/messageService', () => ({
       { type: 'group', group_id: 2, title: 'Runners', last_message: null },
       { type: 'direct', user_id: 8, title: 'Sara', last_message: null },
     ],
-    list: async () => [],
+    listByIds: async (ids) => [].filter((user) => ids.includes(user.id)),
     create: vi.fn(),
     targetQuery: ({ type, id }) => ({ [`${type}_id`]: Number(id) }),
     targetBody: () => ({}),

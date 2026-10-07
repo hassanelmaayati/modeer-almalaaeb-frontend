@@ -149,7 +149,8 @@ describe('public live discovery', () => {
     expect(socket.send).toHaveBeenCalledWith('{"action":"subscribe"}');
     socket.event({ type: 'subscribed' });
     socket.event({ type: 'room_removed', room_id: 5 });
-    expect(events.map(event => event.type)).toEqual(['lobby.ready', 'subscribed', 'room_removed']);
+    // The first connection has nothing to catch up on, so it does not announce lobby.ready (pages just fetched).
+    expect(events.map(event => event.type)).toEqual(['subscribed', 'room_removed']);
     socket.close(); stop();
     await vi.advanceTimersByTimeAsync(60_000);
     expect(FakeSocket.instances).toHaveLength(1);
@@ -195,5 +196,20 @@ describe('missed message recovery', () => {
     const controller = new AbortController(); controller.abort();
     await expect(recoverMessages({ type: 'direct', id: 3 }, [], { signal: controller.signal })).rejects.toMatchObject({ name: 'AbortError' });
     expect(messageService.list).toHaveBeenCalledTimes(1);
+  });
+
+  it('announces lobby.ready only after a reconnect, so pages catch up on what they missed', async () => {
+    const events = [];
+    cleanups.push(listen(event => events.push(event.type)));
+    const stop = startLobby();
+    const first = FakeSocket.instances[0];
+    first.open(); first.event({ type: 'subscribed' });
+    expect(events).toEqual(['subscribed']);
+    first.close();
+    await vi.advanceTimersByTimeAsync(1000);
+    const second = FakeSocket.instances.at(-1);
+    second.open(); second.event({ type: 'subscribed' });
+    expect(events).toEqual(['subscribed', 'lobby.ready', 'subscribed']);
+    stop();
   });
 });

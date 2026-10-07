@@ -46,7 +46,7 @@ describe('public activity previews', () => {
     expect(screen.getByText('Manama · Capital')).toBeInTheDocument();
     expect(screen.getByText('1 / 2')).toBeInTheDocument();
     expect(screen.queryByText('Venue details')).not.toBeInTheDocument();
-    expect(roomService.get).toHaveBeenCalledWith(11, expect.objectContaining({ signal: expect.any(AbortSignal), auth: 'optional' }));
+    expect(roomService.get).toHaveBeenCalledWith(11, expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 
   it('keeps the dialog named and announces loading before details are available', async () => {

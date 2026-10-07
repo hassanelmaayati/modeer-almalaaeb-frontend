@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import auth from '../../src/services/authService.js'
 import users from '../../src/services/userService.js'
 import sports from '../../src/services/sportService.js'
@@ -13,7 +13,7 @@ import cupRoster from '../../src/services/cupRosterService.js'
 import notifications from '../../src/services/notificationService.js'
 import google from '../../src/services/googleAuthService.js'
 import ratings from '../../src/services/ratingService.js'
-import { ApiError, request } from '../../src/lib/api/client.js'
+import { ApiError, WAKING_MESSAGE, request, requestPage, tooManyAttemptsMessage, watchServerWaking } from '../../src/lib/api/client.js'
 import { clearToken, getToken, setToken } from '../../src/lib/helpers/session.js'
 
 const token = () => `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: '1', exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`
@@ -39,7 +39,13 @@ const contracts = [
   ['group members', () => groupMembers.list(1), 'GET', '/groups/1/members', true],
   ['invite group member', () => groupMembers.invite(1, 2), 'POST', '/groups/1/members', true, { user_id: 2 }],
   ['accept group invitation', () => groupMembers.update(1, 2, { status: 'accepted' }), 'PATCH', '/groups/1/members/2', true, { status: 'accepted' }],
-  ['rooms', () => rooms.list({ sport_id: 1, district: 'capital' }), 'GET', '/rooms?sport_id=1&district=capital', false],
+  // Optional auth: signed-in users also receive group-only rooms of their groups.
+  ['rooms', () => rooms.list({ sport_id: 1, district: 'capital' }), 'GET', '/rooms?sport_id=1&district=capital', true],
+  ['rooms of a group, near a point', () => rooms.list({ group_id: 4, near_lat: 26.23, near_lng: 50.57, radius_km: 5, limit: 3 }), 'GET', '/rooms?group_id=4&near_lat=26.23&near_lng=50.57&radius_km=5&limit=3', true],
+  ['transfer host', () => rooms.transferHost(1, 7), 'POST', '/rooms/1/transfer-host', true, { user_id: 7 }],
+  ['my groups', () => groups.minePage({ limit: 20, offset: 40 }).then(() => ({ id: 1 })), 'GET', '/groups/mine?limit=20&offset=40', true],
+  ['edit own message', () => messages.update(5, 'New text'), 'PATCH', '/messages/5', true, { body: 'New text' }],
+  ['delete own message', () => messages.remove(5), 'DELETE', '/messages/5', true],
   ['hosted room pages', () => rooms.listMine({ status: ['open', 'started'], limit: 20, offset: 20 }), 'GET', '/rooms/mine?status=open&status=started&limit=20&offset=20', true],
   ['joined room pages', () => rooms.listJoined({ membership: ['accepted', 'pending'], requested: false }), 'GET', '/rooms/joined?membership=accepted&membership=pending&requested=false', true],
   ['room detail', () => rooms.get(1), 'GET', '/rooms/1', true],
@@ -103,12 +109,42 @@ describe('backend service contracts', () => {
     }
   })
 
-  it('reads every page of the paged user list for search and name lookups', async () => {
-    const people = count => Array.from({ length: count }, (_, index) => ({ id: index + 1 }))
-    fetch.mockImplementationOnce(async () => jsonResponse(people(100))).mockImplementationOnce(async () => jsonResponse(people(3)))
-    expect(await users.list()).toHaveLength(103)
-    expect(fetch.mock.calls.map(([url]) => url)).toEqual(['/api/v1/users?limit=100&offset=0', '/api/v1/users?limit=100&offset=100'])
+  it('looks users up by id, at most 100 per call, without duplicates', async () => {
+    const people = ids => ids.map(id => ({ id, user_name: `User ${id}` }))
+    fetch.mockImplementation(async url => jsonResponse(people(new URL(url, 'http://x').searchParams.get('ids').split(',').map(Number))))
+    const ids = Array.from({ length: 150 }, (_, index) => index + 1)
+    expect(await users.listByIds([...ids, 3, 4, 'x', -1, 0])).toHaveLength(150)
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(new URL(fetch.mock.calls[0][0], 'http://x').searchParams.get('ids').split(',')).toHaveLength(100)
+    expect(new URL(fetch.mock.calls[1][0], 'http://x').searchParams.get('ids').split(',')).toHaveLength(50)
     expect(fetch.mock.calls[0][1].headers.Authorization).toBeUndefined()
+    fetch.mockClear()
+    expect(await users.listByIds([])).toEqual([])
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('uses the server filter when it works, and scans the user list itself when the server ignores ?search=', async () => {
+    fetch.mockImplementationOnce(async () => jsonResponse([{ id: 1, user_name: 'Sara' }, { id: 2, user_name: 'Sarah Ali' }]))
+    expect((await users.search('sara')).map(user => user.id)).toEqual([1, 2])
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(new URL(fetch.mock.calls[0][0], 'http://x').searchParams.get('search')).toBe('sara')
+    fetch.mockClear()
+    // An unfiltered answer (the live API ignores ?search= today) is not trusted: filter it, and keep paging until the end.
+    const everyone = Array.from({ length: 100 }, (_, index) => ({ id: index + 1, user_name: index === 99 ? 'Omar' : `Player ${index}` }))
+    fetch.mockImplementationOnce(async () => jsonResponse(everyone)).mockImplementationOnce(async () => jsonResponse([{ id: 101, user_name: 'Omar Two' }]))
+    expect((await users.search('OMAR')).map(user => user.user_name)).toEqual(['Omar', 'Omar Two'])
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(new URL(fetch.mock.calls[1][0], 'http://x').searchParams.get('offset')).toBe('100')
+    fetch.mockClear()
+    expect(await users.search('   ')).toEqual([])
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('reads the X-Total-Count header of a paged list, or null when it is missing', async () => {
+    fetch.mockImplementationOnce(async () => new Response('[{"id":1}]', { status: 200, headers: { 'X-Total-Count': '42' } }))
+    expect(await requestPage('rooms', { query: { limit: 1 } })).toEqual({ items: [{ id: 1 }], total: 42 })
+    fetch.mockImplementationOnce(async () => jsonResponse([{ id: 1 }]))
+    expect(await requestPage('rooms')).toEqual({ items: [{ id: 1 }], total: null })
   })
 
   it('allows public room and cup details when signed out', async () => {
@@ -144,10 +180,13 @@ describe('backend service contracts', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('forwards cancellation signals to the network request', async () => {
+  it('cancels the network request when the caller aborts', async () => {
     const controller = new AbortController()
-    await sports.list({ signal: controller.signal })
-    expect(fetch.mock.calls[0][1].signal).toBe(controller.signal)
+    fetch.mockImplementation((_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason))))
+    const pending = sports.list({ signal: controller.signal })
+    controller.abort()
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -185,10 +224,86 @@ describe('API response and failure handling', () => {
     await expect(sports.list()).rejects.toBe(aborted)
   })
 
-  it('reports an unavailable backend without leaking network internals or retrying', async () => {
-    fetch.mockRejectedValue(new TypeError('Connection refused'))
-    await expect(sports.list()).rejects.toBeInstanceOf(ApiError)
-    expect(fetch).toHaveBeenCalledTimes(1)
+  describe('a slow or sleeping backend', () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it('retries a GET once, then says the server is waking up without leaking network internals', async () => {
+      fetch.mockRejectedValue(new TypeError('Connection refused'))
+      const result = sports.list().catch(error => error)
+      await vi.advanceTimersByTimeAsync(2_000)
+      const error = await result
+      expect(error).toBeInstanceOf(ApiError)
+      expect(error.message).toBe(WAKING_MESSAGE)
+      expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('recovers when the retry succeeds', async () => {
+      fetch.mockRejectedValueOnce(new TypeError('Connection refused')).mockResolvedValueOnce(jsonResponse([{ id: 1 }]))
+      const result = sports.list()
+      await vi.advanceTimersByTimeAsync(2_000)
+      await expect(result).resolves.toEqual([{ id: 1 }])
+      expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('retries a GET once when the host answers 503 while starting', async () => {
+      fetch.mockResolvedValueOnce(new Response('', { status: 503 })).mockResolvedValueOnce(jsonResponse([{ id: 2 }]))
+      const result = sports.list()
+      await vi.advanceTimersByTimeAsync(2_000)
+      await expect(result).resolves.toEqual([{ id: 2 }])
+    })
+
+    it('never retries a write', async () => {
+      setToken(token())
+      fetch.mockRejectedValue(new TypeError('Connection refused'))
+      await expect(rooms.cancel(1, 'Rain')).rejects.toMatchObject({ message: WAKING_MESSAGE })
+      expect(fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('gives up on a request that never answers after 20 seconds, and retries a GET once', async () => {
+      fetch.mockImplementation((_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason))))
+      const result = sports.list().catch(error => error)
+      await vi.advanceTimersByTimeAsync(20_000)
+      expect(fetch).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(1_000 + 20_000)
+      expect((await result).message).toBe(WAKING_MESSAGE)
+      expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('tells the app when requests are slow and when the server answers again', async () => {
+      const seen = []
+      const stop = watchServerWaking(value => seen.push(value))
+      let answer
+      fetch.mockImplementationOnce(() => new Promise(resolve => { answer = () => resolve(jsonResponse([])) }))
+      const result = sports.list()
+      await vi.advanceTimersByTimeAsync(7_000)
+      expect(seen.at(-1)).toBe(true)
+      answer()
+      await result
+      expect(seen.at(-1)).toBe(false)
+      stop()
+    })
+  })
+
+  describe('rate limits and size limits', () => {
+    it.each([[120, 'Too many attempts, try again in 2 minutes.'], [30, 'Too many attempts, try again in 1 minute.'], [61, 'Too many attempts, try again in 2 minutes.']])('turns a 429 with Retry-After %s s into "%s"', async (seconds, message) => {
+      fetch.mockResolvedValue(new Response(JSON.stringify({ detail: 'Rate limit exceeded' }), { status: 429, headers: { 'Retry-After': String(seconds) } }))
+      await expect(auth.signIn({ email: 'a@example.test', password: 'wrong' })).rejects.toMatchObject({ status: 429, message, retryAfter: seconds })
+    })
+    it('still explains a 429 when the browser cannot read Retry-After (it is not CORS-exposed)', async () => {
+      fetch.mockResolvedValue(new Response('{"detail":"slow down"}', { status: 429 }))
+      await expect(auth.signIn({ email: 'a@example.test', password: 'wrong' })).rejects.toMatchObject({ status: 429, message: tooManyAttemptsMessage(null) })
+      expect(tooManyAttemptsMessage(null)).toBe('Too many attempts, please try again in a few minutes.')
+    })
+    it('explains a 413 clearly instead of showing the raw detail', async () => {
+      setToken(token())
+      fetch.mockResolvedValue(new Response('{"detail":"Request Entity Too Large"}', { status: 413 }))
+      await expect(rooms.cancel(1, 'x'.repeat(10))).rejects.toMatchObject({ status: 413, message: 'That is too large to send. Make it shorter or smaller and try again.' })
+    })
+    it('keeps the backend detail for a 404', async () => {
+      fetch.mockResolvedValue(new Response('{"detail":"Room not found"}', { status: 404 }))
+      await expect(rooms.get(99)).rejects.toMatchObject({ status: 404, message: 'Room not found' })
+    })
   })
 
   it('omits unset filters and serializes dates as timezone-aware ISO strings', async () => {

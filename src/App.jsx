@@ -1,6 +1,9 @@
-import { Route, Routes, useNavigate } from 'react-router';
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
+import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import NavBar from './components/layout/NavBar';
+import AppNotices from './components/layout/AppNotices';
+import { watchServerWaking } from './lib/api/client';
+import { routeTitle } from './lib/helpers/routeTitles';
 import RequireAuth from './components/auth/RequireAuth';
 import HomePage from './pages/HomePage';
 import notificationService from './services/notificationService';
@@ -37,7 +40,23 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 
 export default function App() {
   const [account, setAccount] = useState(initialSession);
-  useEffect(() => watchUser(setAccount), []);
+  const retryRestore = useRef(null);
+  useEffect(() => { const stop = watchUser(setAccount); retryRestore.current = stop.retry; return stop; }, []);
+  const [waking, setWaking] = useState(false);
+  useEffect(() => watchServerWaking(setWaking), []);
+  const [notice, setNotice] = useState('');
+  // True from the moment sign-out starts until it ends, so guarded pages send you home (not to sign-in) when the session clears.
+  const [leaving, setLeaving] = useState(false);
+  // Each page gets its own title, and focus moves to the content after a link was used, so keyboard and screen-reader users notice the change.
+  const { pathname } = useLocation();
+  const mainRef = useRef(null);
+  const firstRoute = useRef(true);
+  useEffect(() => {
+    document.title = routeTitle(pathname);
+    if (firstRoute.current) { firstRoute.current = false; return; }
+    const active = document.activeElement;
+    if (!active || active === document.body || active.closest('a, nav, header')) mainRef.current?.focus({ preventScroll: true });
+  }, [pathname]);
   const userId = account.user?.id;
   const [liveStatus, setLiveStatus] = useState('idle');
   const [notifications, setNotifications] = useState(() => emptyResource());
@@ -57,7 +76,14 @@ export default function App() {
   const goHome = result => { navigate('/', { replace: true }); return result; };
   const session = {
     ...account,
-    signOut: () => signOut().finally(goHome),
+    leaving,
+    signOut: async () => {
+      setLeaving(true);
+      navigate('/', { replace: true });
+      try { await signOut(); }
+      catch { setNotice('You were signed out on this device, but the server could not confirm it. If this is a shared device, sign in and out again.'); }
+      finally { setLeaving(false); }
+    },
     signIn: body => authenticate(authService.signIn, body, setAccount).then(goHome),
     signUp: body => authenticate(authService.signUp, body, setAccount).then(goHome),
     signInWithGoogle: credential => authenticate(googleAuthService.signIn, { credential }, setAccount).then(goHome),
@@ -66,7 +92,10 @@ export default function App() {
   };
   const accountKey = account.user?.id || 'guest';
   return <>
+    <a className="skip-link" href="#main-content">Skip to content</a>
     <NavBar session={session} liveStatus={liveStatus} messageUnread={messageUnread.total} unreadCount={userId && notifications.data?.userId === userId ? notifications.data.unread_count : 0} />
+    <AppNotices waking={waking} offline={!!account.offline} onRetry={() => retryRestore.current?.()} notice={notice} onDismiss={() => setNotice('')} />
+    <div id="main-content" ref={mainRef} tabIndex={-1}>
     <Suspense fallback={<main><p className="status-message" role="status">Loading…</p></main>}>
     <Routes>
       <Route path="/" element={<HomePage key={accountKey} session={session} />} />
@@ -86,7 +115,7 @@ export default function App() {
 
       <Route path="/notifications" element={<NotificationsPage key={accountKey} session={session} />} />
 
-      <Route path="/users/:userId" element={<RequireAuth session={session}><ProfilePage key={accountKey} session={session} /></RequireAuth>} />
+      <Route path="/users/:userId" element={<ProfilePage key={accountKey} session={session} />} />
       <Route path="/settings" element={<RequireAuth session={session}><SettingsPage key={accountKey} session={session} /></RequireAuth>} />
 
       <Route path="/cups" element={<CupsPage key={accountKey} session={session} />} />
@@ -99,5 +128,6 @@ export default function App() {
       <Route path="*" element={<main><h1>Page not found</h1><p>Use the navigation to return to a working page.</p></main>} />
     </Routes>
     </Suspense>
+    </div>
   </>;
 }

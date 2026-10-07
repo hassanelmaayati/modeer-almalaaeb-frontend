@@ -37,7 +37,7 @@ vi.mock('../../src/services/messageService', () => ({
     }),
   },
 }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => users } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: async (ids) => users.filter((user) => ids.includes(user.id)) } }));
 vi.mock('../../src/services/websocketService', () => ({
   listen: () => () => {},
   mergeMessages: (existing, incoming) => {
