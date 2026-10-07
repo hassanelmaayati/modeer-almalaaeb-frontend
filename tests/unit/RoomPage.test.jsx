@@ -68,6 +68,7 @@ describe('Room page', () => {
   it('shows every public detail of the room to a visitor', async () => {
     mount(null);
     await screen.findByRole('heading', { name: 'Sunrise run' });
+    await screen.findByText('Fatema', { selector: 'dd' });
     expect(details()).toEqual({
       Activity: 'Running',
       Status: 'Open',

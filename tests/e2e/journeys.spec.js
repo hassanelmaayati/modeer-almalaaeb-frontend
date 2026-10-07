@@ -1,4 +1,8 @@
 import { test, expect } from '../helpers/offline.js';
+import { Buffer } from 'node:buffer';
+
+// These journeys verify persisted behavior; animated styling is covered by smoke tests.
+test.use({ reducedMotion: 'reduce' });
 
 const api = 'http://127.0.0.1:8001/api/v1';
 const password = 'TestPass123!';
@@ -34,8 +38,8 @@ test('signup validates confirmation/governorate, preserves full Unicode password
   await page.getByLabel('Password', { exact: true }).fill(longPassword);
   await page.getByLabel('Confirm password', { exact: true }).fill(`${longPassword}-wrong`);
   await page.getByRole('button', { name: 'Sign up', exact: true }).click();
-  expect(await page.getByRole('combobox', { name: 'Governorate', exact: true }).evaluate(element => element.validity.valueMissing)).toBe(true);
-  await page.getByRole('combobox', { name: 'Governorate', exact: true }).selectOption('northern');
+  expect(await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).evaluate(element => element.validity.valueMissing)).toBe(true);
+  await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).selectOption('northern');
   await page.getByRole('button', { name: 'Sign up', exact: true }).click();
   await expect(page.getByRole('alert')).toHaveText('Passwords must match.');
   await page.getByLabel('Confirm password', { exact: true }).fill(longPassword);
@@ -48,7 +52,7 @@ test('signup validates confirmation/governorate, preserves full Unicode password
   const oldHeaders = await headers(page);
   await page.getByRole('button', { name: 'Unicode Player', exact: true }).click();
   await page.getByRole('menu', { name: 'Account', exact: true }).getByRole('menuitem', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in with Google', exact: true })).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   expect((await request.get(`${api}/users/me`, { headers: oldHeaders })).status()).toBe(401);
   await page.goto('/sign-in');
   await page.getByLabel('Email', { exact: true }).fill('UNICODE@example.test');
@@ -64,19 +68,27 @@ test('signup validates confirmation/governorate, preserves full Unicode password
 });
 
 test('profile edits and cleared optional fields persist across reload and preserve public/private boundaries', async ({ page, request }) => {
+  const photoUrl = 'https://images.example.test/profile.png';
+  await page.route(photoUrl, route => route.fulfill({
+    status: 200,
+    contentType: 'image/png',
+    body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGMQifT6DwAC8wG39Fc21QAAAABJRU5ErkJggg==', 'base64'),
+  }));
   await signIn(page, 'owner');
   await page.goto('/settings');
   await page.getByLabel('User name', { exact: true }).fill('Edited Owner');
-  await page.getByLabel('Photo URL', { exact: true }).fill('http://127.0.0.1:5174/vite.svg');
+  await page.getByLabel('Photo URL', { exact: true }).fill(photoUrl);
   await page.getByRole('textbox', { name: 'Bio', exact: true }).fill('مرحبا 🏃');
-  await page.getByRole('combobox', { name: 'Governorate', exact: true }).selectOption('southern');
+  await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).selectOption('southern');
   await page.getByRole('button', { name: 'Save profile', exact: true }).click();
   await expect.poll(async () => (await json(request, page, 'get', '/users/me')).bio).toBe('مرحبا 🏃');
   await page.reload();
   await expect(page.getByLabel('User name', { exact: true })).toHaveValue('Edited Owner');
+  await expect(page.getByLabel('Photo URL', { exact: true })).toHaveValue(photoUrl);
+  await expect.poll(() => page.locator('.player-profile img').evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
   await page.getByRole('textbox', { name: 'Bio', exact: true }).fill('');
   await page.getByLabel('Photo URL', { exact: true }).fill('');
-  await page.getByRole('combobox', { name: 'Governorate', exact: true }).selectOption('');
+  await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).selectOption('');
   await page.getByRole('button', { name: 'Save profile', exact: true }).click();
   await expect.poll(async () => (await json(request, page, 'get', '/users/me')).district).toBe(null);
   const me = await json(request, page, 'get', '/users/me');
@@ -91,14 +103,16 @@ test('profile edits and cleared optional fields persist across reload and preser
 test('room creation, map pin clearing, host approval and member leaving persist through the UI', async ({ page, request, offlineContext }) => {
   await signIn(page, 'owner');
   await page.goto('/rooms/new');
-  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('1');
+  await page.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ }).selectOption('1');
   await page.getByLabel('Title', { exact: true }).fill('Browser Football');
-  await page.getByLabel('Starts (Bahrain time)', { exact: true }).fill(bahrainInput(2));
-  await page.getByLabel('Ends (Bahrain time)', { exact: true }).fill(bahrainInput(2.1));
-  await page.getByRole('combobox', { name: 'Format', exact: true }).selectOption('10');
-  await page.getByRole('combobox', { name: 'Governorate', exact: true }).selectOption('capital');
-  await page.getByRole('combobox', { name: 'Area', exact: true }).selectOption('Manama');
-  await page.locator('.leaflet-container').click({ position: { x: 140, y: 100 } });
+  await page.getByLabel(/^Starts \(Bahrain time\)/).fill(bahrainInput(2));
+  await page.getByLabel(/^Ends \(Bahrain time\)/).fill(bahrainInput(2.1));
+  await page.getByRole('combobox', { name: /^Format(?: required| ready)?$/ }).selectOption('10');
+  await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).selectOption('capital');
+  await page.getByRole('combobox', { name: /^Area(?: required| ready)?$/ }).selectOption('Manama');
+  // The map starts at Bahrain's centre; a fixed edge pixel can fall outside its allowed bounds.
+  await page.locator('.leaflet-container').click();
+  await expect(page.getByRole('button', { name: 'Clear pin', exact: true })).toBeVisible();
   await page.getByLabel('Location notes (optional)', { exact: true }).fill('Private court 9');
   const created = page.waitForResponse(response => response.url().endsWith('/api/v1/rooms') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Create room', exact: true }).click();
@@ -134,7 +148,7 @@ test('friend requests accept, block, unblock and unfriend with live permission c
   await signIn(member, 'member');
   await page.goto('/friends');
   await page.getByLabel('Search people', { exact: true }).fill('Test Member');
-  await page.getByRole('button', { name: 'Add friend', exact: true }).click();
+  await page.getByRole('button', { name: 'Add friend Test Member', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('Friend request sent to Test Member.');
   await member.goto('/friends?tab=requests');
   await member.getByRole('button', { name: 'Accept', exact: true }).click();
@@ -248,8 +262,8 @@ test('chat paginates real history and restores access after reconnect while revo
 async function createCup(page, sport, name, count) {
   await page.goto('/cups/new');
   await page.getByLabel('Cup name', { exact: true }).fill(name);
-  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption(String(sport));
-  if (await page.getByRole('combobox', { name: 'Number of teams', exact: true }).count()) await page.getByRole('combobox', { name: 'Number of teams', exact: true }).selectOption(String(count));
+  await page.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ }).selectOption(String(sport));
+  if (await page.getByRole('combobox', { name: /^Number of teams(?: required| ready)?$/ }).count()) await page.getByRole('combobox', { name: /^Number of teams(?: required| ready)?$/ }).selectOption(String(count));
   else await page.getByLabel('Number of teams (2–100)', { exact: true }).fill(String(count));
   await page.getByLabel('Players per team (roster limit)', { exact: true }).fill('5');
   await page.getByLabel('Rules', { exact: true }).fill('Respect opponents. Results are final.');
@@ -263,14 +277,14 @@ async function createCup(page, sport, name, count) {
 }
 async function registerTeams(page, request, id, sport, count, prefix) {
   await page.getByRole('button', { name: 'Open registration…', exact: true }).click();
-  await page.getByLabel('Registration closes (Bahrain time, optional)', { exact: true }).fill(bahrainInput(1));
+  await page.getByLabel(/^Registration closes \(Bahrain time, optional\)/).fill(bahrainInput(1));
   await page.getByRole('button', { name: 'Open registration', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Publish cup', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Publish cup', exact: true })).toBeDisabled();
   for (let i = 1; i <= count; i++) {
     const group = await json(request, page, 'post', '/groups', { name: `${prefix} ${i}`, sports_id: sport }, 201);
     await page.reload();
-    await page.getByRole('combobox', { name: 'Enter one of your groups', exact: true }).selectOption(String(group.id));
+    await page.getByRole('combobox', { name: /^Enter one of your groups(?: required| ready)?$/ }).selectOption(String(group.id));
     await page.getByRole('button', { name: 'Enter cup', exact: true }).click();
     const entry = page.locator('.entry-list li').filter({ has: page.locator('strong').filter({ hasText: `${prefix} ${i}` }) }).filter({ has: page.getByRole('button', { name: 'Accept', exact: true }) });
     await entry.getByRole('button', { name: 'Accept', exact: true }).click();
@@ -348,15 +362,15 @@ for (const activity of [
     expect(sport.formats).toBe(null);
     await signIn(page, 'owner');
     await page.goto('/rooms/new');
-    await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption(String(sport.id));
-    await expect(page.getByRole('combobox', { name: 'Format', exact: true })).toHaveCount(0);
+    await page.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ }).selectOption(String(sport.id));
+    await expect(page.getByRole('combobox', { name: /^Format(?: required| ready)?$/ })).toHaveCount(0);
     const capacity = page.getByLabel('Capacity (players)', { exact: true });
     await capacity.fill('0');
     await page.getByLabel('Title', { exact: true }).fill(`Offline ${activity.name}`);
-    await page.getByLabel('Starts (Bahrain time)', { exact: true }).fill(bahrainInput(2));
-    await page.getByLabel('Ends (Bahrain time)', { exact: true }).fill(bahrainInput(2.1));
-    await page.getByRole('combobox', { name: 'Governorate', exact: true }).selectOption('capital');
-    await page.getByRole('combobox', { name: 'Area', exact: true }).selectOption('Manama');
+    await page.getByLabel(/^Starts \(Bahrain time\)/).fill(bahrainInput(2));
+    await page.getByLabel(/^Ends \(Bahrain time\)/).fill(bahrainInput(2.1));
+    await page.getByRole('combobox', { name: /^Governorate(?: required| ready)?$/ }).selectOption('capital');
+    await page.getByRole('combobox', { name: /^Area(?: required| ready)?$/ }).selectOption('Manama');
     await page.getByLabel('Location notes (optional)', { exact: true }).fill(`Private ${activity.name} meeting point`);
     if (activity.outdoor) {
       await page.getByLabel('Distance (km)', { exact: true }).fill(activity.distance);
@@ -394,16 +408,23 @@ for (const activity of [
     await page.getByRole('combobox', { name: 'Activity', exact: true }).selectOption(String(sport.id));
     await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
     await page.waitForURL(url => url.searchParams.get('sport_id') === String(sport.id));
-    await expect(page.locator('.room-card')).toHaveCount(1);
-    await expect(page.locator('.room-card')).toContainText(`Offline ${activity.name}`);
+    await expect(page.locator('.game-card')).toHaveCount(1);
+    await expect(page.locator('.game-card')).toContainText(`Offline ${activity.name}`);
     await page.reload();
     await expect(page.getByRole('combobox', { name: 'Activity', exact: true })).toHaveValue(String(sport.id));
-    await expect(page.locator('.room-card')).toHaveCount(1);
+    await expect(page.locator('.game-card')).toHaveCount(1);
     await page.goto('/groups');
+    // Session restoration and the initial live connection can trigger a second
+    // group load; finish it before activating a button that is disabled while loading.
+    const banner = page.getByRole('banner');
+    await expect(banner.getByRole('button', { name: 'Test Owner', exact: true })).toBeVisible();
+    await expect(banner.getByRole('status')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Weekend Football', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Create group', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Create group', exact: true });
+    await expect(dialog).toBeVisible();
     await dialog.getByLabel('Group name', { exact: true }).fill(`${activity.name} Browser Group`);
-    await dialog.getByRole('combobox', { name: 'Sport', exact: true }).selectOption(String(sport.id));
+    await dialog.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ }).selectOption(String(sport.id));
     const groupCreation = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/groups' && response.request().method() === 'POST');
     await dialog.getByRole('button', { name: 'Create group', exact: true }).click();
     const groupResponse = await groupCreation;
@@ -416,7 +437,7 @@ for (const activity of [
     await expect(page.locator('.group-card')).toHaveCount(1);
     await expect(page.locator('.group-card')).toContainText(`${activity.name} Browser Group`);
     await page.goto('/cups/new');
-    const cupSport = page.getByRole('combobox', { name: 'Sport', exact: true });
+    const cupSport = page.getByRole('combobox', { name: /^Sport(?: required| ready)?$/ });
     if (activity.cupFormat) {
       await cupSport.selectOption(String(sport.id));
       await expect(page.getByText(`Format: ${activity.cupFormat === 'race' ? 'Race' : 'Knockout'}`, { exact: true })).toBeVisible();

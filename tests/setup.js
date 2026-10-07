@@ -18,6 +18,8 @@ afterEach(() => {
   cleanup()
   clearToken()
   window.localStorage.clear()
+  document.documentElement.classList.remove('dark')
+  document.documentElement.style.removeProperty('color-scheme')
   vi.unstubAllGlobals()
 })
 
