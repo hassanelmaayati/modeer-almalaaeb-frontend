@@ -2,12 +2,15 @@ import { Link } from 'react-router';
 import AsyncState from '../common/AsyncState';
 import { threadErrorMessage } from '../../lib/helpers/messages';
 import useChatThread from '../../lib/helpers/useChatThread';
+import useUsers from '../../lib/helpers/userDirectory';
 import ChatHeader from './ChatHeader';
 import MessageComposer from './MessageComposer';
 import MessageList from './MessageList';
 
 export default function ChatThread({ target, title, viewerId, nameOf }) {
   const thread = useChatThread(target.type, target.id, viewerId);
+  // Load the names of whoever wrote in this thread (also re-renders this thread when they arrive).
+  useUsers(thread.messages.map(message => message.sender_id));
   const final = Boolean(thread.error) && [403, 404].includes(thread.error.status);
   const ready = !thread.loading && !thread.error;
 
@@ -35,6 +38,8 @@ export default function ChatThread({ target, title, viewerId, nameOf }) {
         loadingEarlier={thread.loadingEarlier}
         earlierError={thread.earlierError}
         onLoadEarlier={thread.loadEarlier}
+        onEdit={thread.edit}
+        onDelete={thread.remove}
         onRetrySend={thread.retrySend}
         onDiscard={thread.discard}
       />

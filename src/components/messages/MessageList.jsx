@@ -12,6 +12,8 @@ export default function MessageList({
   loadingEarlier,
   earlierError,
   onLoadEarlier,
+  onEdit,
+  onDelete,
   onRetrySend,
   onDiscard,
 }) {
@@ -76,6 +78,8 @@ export default function MessageList({
               message={message}
               own={own}
               senderName={showSender && !own && message.sender_id != null ? nameOf(message.sender_id) : null}
+              onEdit={own ? onEdit : undefined}
+              onDelete={own ? onDelete : undefined}
             />;
           })}
         </ul>
