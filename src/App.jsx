@@ -10,6 +10,7 @@ import notificationService from './services/notificationService';
 import websocketService from './services/websocketService';
 import { emptyResource, startRequest } from './lib/helpers/request';
 import useMessageUnread from './lib/helpers/useMessageUnread';
+import { startScrollReplay } from './lib/helpers/scrollReplay';
 import * as authService from './services/authService';
 import * as googleAuthService from './services/googleAuthService';
 import * as userService from './services/userService';
@@ -19,7 +20,8 @@ import './home.css';
 import './users.css';
 import './cups.css';
 import './ui.css';
-import './theme.css';
+import './theme.css'
+import './motion.css';
 
 // Route pages load on demand so the first visit doesn't download every page (and leaflet maps) up front.
 const SignInPage = lazy(() => import('./pages/SignInPage'));
@@ -47,6 +49,7 @@ export default function App() {
   useEffect(() => { const stop = watchUser(setAccount); retryRestore.current = stop.retry; return stop; }, []);
   const [waking, setWaking] = useState(false);
   useEffect(() => watchServerWaking(setWaking), []);
+  useEffect(() => startScrollReplay(), []);
   const [notice, setNotice] = useState('');
   // True from the moment sign-out starts until it ends, so guarded pages send you home (not to sign-in) when the session clears.
   const [leaving, setLeaving] = useState(false);

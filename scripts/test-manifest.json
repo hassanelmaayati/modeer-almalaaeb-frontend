@@ -49,7 +49,8 @@
     "tests/unit/sport-catalogue.test.jsx",
     "tests/unit/user-directory.test.jsx",
     "tests/unit/websocket-service.test.js",
-    "tests/unit/ui-widgets.test.jsx"
+    "tests/unit/ui-widgets.test.jsx",
+    "tests/unit/scroll-replay.test.js"
   ],
   "fixtures": [
     "tests/setup.js",
