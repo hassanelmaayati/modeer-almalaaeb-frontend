@@ -27,7 +27,6 @@
   @keyframes art-drift { from { translate: 0 0; } to { translate: -10px 5px; } }
   @keyframes tracking-in { from { opacity: 0; letter-spacing: .45em; } }
   @keyframes title-sweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
-  @keyframes banner-sweep { from { translate: -110% 0; } to { translate: 110% 0; } }
   @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(0, 237, 100, .55); } 100% { box-shadow: 0 0 0 16px rgba(0, 237, 100, 0); } }
   @keyframes bar-fill { from { clip-path: inset(0 100% 0 0); } }
   @keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(200, 155, 28, 0), 0 4px 14px rgba(200, 155, 28, .18); } 50% { box-shadow: 0 0 0 7px rgba(200, 155, 28, .14), 0 6px 20px rgba(200, 155, 28, .3); } }
@@ -89,11 +88,6 @@
   .is-inview .banner-art text { animation: pop-in .6s var(--ease-spring) .9s backwards; }
   .sports-banner.is-inview .banner-art { animation: art-drift 20s ease-in-out 1.5s infinite alternate; }
 
-  /* a pale light sweeps across the banner once, like a scan line */
-  .sports-banner { overflow: hidden; }
-  .sports-banner::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; translate: -110% 0; background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .7) 50%, transparent 62%); }
-  .sports-banner.is-inview::after { animation: banner-sweep 2.2s var(--ease-soft) .2s; }
-
   /* the title: tracking tightens in on the label, the headline rises while a green glint runs through the letters */
   .sports-banner.is-inview .sports-banner-eyebrow { animation: tracking-in 1.2s var(--ease-out) .2s backwards; }
   .sports-banner.is-inview p { animation: rise 1s var(--ease-out) .5s backwards; }
@@ -147,7 +141,7 @@
     background-size: 250% 100%;
     background-repeat: no-repeat;
     background-position: 160% 0;
-    animation: shine 1.8s var(--ease-soft) 1.2s 1, shine 1.8s var(--ease-soft) 9s infinite;
+    animation: shine 5.5s var(--ease-soft) 1.2s 1, shine 5.5s var(--ease-soft) 12s infinite;
   }
 
   /* ---------- hover and press feedback ---------- */
