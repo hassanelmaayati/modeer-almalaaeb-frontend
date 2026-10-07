@@ -6,6 +6,7 @@ import AsyncState from '../components/common/AsyncState';
 import PlayerProfile from '../components/users/PlayerProfile';
 import ProfileForm from '../components/users/ProfileForm';
 import GoogleLinkControls from '../components/users/GoogleLinkControls';
+import AttendanceRatingSummary from '../components/ratings/AttendanceRatingSummary';
 import { ProfileArt } from '../components/home/HeroArt';
 
 // One page for the signed-in player: their profile on top, the settings that change it underneath.
@@ -36,6 +37,7 @@ export default function SettingsPage({ session }) {
             <ProfileArt />
             <PlayerProfile user={me.data} />
           </section>
+          <AttendanceRatingSummary userId={me.data.id} />
           <section className="home-section account-settings" aria-labelledby="settings-title">
             <h2 id="settings-title">Settings</h2>
             <p className="home-subtitle">Update how other players see you and manage how you sign in.</p>
