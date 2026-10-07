@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Field from '../common/Field';
+import Select from '../common/Select';
 
 /** Host-only: pick an accepted, non-no-show player and hand them the room (asks first; the host loses control). */
 export default function TransferHost({ candidates, pending, onTransfer }) {
@@ -19,10 +20,10 @@ export default function TransferHost({ candidates, pending, onTransfer }) {
       ? <p className="muted">When a player has an accepted place, you can hand the room over to them here.</p>
       : <form className="form-stack" onSubmit={submit}>
         <Field label="New host">
-          <select value={selected} onChange={event => setSelected(event.target.value)} required>
+          <Select value={selected} onChange={event => setSelected(event.target.value)} required>
             <option value="" disabled>Choose a player</option>
             {candidates.map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-          </select>
+          </Select>
         </Field>
         <button disabled={pending || !selected}>Transfer host</button>
       </form>}

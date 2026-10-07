@@ -270,3 +270,49 @@ body {
 
 /* Chosen sport tile: no thicker bottom edge */
 .sport-tile[aria-current="true"] { box-shadow: none; }
+
+/* Ratings: gold stars, a card per player to rate, and the public rating summary */
+.star-picker { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem; margin: 0 0 .6rem; padding: 0; border: 0; }
+.star-picker legend { float: none; width: 100%; margin: 0 0 .15rem; padding: 0; font-size: .9rem; font-weight: 600; color: var(--foreground); }
+.star-option { font-size: 2rem; line-height: 1; color: #b4c1ba; cursor: pointer; transition: transform .12s ease, color .12s ease; }
+.star-option.is-on { color: #e0a800; }
+.star-picker:not(:disabled) .star-option:hover { transform: scale(1.18); color: #e0a800; }
+.star-option:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+.star-picker:disabled .star-option { cursor: default; }
+.star-picker:disabled .star-option:not(.is-on) { color: #e3e8e5; }
+.rate-players { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .8rem; }
+.rate-player { padding: .9rem 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fbfcfb; }
+.rate-player form { display: grid; justify-items: start; gap: .3rem; }
+.rate-player form > * { margin: 0; }
+.rating-summary { margin-top: 1rem; padding: 1.1rem 1.4rem; border: 1px solid var(--border); border-left: 4px solid #e0a800; border-radius: 12px; background: #fff; box-shadow: var(--shadow-sm); }
+.rating-summary h2 { margin: 0 0 .3rem; font-size: 1.3rem; }
+.rating-summary p { margin: 0; color: var(--muted-foreground); }
+.rating-summary strong { font-family: var(--font-accent); font-size: 1.6rem; font-weight: 400; color: #a37a00; }
+.rating-summary strong [aria-hidden] { color: #e0a800; }
+
+/* People pickers inside rooms and host-style forms */
+.people-picker { margin: .8rem 0; }
+.people-picker .friend-list { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.room-scope .people-picker .friend-row, .host-scope .people-picker .friend-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.room-scope .people-picker .friend-row button, .host-scope .people-picker .friend-row button { padding: .3rem .9rem; font-size: .88rem; }
+.room-scope .panel > .button-secondary { margin-bottom: .8rem; }
+
+/* Near me */
+.near-me .button-row { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem 1rem; }
+.near-me .form-field { min-width: 12rem; }
+
+/* Edit and delete on your own chat messages */
+.messages-scope .message .message-actions { display: flex; gap: .4rem; margin-top: .25rem; }
+.messages-scope .message .message-actions button { padding: .1rem .7rem !important; border: 1px solid color-mix(in oklch, currentColor 45%, transparent) !important; background: transparent !important; color: inherit !important; font-size: .75rem !important; font-weight: 600 !important; text-decoration: none !important; }
+.messages-scope .message .message-actions button:hover:not(:disabled) { background: color-mix(in oklch, currentColor 18%, transparent) !important; }
+.messages-scope .message-edit textarea { width: 100%; min-height: 3.5rem; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--foreground); font: inherit; }
+.messages-scope .message.is-own .message-edit .button-secondary { border-color: rgba(255, 255, 255, .75) !important; background: transparent !important; color: #fff !important; }
+.messages-scope .message-edit button { padding: .25rem 1rem; font-size: .85rem; }
+
+/* Stars keep their size inside page-level label rules; the Near me bar matches the filter panel */
+.star-picker .star-option { font-size: 2rem !important; font-weight: 400; }
+.star-picker .star-option > span[aria-hidden] { font-size: 2rem; line-height: 1; }
+.near-me.panel { padding: .9rem 1.2rem; border-radius: 12px; }
+.near-me .button-row button { padding: .5rem 1.3rem; }
+.near-me .muted { font-size: .9rem; }
+.messages-scope .message-edit button:not(.button-secondary) { border-color: var(--btn-bg) !important; background: var(--btn-bg) !important; color: var(--btn-fg) !important; }

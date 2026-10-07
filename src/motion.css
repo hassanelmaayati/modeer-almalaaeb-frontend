@@ -1,0 +1,170 @@
+/*
+  Motion layer: entrances, scroll replays and small hover/press feedback.
+  - Only opacity, transform and a few paint-only properties are animated.
+  - Blocks marked `.mo` by scrollReplay.js rest hidden, play when `.is-inview` is added and play again every time
+    the visitor scrolls back to them (the class is removed once the block is completely off screen).
+  - Everything is off for people who ask for reduced motion, and without JavaScript the content simply shows.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --ease-out: cubic-bezier(.22, .61, .36, 1);
+    --ease-soft: cubic-bezier(.45, .05, .25, 1);
+    --ease-spring: cubic-bezier(.34, 1.25, .64, 1);
+  }
+
+  /* ---------- keyframes ---------- */
+  @keyframes page-in { from { opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  @keyframes rise-small { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes slide-right { from { opacity: 0; transform: translateX(-12px); } }
+  @keyframes pop-in { from { opacity: 0; transform: scale(.94); } }
+  @keyframes spring-in { 0% { opacity: 0; transform: scale(.6); } 70% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes spin-in { from { opacity: 0; transform: rotate(-200deg) scale(.3); } }
+  @keyframes dialog-in { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+  @keyframes backdrop-in { from { opacity: 0; } }
+  @keyframes reveal { from { opacity: 0; transform: translateY(16px); } }
+  @keyframes draw { from { stroke-dasharray: 2400; stroke-dashoffset: 2400; } to { stroke-dasharray: 2400; stroke-dashoffset: 0; } }
+  @keyframes art-drift { from { translate: 0 0; } to { translate: -10px 5px; } }
+  @keyframes tracking-in { from { opacity: 0; letter-spacing: .45em; } }
+  @keyframes title-sweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+  @keyframes banner-sweep { from { translate: -110% 0; } to { translate: 110% 0; } }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(0, 237, 100, .55); } 100% { box-shadow: 0 0 0 16px rgba(0, 237, 100, 0); } }
+  @keyframes bar-fill { from { clip-path: inset(0 100% 0 0); } }
+  @keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(200, 155, 28, 0), 0 4px 14px rgba(200, 155, 28, .18); } 50% { box-shadow: 0 0 0 7px rgba(200, 155, 28, .14), 0 6px 20px rgba(200, 155, 28, .3); } }
+  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+  @keyframes soft-pulse { from { opacity: .55; } to { opacity: 1; } }
+  @keyframes ring-pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 237, 100, .55); } 70%, 100% { box-shadow: 0 0 0 9px rgba(0, 237, 100, 0); } }
+  @keyframes shine { from { background-position: 160% 0; } to { background-position: -60% 0; } }
+
+  /* ---------- always on: page, header, dialogs, messages ---------- */
+  main { animation: page-in .6s ease-out backwards; }
+  .site-header { animation: rise-small .5s var(--ease-out) backwards; }
+  dialog[open] { animation: dialog-in .4s var(--ease-out); }
+  dialog[open]::backdrop { animation: backdrop-in .3s ease-out; }
+  main [role="status"]:not(.nav-status), main [role="alert"] { animation: rise-small .35s var(--ease-out) backwards; }
+  .status-message[role="status"] { animation: soft-pulse 1.1s ease-in-out infinite alternate; }
+  .app-notice { animation: rise-small .4s var(--ease-out) backwards; }
+  .auth-art { animation: rise .9s var(--ease-out) .1s backwards; }
+  .trophy-art { animation: bob 4s ease-in-out infinite; }
+  .host-preview { animation: slide-right .7s var(--ease-out) .2s backwards; }
+  .host-card { animation: pop-in .7s var(--ease-spring) .3s backwards; }
+
+  /* ---------- scroll replay: resting (hidden) state ---------- */
+  .home-section.mo:not(.is-inview), .panel.mo:not(.is-inview), .room-step.mo:not(.is-inview) { opacity: 0; }
+  .mo:not(.is-inview) :is(
+    .home-hero-copy > *, .home-hero-tag span,
+    .sports-banner :is(.sports-banner-eyebrow, h1, p, .sports-banner-actions, .room-banner-sport),
+    .banner-art :is(path, circle, rect, line, ellipse, polyline, polygon, text), .hero-art :is(path, circle, rect, line, ellipse, polyline, polygon),
+    :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > *,
+    .bracket-round .fixture, .champion-card
+  ) { opacity: 0; }
+
+  /* ---------- scroll replay: sections and panels ---------- */
+  .home-section.is-inview, .panel.is-inview, .room-step.is-inview { animation: reveal 1s var(--ease-out) backwards; }
+  .room-step.is-inview:nth-of-type(2) { animation-delay: .08s; }
+  .room-step.is-inview:nth-of-type(3) { animation-delay: .16s; }
+  .room-step.is-inview:nth-of-type(4) { animation-delay: .24s; }
+  .room-step.is-inview:nth-of-type(n+5) { animation-delay: .3s; }
+
+  /* ---------- scroll replay: home hero ---------- */
+  .home-hero.is-inview .home-hero-copy > * { animation: rise 1s var(--ease-out) backwards; }
+  .home-hero.is-inview .home-hero-copy > :nth-child(1) { animation-delay: .05s; }
+  .home-hero.is-inview .home-hero-copy > :nth-child(2) { animation-delay: .15s; }
+  .home-hero.is-inview .home-hero-copy > :nth-child(3) { animation-delay: .3s; }
+  .home-hero.is-inview .home-hero-copy > :nth-child(4) { animation-delay: .4s; }
+  .home-hero.is-inview .home-hero-tag span { animation: rise .9s var(--ease-out) backwards; }
+  .home-hero.is-inview .home-hero-tag span:nth-child(1) { animation-delay: .55s; }
+  .home-hero.is-inview .home-hero-tag span:nth-child(2) { animation-delay: .65s; }
+  .home-hero.is-inview .home-hero-tag span:nth-child(3) { animation-delay: .75s; }
+  .home-hero.is-inview .home-hero-tag span:nth-child(4) { animation-delay: .85s; }
+  .home-hero.is-inview .hero-art { animation: art-drift 18s ease-in-out infinite alternate; }
+
+  /* ---------- scroll replay: banners ---------- */
+  /* the line drawing draws itself, shape after shape, then drifts very slowly */
+  .is-inview :is(.banner-art, .hero-art) :is(path, circle, rect, line, ellipse, polyline, polygon) { animation: draw 1.8s var(--ease-soft) backwards; }
+  .is-inview :is(.banner-art, .hero-art) :is(path, circle, rect, line, ellipse, polyline, polygon):nth-child(4n+1) { animation-delay: .1s; }
+  .is-inview :is(.banner-art, .hero-art) :is(path, circle, rect, line, ellipse, polyline, polygon):nth-child(4n+2) { animation-delay: .22s; }
+  .is-inview :is(.banner-art, .hero-art) :is(path, circle, rect, line, ellipse, polyline, polygon):nth-child(4n+3) { animation-delay: .34s; }
+  .is-inview :is(.banner-art, .hero-art) :is(path, circle, rect, line, ellipse, polyline, polygon):nth-child(4n) { animation-delay: .46s; }
+  .is-inview .banner-art text { animation: pop-in .6s var(--ease-spring) .9s backwards; }
+  .sports-banner.is-inview .banner-art { animation: art-drift 20s ease-in-out 1.5s infinite alternate; }
+
+  /* a pale light sweeps across the banner once, like a scan line */
+  .sports-banner { overflow: hidden; }
+  .sports-banner::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; translate: -110% 0; background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .7) 50%, transparent 62%); }
+  .sports-banner.is-inview::after { animation: banner-sweep 2.2s var(--ease-soft) .2s; }
+
+  /* the title: tracking tightens in on the label, the headline rises while a green glint runs through the letters */
+  .sports-banner.is-inview .sports-banner-eyebrow { animation: tracking-in 1.2s var(--ease-out) .2s backwards; }
+  .sports-banner.is-inview p { animation: rise 1s var(--ease-out) .5s backwards; }
+  .sports-banner.is-inview .sports-banner-eyebrow + h1 + p { animation-delay: .5s; }
+  .sports-banner.is-inview .sports-banner-actions { animation: spring-in .9s var(--ease-spring) .7s backwards; }
+  .sports-banner.is-inview .room-banner-sport { animation: spin-in 1.1s var(--ease-spring) .1s backwards; }
+  @supports (background-clip: text) or (-webkit-background-clip: text) {
+    .sports-banner.is-inview h1, .home-hero.is-inview h1 {
+      background-image: linear-gradient(100deg, var(--heading) 0 42%, #14c46c 50%, var(--heading) 58% 100%);
+      background-size: 320% 100%;
+      background-position: 0% 0;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: title-sweep 2.2s var(--ease-soft) .35s backwards, rise 1s var(--ease-out) .25s backwards;
+    }
+  }
+
+  /* ---------- scroll replay: lists, steps and brackets ---------- */
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > * { animation: rise .8s var(--ease-out) backwards; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(1) { animation-delay: .1s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(2) { animation-delay: .16s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(3) { animation-delay: .22s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(4) { animation-delay: .28s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(5) { animation-delay: .34s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(6) { animation-delay: .4s; }
+  .is-inview :is(.card-grid, .room-grid, .sport-tiles, .how-steps, .notification-list, .rate-players, .entry-list, .member-list, .friend-list, .room-list, .cup-list) > :nth-child(n+7) { animation-delay: .44s; }
+
+  .bracket.is-inview .bracket-round .fixture { animation: pop-in .8s var(--ease-out) backwards; }
+  .bracket.is-inview .bracket-round:nth-of-type(1) .fixture { animation-delay: .1s; }
+  .bracket.is-inview .bracket-round:nth-of-type(2) .fixture { animation-delay: .25s; }
+  .bracket.is-inview .bracket-round:nth-of-type(3) .fixture { animation-delay: .4s; }
+  .bracket.is-inview .bracket-round:nth-of-type(4) .fixture { animation-delay: .55s; }
+  .bracket.is-inview .champion-card { animation: pop-in .6s var(--ease-spring) .7s backwards; }
+  .bracket.is-inview .champion-card.has-champion { animation: pop-in .6s var(--ease-spring) .7s backwards, glow 3.2s ease-in-out 1.4s infinite; }
+  .champion-card.has-champion { animation: glow 3.2s ease-in-out infinite; }
+
+  /* ---------- progress, badges and ratings ---------- */
+  .host-progress-bar > span, .room-places-bar > span { animation: bar-fill .9s var(--ease-out) .25s backwards; }
+  .host-checks li.is-done .host-check-mark { animation: spring-in .4s var(--ease-spring); }
+  .room-step-num { animation: spring-in .5s var(--ease-spring) backwards; }
+  .nav-badge { animation: spring-in .5s var(--ease-spring) backwards, ring-pulse 2.6s ease-out 1s infinite; }
+  .chats-unread, .unread-badge { animation: spring-in .5s var(--ease-spring) backwards; }
+  .star-option.is-on { animation: spring-in .35s var(--ease-spring); }
+  .status-badge, .room-status { animation: pop-in .4s var(--ease-out) backwards; }
+  .cup-countdown { animation: soft-pulse 1.6s ease-in-out infinite alternate; }
+
+  /* a quiet shine across the main call to action: once as it appears, then every few seconds while it is on screen */
+  .home-hero.is-inview .home-hero-actions .button-primary, .sports-banner.is-inview .sports-banner-actions .button-primary {
+    background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .55) 50%, transparent 65%);
+    background-size: 250% 100%;
+    background-repeat: no-repeat;
+    background-position: 160% 0;
+    animation: shine 1.8s var(--ease-soft) 1.2s 1, shine 1.8s var(--ease-soft) 9s infinite;
+  }
+
+  /* ---------- hover and press feedback ---------- */
+  button, .button, .button-primary, .button-outline, .button-secondary, .status-chip, .sport-tile, .nav-cta,
+  .site-header nav a, .nav-plain, .brand svg, .sport-tile .sport-icon, .game-card, .room-card, .cup-card {
+    transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+    transition-duration: .3s;
+    transition-timing-function: var(--ease-out);
+  }
+  button:active:not(:disabled), .button:active, .button-primary:active, .button-outline:active, .button-secondary:active, .status-chip:active { transform: scale(.96); }
+  .button-primary:hover:not(:disabled), a.button:hover, .nav-cta:hover { transform: translateY(-1px); }
+  .site-header nav a:hover, .nav-plain:hover { transform: translateY(-1px); }
+  .brand:hover svg { transform: rotate(-6deg) scale(1.06); }
+  .sport-tile:hover .sport-icon { transform: scale(1.14) rotate(-5deg); }
+  .game-card:hover, .room-card:hover, .cup-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .friend-row:hover, .conversation-row:hover { transform: translateX(2px); }
+  .friend-row, .conversation-row { transition: transform .3s var(--ease-out), background-color .3s var(--ease-out), box-shadow .3s var(--ease-out); }
+  .how-number { transition: transform .4s var(--ease-spring); }
+  .how-steps li:hover .how-number { transform: scale(1.12) rotate(-6deg); }
+}
