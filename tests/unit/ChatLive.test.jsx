@@ -33,7 +33,7 @@ vi.mock('../../src/services/messageService', () => ({
     targetBody: (target, body, clientRequestId) => ({ [`${target.type}_id`]: target.id, body, client_request_id: clientRequestId }),
   },
 }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => users } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: async (ids) => users.filter((user) => ids.includes(user.id)) } }));
 vi.mock('../../src/services/roomService', () => ({ default: { get: async (id) => ({ id, status: 'open' }) } }));
 vi.mock('../../src/services/websocketService', () => ({
   listen: (listener) => { listeners.add(listener); return () => listeners.delete(listener); },

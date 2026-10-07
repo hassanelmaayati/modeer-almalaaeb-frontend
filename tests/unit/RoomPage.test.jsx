@@ -35,7 +35,7 @@ let members = [];
 const cancel = vi.fn();
 vi.mock('../../src/services/roomService', () => ({ default: { get: async () => room, cancel: (...args) => cancel(...args) } }));
 vi.mock('../../src/services/roomMemberService', () => ({ default: { list: async () => members, request: async () => ({}), update: async () => ({}), invite: async () => ({}), leave: async () => null } }));
-vi.mock('../../src/services/userService', () => ({ default: { list: async () => [{ id: 7, user_name: 'Fatema' }] } }));
+vi.mock('../../src/services/userService', () => ({ default: { listByIds: async (ids) => [{ id: 7, user_name: 'Fatema' }].filter((user) => ids.includes(user.id)) } }));
 vi.mock('../../src/services/sportService', () => ({ default: { list: async () => [{ id: 1, name: 'Football' }, { id: 2, name: 'Running' }] } }));
 vi.mock('../../src/services/websocketService', () => ({ listen: () => () => {} }));
 vi.mock('../../src/components/activities/LocationView', () => ({ default: () => <div data-testid="location-view" /> }));

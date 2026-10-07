@@ -6,6 +6,7 @@ import AsyncState from '../components/common/AsyncState';
 import PlayerProfile from '../components/users/PlayerProfile';
 import ProfileActions from '../components/users/ProfileActions';
 import { ProfileArt } from '../components/home/HeroArt';
+import AttendanceRatingSummary from '../components/ratings/AttendanceRatingSummary';
 
 export default function ProfilePage({ session }) {
   const { userId } = useParams();
@@ -26,6 +27,7 @@ export default function ProfilePage({ session }) {
             <PlayerProfile user={profile.data} />
           </section>
           <div className="profile-actions"><ProfileActions user={profile.data} session={session} /></div>
+          <AttendanceRatingSummary userId={profile.data.id} />
         </>}
       </AsyncState>
     </div>

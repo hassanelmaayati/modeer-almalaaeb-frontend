@@ -45,11 +45,6 @@ export function relatedUserIds(rows, userId) {
   return new Set(rows.map((row) => describeFriendship(row, userId).otherUserId));
 }
 
-export function addFriendCandidates(users, rows, userId) {
-  const related = relatedUserIds(rows, userId);
-  return users.filter((user) => user.id !== userId && !related.has(user.id));
-}
-
 export function blockUpdate(friendship, blocked) {
   const field = friendship.requester ? 'user_blocked_other' : 'other_blocked_user';
   return { [field]: blocked ? 'true' : 'false' };
@@ -132,14 +127,6 @@ export function friendUpdateFor(kind, friendship) {
 
 export function replaceFriendship(rows, updated) {
   return rows.map((row) => (row.id === updated.id ? updated : row));
-}
-
-export const PEOPLE_SEARCH_LIMIT = 8;
-
-export function searchPeople(candidates, query, limit = PEOPLE_SEARCH_LIMIT) {
-  const text = query.trim().toLowerCase();
-  if (!text) return [];
-  return candidates.filter((user) => user.user_name.toLowerCase().includes(text)).slice(0, limit);
 }
 
 export function addFriendError(failure) {

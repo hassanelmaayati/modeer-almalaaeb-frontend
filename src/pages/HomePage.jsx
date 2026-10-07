@@ -33,7 +33,8 @@ export default function HomePage({ session = { user: null, loading: false } }) {
     () =>
       startRequest(
         (signal) =>
-          roomService.list(governorate ? { district: governorate } : {}, {
+          // The home page shows three games, so ask for three (not every room).
+          roomService.list(governorate ? { district: governorate, limit: 3 } : { limit: 3 }, {
             signal,
           }),
         setRooms,

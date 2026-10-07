@@ -1,8 +1,11 @@
-import { request } from '../lib/api/client.js';
+import { request, requestPage } from '../lib/api/client.js';
 import { apiPath } from '../lib/api/path.js';
 
 /** Public/open discovery, more than 15 minutes before start, ordered by start. @param {import('../lib/api/types.js').RoomQuery} query */
-export const list = (query = {}, options = {}) => request('/rooms', { ...options, query });
+// Optional auth: signed-in users also get the group-only rooms of their groups.
+export const list = (query = {}, options = {}) => request('/rooms', { ...options, query, auth: 'optional' });
+/** Same as list, plus the X-Total-Count total, for "Load more". @returns {Promise<{ items: import('../lib/api/types.js').Room[], total: number|null }>} */
+export const listPage = (query = {}, options = {}) => requestPage('/rooms', { ...options, query, auth: 'optional' });
 /**
  * @param {import('../lib/api/types.js').MyRoomsQuery} query
  * @returns {Promise<import('../lib/api/types.js').MyRoomsPage>}
@@ -17,5 +20,7 @@ export const create = (body, options = {}) => request('/rooms', { ...options, me
 export const update = (roomId, body, options = {}) => request(apiPath('rooms', roomId), { ...options, method: 'PUT', body, auth: 'required' });
 /** Cancel an open room with a required reason. */
 export const cancel = (roomId, reason, options = {}) => request(apiPath('rooms', roomId, 'cancel'), { ...options, method: 'POST', body: { reason }, auth: 'required' });
+/** Host-only: hand the room to an accepted, non-no-show member. Returns the updated room. */
+export const transferHost = (roomId, userId, options = {}) => request(apiPath('rooms', roomId, 'transfer-host'), { ...options, method: 'POST', body: { user_id: userId }, auth: 'required' });
 
-export default { list, listMine, listJoined, get, create, update, cancel };
+export default { list, listPage, listMine, listJoined, get, create, update, cancel, transferHost };

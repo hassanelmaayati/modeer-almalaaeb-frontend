@@ -32,7 +32,7 @@ export default function EditRoomPage({ session }) {
     const [room, sports, groups, members] = await Promise.all([
       roomService.get(roomId, { signal }),
       sportService.list({ signal }),
-      groupService.list({ signal }),
+      groupService.mine({ signal }),
       roomMemberService.list(roomId, { signal }),
     ]);
     return {

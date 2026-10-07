@@ -31,9 +31,9 @@ A community website for people in Bahrain to organize activities, make friends, 
 
 Activities: football, basketball, padel, tennis, volleyball, badminton, **walking together, running and cycling**. Outings use participant lists with optional distance, pace and route notes.
 
-**Scope:** Six core models plus Cup — seven models total. News comes from an external API. [Implementation phases](plan.md).
+**Scope:** Six core models plus Cup — seven models total.
 
-**Status:** Planning only; English-first desktop/mobile website. **Stack:** React/Vite (JavaScript/JSX), FastAPI, SQLAlchemy/Alembic, PostgreSQL, WebSockets, Redis and a background worker.
+**Status:** In development; English-first desktop/mobile website. **Stack:** React/Vite (JavaScript/JSX), FastAPI, SQLAlchemy/Alembic, PostgreSQL, WebSockets, Redis and a background worker.
 
 Original project idea:
 
@@ -112,7 +112,7 @@ https://excalidraw.com/#json=mm8VWN_xrBNjyhHDay83Q,RyXy2F4vY2rYgb8-3t7_Xw
 | Group | Social groups and persistent teams |
 | Cup — seventh model | Teams, bracket, fixtures and results |
 
-Membership uses a checked `kind` (room/group/friend/cup). Room slots and cup fixtures are embedded data, validated by the server. **News has no database model.**
+Membership uses a checked `kind` (room/group/friend/cup). Room slots and cup fixtures are embedded data, validated by the server.
 
 ![Six core models plus Cup ERD](assets/previews/erd.png)
 
@@ -124,14 +124,13 @@ Each model shares a small set of pages and scoped endpoints. Use `/api/v1` befor
 
 | Model / feature | Main frontend routes | Main API endpoints |
 | --- | --- | --- |
-| User | `/sign-in`, `/sign-up`, `/users/:userId`, `/settings`, `/admin/users` | `POST /auth/signup`, `/auth/login`, `/auth/google`<br>`GET/PATCH /users/me` |
+| User | `/sign-in`, `/sign-up`, `/users/:userId`, `/settings` | `POST /auth/signup`, `/auth/login`, `/auth/google`<br>`GET/PATCH /users/me` |
 | Sport | `/`, `/rooms` | `GET /sports` |
 | Room | `/rooms`, `/rooms/new`, `/rooms/:roomId`, `/my-rooms` | `GET/POST /rooms`<br>`GET/PATCH /rooms/{room_id}`<br>`POST /rooms/{room_id}/cancel` |
 | Membership | Room/after-game pages, `/friends`, group/cup pages | `GET/POST /rooms/{room_id}/members`<br>`GET/POST /friends`<br>`GET/POST /groups/{group_id}/members`<br>`POST /cups/{cup_id}/roster` |
 | Message | Room chat, `/messages`, `/messages/:userId` | `GET/POST /messages` |
 | Group | `/groups`, `/groups/new`, `/groups/:groupId` | `GET/POST /groups`<br>`GET/PATCH /groups/{group_id}` |
 | Cup | `/cups`, `/cups/new`, `/cups/:cupId` | `GET/POST /cups`<br>`GET/PATCH /cups/{cup_id}`<br>`POST /cups/{cup_id}/entries` |
-| News — external | `/news` | `GET /news` (server-side external API adapter) |
 
 Membership routes handle requests, consent, slots, readiness, attendance and ratings with action-specific permissions. Rooms open on creation and start/finish automatically. WebSockets deliver room and message updates.
 

@@ -1,6 +1,6 @@
 .site-header, main { max-width: 70rem; margin: auto; padding: 1rem; }
 .site-header nav, .actions, .filters { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
-.filter-fields, .button-row, .section-heading, .dialog-header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.filter-fields, .button-row, .dialog-header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
 .page-section, .room-filters, .filters { margin-block: 1rem; }
 .dialog-header { justify-content: space-between; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
@@ -58,6 +58,12 @@
 .message.is-own { align-self: flex-end; background: #e3f2e1; }
 .message-sender { font-size: .8rem; font-weight: bold; }
 .message-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-deleted .message-body { font-style: italic; color: #55615c; }
+.message-edited { font-style: italic; }
+.message-actions { display: flex; gap: .75rem; font-size: .85rem; }
+.message-actions button { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
+.message-edit { display: grid; gap: .4rem; }
+.message-edit textarea { width: 100%; min-height: 3.5rem; }
 .message-time { align-self: flex-end; font-size: .7rem; color: #666; }
 .message-system { align-self: center; max-width: 85%; text-align: center; background: #f4f4f4; font-style: italic; border-style: dashed; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

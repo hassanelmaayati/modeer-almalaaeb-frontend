@@ -1,17 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import messageService from '../../services/messageService';
-import userService from '../../services/userService';
+import useUsers from './userDirectory';
 import { listen } from '../../services/websocketService';
-import { applyMessage, sortConversations } from './messages';
+import { applyMessage, applyMessageChangeToConversations, sortConversations } from './messages';
 import { emptyResource, startRequest } from './request';
 
 const RELOAD_EVENTS = ['connection.ready', 'friend.updated', 'room.updated', 'group.updated'];
 
 function load(options) {
-  return Promise.all([
-    messageService.conversations({ include_empty: true, limit: 100 }, options),
-    userService.list(options),
-  ]).then(([conversations, users]) => ({ conversations: sortConversations(conversations), users }));
+  return messageService.conversations({ include_empty: true, limit: 100 }, options)
+    .then(conversations => ({ conversations: sortConversations(conversations) }));
 }
 
 export default function useConversations(viewerId) {
@@ -46,6 +44,12 @@ export default function useConversations(viewerId) {
         refresh();
         return;
       }
+      if (event.type === 'message.updated' || event.type === 'message.deleted') {
+        setResource((previous) => (previous.data
+          ? { ...previous, data: { ...previous.data, conversations: applyMessageChangeToConversations(previous.data.conversations, event) } }
+          : previous));
+        return;
+      }
       if (event.type !== 'message.created' || !event.message || !latest.current.data) return;
       const next = applyMessage(latest.current.data.conversations, event.message, latest.current.viewerId);
       if (next === null) {
@@ -61,9 +65,13 @@ export default function useConversations(viewerId) {
     });
   }, []);
 
+  const conversations = currentResource.data?.conversations ?? [];
+  // Names are only needed for direct chats and last-message senders, and are looked up by id.
+  const users = useUsers(conversations.flatMap(conversation => [conversation.user_id, conversation.last_message?.sender_id]));
+
   return {
-    conversations: currentResource.data?.conversations ?? [],
-    users: currentResource.data?.users ?? [],
+    conversations,
+    users,
     loading: currentResource.loading,
     error: currentResource.error,
     reload: () => setRetry((count) => count + 1),

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import messageService from '../../services/messageService';
+import { newClientId } from './uuid';
 import roomService from '../../services/roomService';
 import { listen, mergeMessages, recoverMessages } from '../../services/websocketService';
-import { CANCELLED_ROOM_MESSAGE, chatKey, messageConversationKey, receiveMessage, roomCancellation, sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
+import { CANCELLED_ROOM_MESSAGE, applyMessageChange, chatKey, messageConversationKey, receiveMessage, roomCancellation, sendBlockReason, THREAD_PAGE_SIZE, validateMessageBody } from './messages';
 import { emptyResource, startRequest } from './request';
 
 export default function useChatThread(type, id, viewerId) {
@@ -102,6 +103,10 @@ export default function useChatThread(type, id, viewerId) {
         refreshRoom();
         return;
       }
+      if (event.type === 'message.updated' || event.type === 'message.deleted') {
+        setResource((previous) => (previous.data ? { ...previous, data: { ...previous.data, messages: applyMessageChange(previous.data.messages, event) } } : previous));
+        return;
+      }
       if (event.type !== 'message.created' || !event.message) return;
       if (messageConversationKey(event.message, latest.current.viewerId) !== key) return;
       setResource((previous) => {
@@ -159,10 +164,25 @@ export default function useChatThread(type, id, viewerId) {
 
   function send(text) {
     if (validateMessageBody(text) || blockedReason || currentResource.loading || currentResource.error || !currentResource.data) return false;
-    const item = { id: crypto.randomUUID(), body: text.trim(), status: 'sending', error: '', blocked: false };
+    const item = { id: newClientId(), body: text.trim(), status: 'sending', error: '', blocked: false };
     setPending((list) => [...list, item]);
     deliver(item);
     return true;
+  }
+
+  const storeChanged = saved => setResource(previous => (previous.scope === scope && previous.data
+    ? { ...previous, data: { ...previous.data, messages: mergeMessages(previous.data.messages, [saved]) } }
+    : previous));
+
+  // Edit and delete throw the backend's message on failure so the message bubble can show it.
+  async function edit(messageId, text) {
+    const problem = validateMessageBody(text);
+    if (problem) throw new Error(problem);
+    storeChanged(await messageService.update(messageId, text.trim()));
+  }
+
+  async function remove(messageId) {
+    storeChanged(await messageService.remove(messageId));
   }
 
   function retrySend(clientRequestId) {
@@ -190,6 +210,8 @@ export default function useChatThread(type, id, viewerId) {
     pending: resource.scope === scope ? pending : [],
     blockedReason: cancellation ? CANCELLED_ROOM_MESSAGE : blockedReason,
     send,
+    edit,
+    remove,
     retrySend,
     discard,
   };

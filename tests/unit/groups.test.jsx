@@ -5,31 +5,35 @@ import CreateGroupDialog from '../../src/components/groups/CreateGroupDialog';
 import GroupForm from '../../src/components/groups/GroupForm';
 import groupService from '../../src/services/groupService';
 import groupMemberService from '../../src/services/groupMemberService';
-import { filterGroups, inviteCandidates } from '../../src/lib/helpers/groups';
+import userService from '../../src/services/userService';
+import { filterGroups, groupRole } from '../../src/lib/helpers/groups';
 
 vi.mock('../../src/services/groupService', () => ({ default: { create: vi.fn() } }));
 vi.mock('../../src/services/groupMemberService', () => ({ default: { invite: vi.fn() } }));
+vi.mock('../../src/services/userService', () => ({ default: { search: vi.fn(), listByIds: vi.fn() } }));
 
 const sports = [{ id: 1, name: 'Soccer' }];
 const users = [{ id: 1, user_name: 'Owner' }, { id: 2, user_name: 'Player Two' }, { id: 3, user_name: 'Player Three' }];
 
-beforeEach(() => { vi.clearAllMocks(); });
+beforeEach(() => {
+  vi.clearAllMocks();
+  userService.listByIds.mockImplementation(async (ids) => users.filter((user) => ids.includes(user.id)));
+  userService.search.mockImplementation(async (text) => users.filter((user) => user.user_name.toLowerCase().includes(text.toLowerCase())));
+});
 
 describe('group membership views', () => {
   const groups = [
-    { id: 1, owner_id: 1, name: 'Owned team', sportName: 'Soccer', sports_id: 1, members: [] },
-    { id: 2, owner_id: 2, name: 'Joined team', sportName: 'Soccer', sports_id: 1, members: [{ user_id: 1, status: 'accepted' }] },
-    { id: 3, owner_id: 2, name: 'Invitation', sportName: 'Basketball', sports_id: 2, members: [{ user_id: 1, status: 'pending' }] },
-    { id: 4, owner_id: 2, name: 'Left team', sportName: 'Soccer', sports_id: 1, members: [{ user_id: 1, status: 'left' }] },
+    { id: 1, owner_id: 1, name: 'Owned team', sportName: 'Soccer', sports_id: 1, role: 'owner', member_count: 1 },
+    { id: 2, owner_id: 2, name: 'Joined team', sportName: 'Soccer', sports_id: 1, role: 'member', member_count: 5 },
+    { id: 3, owner_id: 2, name: 'Invitation', sportName: 'Basketball', sports_id: 2, role: 'invited', member_count: 3 },
   ];
-  it('includes ownership without inventing a membership and separates pending invitations', () => {
-    expect(filterGroups(groups, 1).map((group) => group.id)).toEqual([1, 2]);
-    expect(filterGroups(groups, 1, { view: 'invitations' }).map((group) => group.id)).toEqual([3]);
-    expect(filterGroups(groups, 1, { search: ' joined ', sportId: '1' }).map((group) => group.id)).toEqual([2]);
+  it('separates your groups from pending invitations using the role from /groups/mine', () => {
+    expect(filterGroups(groups).map((group) => group.id)).toEqual([1, 2]);
+    expect(filterGroups(groups, { view: 'invitations' }).map((group) => group.id)).toEqual([3]);
+    expect(filterGroups(groups, { search: ' joined ', sportId: '1' }).map((group) => group.id)).toEqual([2]);
   });
-  it('excludes every existing membership from reinvitation, including terminal states', () => {
-    expect(inviteCandidates(users, 1, [{ user_id: 2, status: 'removed' }])).toEqual([users[2]]);
-    expect(inviteCandidates(users, 1, [{ user_id: 2, status: 'left' }, { user_id: 3, status: 'declined' }])).toEqual([]);
+  it.each([['owner', 'owner'], ['OWNER', 'owner'], ['member', 'member'], ['accepted', 'member'], ['invited', 'invited'], ['pending_invitation', 'invited'], [undefined, 'member']])('reads the role %s as %s', (role, expected) => {
+    expect(groupRole({ role })).toBe(expected);
   });
 });
 
@@ -39,10 +43,14 @@ it('keeps a created group when an invitation fails and does not repeat group cre
   groupMemberService.invite.mockImplementation((_groupId, userId) => userId === 2 ? Promise.reject(new Error('Already invited')) : Promise.resolve({ status: 'pending' }));
   const onCreated = vi.fn();
   const onOpenGroup = vi.fn();
-  render(<CreateGroupDialog sports={sports} users={users} userId={1} onClose={vi.fn()} onCreated={onCreated} onOpenGroup={onOpenGroup} />);
+  render(<CreateGroupDialog sports={sports} userId={1} onClose={vi.fn()} onCreated={onCreated} onOpenGroup={onOpenGroup} />);
   await events.type(screen.getByLabelText('Group name'), ' Evening Team ');
   await events.selectOptions(screen.getByLabelText('Sport'), '1');
-  await events.selectOptions(screen.getByLabelText('Invite players (optional)'), ['2', '3']);
+  // Players are found by searching and added one by one.
+  await events.type(screen.getByLabelText('Search people'), 'Player');
+  await events.click(await screen.findByRole('button', { name: 'Invite Player Two' }));
+  await events.type(screen.getByLabelText('Search people'), 'Player');
+  await events.click(await screen.findByRole('button', { name: 'Invite Player Three' }));
   await events.click(screen.getByRole('button', { name: 'Create group', exact: true }));
   await expect(screen.findByRole('status')).resolves.toHaveTextContent('Evening Team was created.');
   expect(screen.getByRole('alert')).toHaveTextContent('Player Two: Already invited');
@@ -66,12 +74,14 @@ it('retains edits after a server error and sends the required name without a spo
   expect(screen.queryByLabelText('Sport')).not.toBeInTheDocument();
 });
 
-it('rejects a non-http(s) group photo URL before calling the backend', async () => {
+it('rejects a non-https group photo URL before calling the backend', async () => {
   const onSubmit = vi.fn();
   render(<GroupForm group={{ id: 1, name: 'Team', sports_id: 1 }} sports={sports} onSubmit={onSubmit} onCancel={vi.fn()} />);
   // fireEvent.submit skips native type=url checks, so this exercises the app's own validation.
-  fireEvent.change(screen.getByLabelText('Photo URL'), { target: { value: 'ftp://example.test/team.png' } });
-  fireEvent.submit(screen.getByRole('button', { name: 'Save changes' }).closest('form'));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a web address starting with http:// or https://.');
+  for (const url of ['ftp://example.test/team.png', 'http://example.test/team.png']) {
+    fireEvent.change(screen.getByLabelText('Photo URL'), { target: { value: url } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Save changes' }).closest('form'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a secure web address starting with https://.');
+  }
   expect(onSubmit).not.toHaveBeenCalled();
 });

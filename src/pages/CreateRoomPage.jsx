@@ -19,7 +19,7 @@ export default function CreateRoomPage({ session }) {
     useEffect(() => startRequest(async signal => {
         const [sports, groups] = await Promise.all([
             sportService.list({ signal }),
-            groupService.list({ signal }),
+            groupService.mine({ signal }),
         ]);
 
         // The backend only lets you create a group room for a group you own

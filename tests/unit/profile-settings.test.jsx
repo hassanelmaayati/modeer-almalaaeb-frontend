@@ -27,13 +27,13 @@ beforeEach(() => {
 });
 
 describe('profile edits and public display', () => {
-  it.each(['ftp://example.test/a.png', 'javascript:alert(1)', 'not a url'])('rejects the non-http(s) photo URL %s before saving', async photo => {
+  it.each(['ftp://example.test/a.png', 'javascript:alert(1)', 'not a url', 'http://example.test/a.png'])('rejects the non-https photo URL %s before saving', async photo => {
     const onSubmit = vi.fn();
     render(<ProfileForm user={me} onSubmit={onSubmit} />);
     // fireEvent.submit skips native type=url checks, so this exercises the app's own validation.
     fireEvent.change(screen.getByLabelText('Photo URL'), { target: { value: photo } });
     fireEvent.submit(screen.getByRole('button', { name: 'Save profile' }).closest('form'));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a web address starting with http:// or https://.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo URL must be a secure web address starting with https://.');
     expect(onSubmit).not.toHaveBeenCalled();
   });
   it('trims the user name and clears optional fields with null while excluding private account fields', async () => {

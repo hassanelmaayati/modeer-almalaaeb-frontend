@@ -36,10 +36,10 @@ export default function CupPage({ session }) {
     }
   }, setCup), [cupId, revision]);
   useEffect(() => startRequest(signal => sportService.list({ signal }), setSports), []);
-  // Rosters are read-only here; roster members carry only user ids, so names come from the user list.
+  // Rosters are read-only here; roster members carry only user ids, so names are looked up by id.
   useEffect(() => startRequest(async signal => {
     const members = (await cupRosterService.list(cupId, { signal })).filter(member => member.status === 'accepted');
-    const users = members.length ? await userService.list({ signal }) : [];
+    const users = members.length ? await userService.listByIds(members.map(member => member.user_id), { signal }) : [];
     const byId = new Map(users.map(user => [user.id, user]));
     const byGroup = new Map();
     for (const member of members) {
@@ -51,7 +51,7 @@ export default function CupPage({ session }) {
   const data = cup.data;
   // Groups are only needed for entering, which is only possible while registration is open.
   const needsGroups = !!user && data?.status === 'registration';
-  useEffect(() => needsGroups ? startRequest(signal => groupService.list({ signal }), setGroups) : undefined, [needsGroups]);
+  useEffect(() => needsGroups ? startRequest(signal => groupService.mine({ signal }), setGroups) : undefined, [needsGroups]);
 
   /** Every write sends the revision we last saw; the response is the updated cup. */
   async function mutate(call) {

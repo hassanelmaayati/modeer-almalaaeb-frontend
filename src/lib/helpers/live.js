@@ -1,12 +1,12 @@
 export function roomEvent(event, roomId) {
   if (event.type === 'lobby.ready') return true;
-  const types = ['room_created', 'room_updated', 'room_removed', 'room.updated', 'membership.updated'];
+  const types = ['room_created', 'room_updated', 'room_removed', 'room.updated', 'room.host_changed', 'membership.updated'];
   const id = event.room_id ?? event.room?.id;
   return types.includes(event.type) && (roomId == null || Number(id) === Number(roomId));
 }
 
 export function personalRoomEvent(event) {
-  return event.type === 'connection.ready' || event.type === 'room.updated';
+  return event.type === 'connection.ready' || event.type === 'room.updated' || event.type === 'room.host_changed';
 }
 
 export function friendEvent(event) {

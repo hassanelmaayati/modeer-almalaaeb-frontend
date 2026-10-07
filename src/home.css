@@ -116,7 +116,7 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 @media (max-width: 62rem) {
   .site-header { flex-wrap: wrap; gap: .5rem 1rem; }
   .site-header .brand { flex: 1; }
-  .site-header nav { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: .5rem; overflow-x: auto; }
+  .site-header nav { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: .5rem; flex-wrap: wrap; row-gap: .25rem; }
 }
 
 @media (max-width: 40rem) {
@@ -140,7 +140,7 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .sports-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; margin-top: 1rem; padding: 1.6rem 1.8rem; border-radius: 4px; background: #f3f5f4; }
 .sports-banner h1 { margin: 0; font-size: clamp(1.7rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
 .sports-banner p { margin: .3rem 0 0; color: var(--muted-ink); }
-.sports-banner .sports-banner-eyebrow { margin: 0 0 .4rem; font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #8a948f; }
+.sports-banner .sports-banner-eyebrow { margin: 0 0 .4rem; font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--muted-ink); }
 .sports-banner-actions { display: flex; flex-wrap: wrap; gap: .8rem; }
 .sports-refresh { margin-top: .6rem; padding: .5rem 1.1rem; font-size: .95rem; }
 .sport-tile[aria-current="true"] { border: 2px solid var(--green); padding: calc(.9rem - 1px) calc(.5rem - 1px); background: var(--green-soft); color: var(--green); box-shadow: 0 3px 0 var(--green); }
@@ -300,7 +300,7 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .cup-deadline-label { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-ink); }
 .cup-deadline-text strong { font-size: .95rem; color: var(--ink); }
 .cup-deadline-text .muted { font-weight: 400; }
-.format-pill { display: inline-block; margin-left: .6rem; padding: .1rem .6rem; border: 1px solid #c9d0cc; border-radius: 2rem; letter-spacing: .1em; color: #6b7570; }
+.format-pill { display: inline-block; margin-left: .6rem; padding: .1rem .6rem; border: 1px solid #c9d0cc; border-radius: 2rem; letter-spacing: .1em; color: var(--muted-ink); }
 .cup-facts .cup-deadline { margin-top: .2rem; }
 .cups-scope .home-section > p a, .cups-scope .entry-controls a, .cups-scope .cup-panel a { color: var(--green); font-weight: 600; }
 
@@ -1019,3 +1019,17 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .room-scope button.button-danger:hover:not(:disabled), .groups-scope button.button-danger:hover:not(:disabled) { border-color: #8d0019; background: #8d0019; }
 .groups-scope a.button-secondary { display: inline-flex; align-items: center; justify-content: center; padding: .5rem 1.2rem; border: 2px solid var(--input); border-radius: 9999px; background: transparent; color: var(--foreground); border-color: var(--input); font-weight: 600; text-decoration: none; }
 .groups-scope a.button-secondary:hover { background: var(--green-soft); }
+
+/* Skip link: hidden until it takes keyboard focus, then the first thing on the page. */
+.skip-link { position: absolute; left: .5rem; top: -4rem; z-index: 100; padding: .6rem 1rem; border-radius: 4px; background: var(--green); color: #fff; font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: .5rem; }
+#main-content:focus { outline: none; }
+
+/* App-level notices (slow server, unconfirmed sign-in, unconfirmed logout). */
+.app-notices { max-width: 70rem; margin: .5rem auto 0; padding: 0 1rem; display: grid; gap: .5rem; }
+.app-notice { margin: 0; padding: .6rem .9rem; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 4px; background: var(--green-soft); color: var(--ink); }
+.app-notice-warning { border-left-color: #8a5a00; background: #fff6e0; }
+.app-notice button { margin-left: .5rem; }
+
+/* Search boxes inside the host-style forms (people pickers) get a search icon in the same slot as the other field icons */
+.host-scope input[type="search"] { --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2314594a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='6.500'/><path d='M16 16l4 4'/></svg>"); }

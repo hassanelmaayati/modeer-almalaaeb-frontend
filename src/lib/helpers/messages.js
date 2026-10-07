@@ -50,9 +50,12 @@ export function isSystemMessage(message) {
   return message.type === 'system' || message.sender_id === null || message.sender_id === undefined;
 }
 
+export const DELETED_MESSAGE_TEXT = 'This message was deleted';
+
 export function messagePreview(conversation, viewerId, nameOf) {
   const message = conversation.last_message;
   if (!message) return null;
+  if (message.deleted) return { text: DELETED_MESSAGE_TEXT, system: true };
   if (isSystemMessage(message)) return { text: message.body, system: true };
   if (String(message.sender_id) === String(viewerId)) return { text: `You: ${message.body}`, system: false };
   if (conversation.type === 'direct') return { text: message.body, system: false };
@@ -102,6 +105,26 @@ export function applyMessage(conversations, message, viewerId) {
   if (current && current.id >= message.id) return conversations;
   const updated = { ...conversations[index], last_message: message };
   return sortConversations([...conversations.slice(0, index), updated, ...conversations.slice(index + 1)]);
+}
+
+/** Apply a message.updated / message.deleted event to a loaded list (messages that are not loaded are ignored). */
+export function applyMessageChange(messages, event) {
+  const incoming = event.message;
+  const id = incoming?.id ?? event.message_id ?? event.id;
+  const index = Number.isInteger(id) ? messages.findIndex(message => message.id === id) : -1;
+  if (index === -1) return messages;
+  const changed = { ...messages[index], ...incoming, ...(event.type === 'message.deleted' ? { deleted: true } : {}) };
+  return messages.map((message, position) => (position === index ? changed : message));
+}
+
+/** Same for the conversation list, where only the last message is shown. */
+export function applyMessageChangeToConversations(conversations, event) {
+  const updated = conversations.map(conversation => {
+    if (!conversation.last_message) return conversation;
+    const [last] = applyMessageChange([conversation.last_message], event);
+    return last === conversation.last_message ? conversation : { ...conversation, last_message: last };
+  });
+  return updated.some((conversation, index) => conversation !== conversations[index]) ? updated : conversations;
 }
 
 export const THREAD_PAGE_SIZE = 50;

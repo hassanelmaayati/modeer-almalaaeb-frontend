@@ -8,19 +8,19 @@ import FriendRow from '../components/friends/FriendRow';
 import FriendTabs from '../components/friends/FriendTabs';
 import { FriendsArt } from '../components/home/HeroArt';
 import {
-  addFriendCandidates,
   addFriendError,
   CONFIRMED_FRIEND_ACTIONS,
   friendTab,
   friendUpdateFor,
   groupFriendships,
+  relatedUserIds,
   replaceFriendship,
 } from '../lib/helpers/friends';
 import { playerName } from '../lib/helpers/groups';
 import { emptyResource, startRequest } from '../lib/helpers/request';
 import useFriendEvents from '../lib/helpers/useFriendEvents';
+import useUsers from '../lib/helpers/userDirectory';
 import friendService from '../services/friendService';
-import userService from '../services/userService';
 
 export default function FriendsPage({ session }) {
   const [searchParams] = useSearchParams();
@@ -34,24 +34,21 @@ export default function FriendsPage({ session }) {
   const userId = session.user?.id;
   const tab = friendTab(searchParams.get('tab'));
 
-  useEffect(() => startRequest(async (signal) => {
-    const [friendships, users] = await Promise.all([
-      friendService.list({ signal }),
-      userService.list({ signal }),
-    ]);
-    return { friendships, users };
-  }, setResource), [userId, retry]);
+  useEffect(() => startRequest((signal) => friendService.list({ signal }), setResource), [userId, retry]);
 
   useFriendEvents(() => {
-    Promise.all([friendService.list(), userService.list()])
-      .then(([friendships, users]) => setResource({ data: { friendships, users }, loading: false, error: null }))
+    friendService.list()
+      .then((friendships) => setResource({ data: friendships, loading: false, error: null }))
       .catch(() => {});
   });
 
-  const groups = groupFriendships(resource.data?.friendships ?? [], userId);
+  const friendships = resource.data ?? [];
+  const groups = groupFriendships(friendships, userId);
   const items = groups[tab.group];
-  const nameOf = (id) => playerName(resource.data?.users ?? [], id);
-  const candidates = addFriendCandidates(resource.data?.users ?? [], resource.data?.friendships ?? [], userId);
+  // Only the people in these rows are looked up (by id), not the whole user table.
+  const related = [...relatedUserIds(friendships, userId)];
+  const users = useUsers(related);
+  const nameOf = (id) => playerName(users, id);
 
   async function apply(kind, friendship) {
     setPendingId(friendship.row.id);
@@ -59,10 +56,7 @@ export default function FriendsPage({ session }) {
     setNotice('');
     try {
       const updated = await friendService.update(friendship.otherUserId, friendUpdateFor(kind, friendship));
-      setResource((previous) => ({
-        ...previous,
-        data: { ...previous.data, friendships: replaceFriendship(previous.data.friendships, updated) },
-      }));
+      setResource((previous) => ({ ...previous, data: replaceFriendship(previous.data, updated) }));
     } catch (failure) {
       setError(failure.message);
     } finally {
@@ -77,10 +71,7 @@ export default function FriendsPage({ session }) {
     setNotice('');
     try {
       const created = await friendService.create({ other_user_id: user.id });
-      setResource((previous) => ({
-        ...previous,
-        data: { ...previous.data, friendships: [...previous.data.friendships, created] },
-      }));
+      setResource((previous) => ({ ...previous, data: [...previous.data, created] }));
       setNotice(`Friend request sent to ${user.user_name}.`);
       return true;
     } catch (failure) {
@@ -110,13 +101,13 @@ export default function FriendsPage({ session }) {
     {error && <p role="alert" className="error-message">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     <AsyncState loading={resource.loading} error={resource.error} onRetry={() => setRetry((count) => count + 1)}>
-      <AddFriend candidates={candidates} disabled={pendingId !== null} onAdd={addFriend} inputRef={searchRef} />
+      <AddFriend exclude={[userId, ...related]} disabled={pendingId !== null} onAdd={addFriend} inputRef={searchRef} />
       <FriendTabs current={tab.value} groups={groups} />
       <AsyncState
         isEmpty={items.length === 0}
         emptyTitle={tab.empty.title}
         emptyDescription={tab.empty.description}
-        emptyAction={tab.empty.action === 'find' && candidates.length > 0
+        emptyAction={tab.empty.action === 'find'
           ? <button type="button" className="button-secondary" onClick={() => searchRef.current?.focus()}>Find people to add</button>
           : null}
       >
