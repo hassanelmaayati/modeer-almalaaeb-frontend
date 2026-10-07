@@ -1,5 +1,56 @@
 # Modeer Almalaaeb
 
+Modeer El Malaaeb is a team-built community platform for people in Bahrain to discover and organize sports and outdoor activities, coordinate participants, and keep in touch through rooms, groups and messaging.
+
+- [Live application](https://modeer-almalaaeb-frontend.vercel.app/)
+- [API documentation](https://modeer-almalaaeb-backend.onrender.com/docs)
+- [Backend repository](https://github.com/hassanelmaayati/modeer-almalaaeb-backend) · [Frontend repository](https://github.com/hassanelmaayati/modeer-almalaaeb-frontend)
+
+## Team
+
+Built collaboratively by [Ahmed Tarek](https://github.com/ctarek2015-wq), [Hassan Elmaayati](https://github.com/hassanelmaayati) and [Fatima Hubail](https://github.com/FatimaHubail). The Git history records each teammate's contributions across the application.
+
+## Local development
+
+Use Node.js 24.x and start the [backend](https://github.com/hassanelmaayati/modeer-almalaaeb-backend#local-database-setup) on port 8000 before opening the frontend.
+
+```bash
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+The example environment sets `VITE_API_BASE_URL=/api/v1` and `VITE_API_PROXY_TARGET=http://127.0.0.1:8000`. Vite proxies HTTP and WebSocket traffic under `/api` to that backend. Set the backend's `CORS_ORIGINS` to the exact local Vite origin. Google sign-in is optional; leave `VITE_GOOGLE_CLIENT_ID` empty unless the backend uses the matching Google client ID.
+
+## Frontend architecture
+
+React and React Router render responsive pages and shared dialogs, with a persisted light/dark theme preference. Service modules in `src/services/` use the API client for REST requests; shared session helpers keep account boundaries consistent. The application starts a public lobby socket for discovery and one authenticated socket per signed-in account.
+
+`websocketService` obtains a single-use ticket from `POST /api/v1/socket-ticket` before connecting to `/api/v1/ws?ticket=...`. It sends heartbeat pings, reconnects with backoff, and distributes room, message and notification events. The public `/api/v1/ws/lobby` channel supports district subscriptions. Writes remain REST requests; pages refetch data on reconnect and message history is recovered through the paged API.
+
+The backend uses FastAPI, JWT authentication, SQLAlchemy/Alembic and PostgreSQL with PostGIS. Its socket hubs and lifecycle tasks run in one application process; the current deployment needs one backend instance with one worker and has no Redis service.
+
+## Testing and CI
+
+```bash
+npm run lint
+npm test
+npm run test:unit:coverage
+npm run build
+```
+
+Unit and component tests use Vitest and React Testing Library. Playwright suites also cover authentication journeys, rooms, groups, cups and realtime behavior. The full offline browser runner needs the backend checkout, Python 3.14 with its locked dependencies, PostgreSQL/PostGIS binaries, and installed Playwright browsers:
+
+```bash
+npx playwright install --with-deps chromium firefox webkit
+MODEER_BACKEND_PATH=/absolute/path/to/backend npm run test:prerequisites
+MODEER_BACKEND_PATH=/absolute/path/to/backend npm run test:offline
+```
+
+Set `MODEER_TEST_PYTHON` and `MODEER_TEST_PG_BIN` if those prerequisites are not discoverable. The offline runner uses an isolated test backend and database, not the deployed application.
+
+[GitHub Actions](.github/workflows/ci.yml) requires the gate-policy check, ESLint, unit coverage and production build to pass through the `Frontend CI` gate. The current workflow does not run the full Playwright suite as a mandatory CI job. When `VERCEL_DEPLOY_ENABLED` is `true`, only a successful, current `main` commit is released by the gated deployment job.
+
 ## Vercel deployment
 
 Import this repository in Hassan's Vercel account and select the Hobby plan. Use
@@ -22,18 +73,17 @@ need their own explicitly allowed origins to call it. Leave `VITE_GOOGLE_CLIENT_
 unset unless Google sign-in is configured with the same client ID on the backend.
 Changing a `VITE_` variable requires a new frontend build/deployment.
 
-Pushes to the connected `main` branch deploy automatically. Verify `/sports`
-loads backend sports and refresh `/groups` directly after the deployment.
+Production releases use the gated GitHub Actions deployment described above. Verify `/sports` loads backend sports and refresh `/groups` directly after the deployment. `vercel.json` also contains a Content Security Policy tied to the deployed backend; review its HTTP and WebSocket origins when changing the backend hostname.
 
 ## Project idea
 
 A community website for people in Bahrain to organize activities, make friends, build groups and chat.
 
-Activities: football, basketball, padel, tennis, volleyball, badminton, **walking together, running and cycling**. Outings use participant lists with optional distance, pace and route notes.
+Activities (seeded catalogue): football, basketball, padel, swimming, **walking together, running and cycling**, handball, billiards and kayak. Outings use participant lists with optional distance, pace and route notes.
 
-**Scope:** Six core models plus Cup — seven models total.
+**Scope:** Nine backend tables: users, sports, rooms, memberships, messages, groups, cups, notifications and player ratings.
 
-**Status:** In development; English-first desktop/mobile website. **Stack:** React/Vite (JavaScript/JSX), FastAPI, SQLAlchemy/Alembic, PostgreSQL, WebSockets, Redis and a background worker.
+**Status:** Implemented and deployed; English-first desktop/mobile website. **Stack:** React/Vite (JavaScript/JSX), FastAPI, SQLAlchemy/Alembic, PostgreSQL with PostGIS, and WebSockets.
 
 Original project idea:
 
@@ -53,14 +103,13 @@ https://docs.google.com/document/d/146Ux37oZdEJnZHlKk3vzWZATzfPnYqUf0dR-ri5tRlU/
 - As a completion host, I want to record attendance and rate attended players so history reflects participation.
 - As a player, I want accepted friendships and direct messages so I can coordinate privately.
 - As a group owner/member, I want invitations and reusable groups so we can meet again.
-- As a captain/organizer, I want football cups with accepted rosters and fixtures so teams can compete.
-- As a visitor, I want sports news from an external API so I can follow updates.
-- As an administrator, I want user role/status controls so I can manage access.
+- As a captain/organizer, I want cups with accepted rosters, knockout brackets or races so teams can compete.
+- As a player, I want notifications and completed-room ratings so I can follow participation and feedback.
 
 ## Wireframes
 
 
-Main planning screens, organized by journey. Editable originals are in `assets/wireframes/`.
+Main planning screens, organized by journey. The preview images show the original design direction; the deployed interface has continued to evolve.
 
 ### Discover
 
@@ -100,46 +149,53 @@ https://excalidraw.com/#json=mm8VWN_xrBNjyhHDay83Q,RyXy2F4vY2rYgb8-3t7_Xw
 
 ## ERDs
 
-**Six core models + one Cup model:**
-
 | Model | Stores |
 | --- | --- |
-| User | Accounts, profiles and roles |
-| Sport | Activities and format presets |
-| Room | Schedule, privacy, capacity and slot layout |
+| User | Accounts, profiles, home district and optional Google link (no roles); names are unique ignoring case |
+| Sport | Activities and format presets; each sport's cup format comes from the server |
+| Room | Schedule, privacy, admission policy, capacity, slot layout, venue point (PostGIS), cancellation and host hand-over state |
 | Membership | Room/group members, friend connections and cup rosters |
-| Message | Room chat and direct messages |
+| Message | Room chat, group chat, direct messages and system notices; senders can edit or soft-delete their own |
 | Group | Social groups and persistent teams |
-| Cup — seventh model | Teams, bracket, fixtures and results |
+| Cup | Entries, knockout bracket or race results |
+| Notification | Per-user notices and read state; read ones expire after 30 days and all after 90 |
+| Player rating | A final 1–5 star rating from one player to another for one completed room |
 
-Membership uses a checked `kind` (room/group/friend/cup). Room slots and cup fixtures are embedded data, validated by the server.
+Membership has no `kind` column: the row type follows from which target is set
+(`room_id`, `group_id`, `cup_id` with `group_id`, or `other_user_id` for friends).
+Friend rows carry one block flag per side (`user_blocked_other`, `other_blocked_user`). Room memberships record when a player was admitted (`accepted_at`). Room slots (`{"slots": [...]}` or `{"teams": [...]}`) and cup
+entries/fixtures are JSON validated by the server.
 
-![Six core models plus Cup ERD](assets/previews/erd.png)
+![ERD](assets/previews/erd.png)
 
-[Editable ERD](assets/diagrams/erd.svg) · [Model details](assets/models.json)
+[Editable ERD](assets/diagrams/erd.svg) (the diagram predates notifications, player ratings, the room venue, cancellation and host fields, message edit/delete times and `memberships.accepted_at`)
 
 ## Routes/endpoints
 
-Each model shares a small set of pages and scoped endpoints. Use `/api/v1` before the API paths shown below. Frontend paths use `:roomId`; FastAPI paths use `{room_id}`.
+The [backend README](https://github.com/hassanelmaayati/modeer-almalaaeb-backend#routesendpoints) documents current API methods under `/api/v1`. FastAPI also exposes interactive [API documentation](https://modeer-almalaaeb-backend.onrender.com/docs).
 
-| Model / feature | Main frontend routes | Main API endpoints |
+| Area | Current frontend routes / interaction | API capability |
 | --- | --- | --- |
-| User | `/sign-in`, `/sign-up`, `/users/:userId`, `/settings` | `POST /auth/signup`, `/auth/login`, `/auth/google`<br>`GET/PATCH /users/me` |
-| Sport | `/`, `/rooms` | `GET /sports` |
-| Room | `/rooms`, `/rooms/new`, `/rooms/:roomId`, `/my-rooms` | `GET/POST /rooms`<br>`GET/PATCH /rooms/{room_id}`<br>`POST /rooms/{room_id}/cancel` |
-| Membership | Room/after-game pages, `/friends`, group/cup pages | `GET/POST /rooms/{room_id}/members`<br>`GET/POST /friends`<br>`GET/POST /groups/{group_id}/members`<br>`POST /cups/{cup_id}/roster` |
-| Message | Room chat, `/messages`, `/messages/:userId` | `GET/POST /messages` |
-| Group | `/groups`, `/groups/new`, `/groups/:groupId` | `GET/POST /groups`<br>`GET/PATCH /groups/{group_id}` |
-| Cup | `/cups`, `/cups/new`, `/cups/:cupId` | `GET/POST /cups`<br>`GET/PATCH /cups/{cup_id}`<br>`POST /cups/{cup_id}/entries` |
+| Account | `/sign-in`, `/sign-up`, `/users/:userId`, `/settings` | JWT signup/login/logout, optional Google sign-in/link, profiles and rating summaries |
+| Discovery | `/`, `/sports` | Sports catalogue and paged rooms; public lobby updates |
+| Rooms | `/rooms/new`, `/rooms/:roomId`, `/rooms/:roomId/edit`, `/my-rooms`, `/joined-rooms` | Room creation/editing, admission, slots, readiness, cancellation, host transfer and completed-room attendance/ratings |
+| Groups and friends | `/groups` with shared dialogs, `/friends` | Groups/teams, membership invitations, friendships and blocking |
+| Messages | `/messages`, `/messages/:type/:id` | Room/group/direct history, conversation lists, message edit and soft-delete |
+| Cups | `/cups`, `/cups/new`, `/cups/:cupId` | Entries and rosters, knockout brackets and race results with revision checks |
+| Notifications | Header bell and `/notifications` | Per-user notices and read state with realtime refresh |
 
-Membership routes handle requests, consent, slots, readiness, attendance and ratings with action-specific permissions. Rooms open on creation and start/finish automatically. WebSockets deliver room and message updates.
+Rooms open on creation and start/finish through the backend lifecycle tasks. The API enforces consent, admission, privacy and action-specific permissions; the interface displays errors for stale revisions and invalid changes. API timestamps are UTC and the frontend presents Bahrain time.
 
-[Route map](assets/diagrams/endpoints.svg) · [Methods and permissions](assets/interfaces.json)
+The [route map](assets/diagrams/endpoints.svg) is a planning asset and may predate current routes or permissions.
 
 ## Component hierarchy
 
-Shared account/live providers support room pages, friends, groups, messaging, cups and external news.
+Shared account/session helpers and the WebSocket service support room pages, friends, groups, messaging, cups and notifications. This planning diagram is an overview; `src/App.jsx` and `src/services/` describe the current implementation.
 
 ![Compact React component hierarchy](assets/previews/component-hierarchy.png)
 
 [Editable hierarchy](assets/diagrams/component-hierarchy.svg)
+
+## Current limits
+
+External sports news and administrative user roles are not implemented. The application is English-first; Arabic, browser push, calendar export, waiting lists and automatic slot assignment remain future work. Socket events are not a durable event log, so reconnecting clients refetch REST data. The ERD, route map and other planning assets are retained for project context and may show earlier designs; current backend models and API documentation take precedence.
