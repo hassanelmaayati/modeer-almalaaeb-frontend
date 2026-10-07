@@ -32,6 +32,11 @@ export function formatActivityWeekday(value) {
   return formatDate(value, { weekday: 'long' }, '');
 }
 
+/** A full date with the year, for things that can be years old (e.g. "Member since"). */
+export function formatLongDate(value) {
+  return formatDate(value, { day: 'numeric', month: 'long', year: 'numeric' }, 'Date unavailable');
+}
+
 export function formatActivityTime(value) {
   return formatDate(value, { hour: '2-digit', minute: '2-digit', hour12: false }, 'Time unavailable');
 }

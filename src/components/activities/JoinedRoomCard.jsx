@@ -9,7 +9,8 @@ const INACTIVE_MEMBERSHIP = ['declined', 'removed', 'left'];
 export default function JoinedRoomCard({ room, sportName }) {
   const { membership } = room;
   const muted = ENDED_ROOM.includes(room.status) || INACTIVE_MEMBERSHIP.includes(membership.status);
-  const places = room.status === 'open'
+  // slots_left is optional in the API, so only quote it when it is there.
+  const places = room.status === 'open' && room.slots_left != null
     ? `${room.slots_left} of ${room.capacity} places left`
     : `${room.capacity} places`;
 
