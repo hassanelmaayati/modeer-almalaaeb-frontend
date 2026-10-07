@@ -40,10 +40,7 @@ export default function SettingsPage({ session }) {
             <h2 id="settings-title">Settings</h2>
             <p className="home-subtitle">Update how other players see you and manage how you sign in.</p>
             <div className="account-grid">
-              <section className="account-card" aria-labelledby="settings-profile-title">
-                <h3 id="settings-profile-title">Edit profile</h3>
-                <ProfileForm user={me.data} onSubmit={saveProfile} />
-              </section>
+              <ProfileForm user={me.data} onSubmit={saveProfile} />
               <GoogleLinkControls me={me.data} onLink={linkGoogle} />
             </div>
           </section>

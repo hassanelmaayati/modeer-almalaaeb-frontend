@@ -16,6 +16,7 @@ import './home.css';
 import './users.css';
 import './cups.css';
 import './ui.css';
+import './theme.css';
 
 // Route pages load on demand so the first visit doesn't download every page (and leaflet maps) up front.
 const SignInPage = lazy(() => import('./pages/SignInPage'));

@@ -22,25 +22,27 @@ export default function KnockoutBracket({ fixtures, entries, canRecord, onRecord
   return <div className="bracket">
     {rounds.map(round => <section key={round} className="bracket-round">
       <h3>{roundName(round, lastRound)}</h3>
-      {fixtures.filter(fixture => fixture.round === round).sort((a, b) => a.match - b.match).map(fixture => {
+      <div className="bracket-matches">{fixtures.filter(fixture => fixture.round === round).sort((a, b) => a.match - b.match).map(fixture => {
         const played = fixture.home_score != null && fixture.away_score != null;
         const ready = fixture.home_group_id != null && fixture.away_group_id != null;
-        return <article key={fixture.id} className="fixture">
+        return <div key={fixture.id} className="bracket-slot"><article className="fixture">
           {[['home', fixture.home_group_id, fixture.home_score], ['away', fixture.away_group_id, fixture.away_score]].map(([side, groupId, score]) =>
             <p key={side} className={played && fixture.winner_group_id === groupId ? 'fixture-winner' : undefined}>
               <span>{name(groupId)}</span>{played && <strong>{score}</strong>}
             </p>)}
           {/* Recorded results are final in this UI; only unplayed fixtures with both teams get controls. */}
           {!played && ready && canRecord && <FixtureResultControls fixture={fixture} homeName={name(fixture.home_group_id)} awayName={name(fixture.away_group_id)} onRecord={onRecord} />}
-        </article>;
-      })}
+        </article></div>;
+      })}</div>
     </section>)}
     <section className="bracket-round bracket-champion">
       <h3>Champion</h3>
-      <div className={`champion-card${champion ? ' has-champion' : ''}`}>
-        <TrophyArt size={64} />
-        <strong>{champion || 'To be decided'}</strong>
-      </div>
+      <div className="bracket-matches"><div className="bracket-slot">
+        <div className={`champion-card${champion ? ' has-champion' : ''}`}>
+          <TrophyArt size={64} />
+          <strong>{champion || 'To be decided'}</strong>
+        </div>
+      </div></div>
     </section>
   </div>;
 }
