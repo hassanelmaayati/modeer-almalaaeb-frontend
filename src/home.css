@@ -473,7 +473,6 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .messages-scope .message-time { margin-top: .15rem; font-size: .68rem; color: var(--muted-foreground); }
 .messages-scope .message.is-own .message-time { color: var(--chat-own-fg); }
 .messages-scope .message-system { align-self: center; max-width: 85%; padding: .3rem .9rem; border: 1px dashed var(--border); border-radius: 1rem; background: var(--card); box-shadow: none; color: var(--muted-ink); font-style: normal; font-size: .85rem; }
-.messages-scope .message.is-pending { opacity: .8; }
 .messages-scope .message.is-failed { background: var(--error-bg); border-color: var(--error-border); color: var(--error-fg); }
 .messages-scope .message.is-failed .message-time { color: var(--error-fg); }
 .messages-scope .chat-banner { margin: 0; padding: .55rem 1.2rem; border-bottom: 1px solid var(--warning-border); background: var(--warning-bg); color: var(--warning-fg); }
@@ -665,8 +664,6 @@ main.home { max-width: none; width: 100%; padding: 0; margin: 0; }
 .rooms-scope .room-card-started { border-top-color: var(--info-border); }
 .rooms-scope .room-card-membership-pending { border-top-color: var(--warning-border); }
 .rooms-scope .room-card-cancelled, .rooms-scope .room-card-membership-declined, .rooms-scope .room-card-membership-removed { border-top-color: var(--error-border); }
-.rooms-scope .room-card.is-muted { opacity: .72; }
-.rooms-scope .room-card.is-muted:hover { opacity: 1; }
 .room-card-top { display: flex; align-items: center; gap: .7rem; }
 .room-card-sport { display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 50%; background: var(--surface-raised); color: var(--foreground); flex-shrink: 0; }
 .rooms-scope .room-card .room-card-kicker { flex: 1; min-width: 0; margin: 0; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-ink); }

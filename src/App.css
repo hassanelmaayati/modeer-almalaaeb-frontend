@@ -5,7 +5,6 @@
 .dialog-header { justify-content: space-between; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
 .panel, .activity-card, .room-card, .group-card { padding: .75rem; border: 1px solid var(--border); margin-bottom: 1rem; }
-.room-card.is-muted { opacity: .65; }
 .form-field { margin-bottom: .75rem; }
 .form-field input, .form-field textarea, .form-field select { width: 100%; }
 .form-stack { max-width: 35rem; }
@@ -73,7 +72,6 @@
 .chat-compose-actions { display: flex; justify-content: space-between; align-items: center; }
 .chat-counter { font-size: .8rem; }
 .chat-counter.is-over { color: var(--error-border); font-weight: bold; }
-.message.is-pending { opacity: .75; }
 .message.is-failed { border-color: var(--error-border); }
 .chat-banner { margin: 0; padding: .5rem .75rem; background: var(--error-bg); border-bottom: 1px solid var(--error-border); color: var(--error-fg); }
 .unread-badge { margin-left: auto; flex-shrink: 0; min-width: 1.4rem; padding: 0 .4rem; border-radius: 1rem; background: var(--primary); color: var(--on-primary); font-size: .8rem; font-weight: bold; text-align: center; line-height: 1.4rem; }
